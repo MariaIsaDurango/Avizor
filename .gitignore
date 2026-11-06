@@ -1,0 +1,64 @@
+# ---------- Secretos (NUNCA al repo) ----------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.keystore
+*.jks
+google-services.json
+GoogleService-Info.plist
+service-account*.json
+
+# ---------- Python ----------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.ipynb_checkpoints/
+
+# ---------- Datos y modelos (pesados o sensibles) ----------
+ml/data/raw/*
+ml/data/processed/*
+!ml/data/**/.gitkeep
+ml/models/*
+!ml/models/.gitkeep
+*.pt
+*.bin
+*.safetensors
+*.onnx
+*.joblib
+*.pkl
+rag/chroma_db/
+chroma_db/
+
+# ---------- Mobile ----------
+node_modules/
+.expo/
+dist/
+web-build/
+mobile/android/app/build/
+mobile/android/.gradle/
+mobile/ios/Pods/
+.dart_tool/
+build/
+*.apk
+*.aab
+
+# ---------- Docker ----------
+pgdata/
+
+# ---------- Sistema / IDE ----------
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.log
