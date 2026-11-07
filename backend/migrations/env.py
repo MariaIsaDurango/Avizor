@@ -7,6 +7,9 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import create_engine, pool
 
+# ES: Importar app.models registra las 11 tablas en Base.metadata.
+# EN: Importing app.models registers the 11 tables in Base.metadata.
+import app.models  # noqa: F401
 from app.core.config import settings
 from app.db.base import Base
 
