@@ -157,3 +157,59 @@ def test_has_active_consent_checks_scope(
 
 def test_no_consent_means_not_active(db_session, paired_senior):
     assert not has_active_consent(db_session, paired_senior.user.id, Channel.SMS)
+
+
+# ---------- Revocar / Revoke ----------
+
+
+def revoke(api_client, consent_id, headers):
+    return api_client.post(f"{CONSENTS}/{consent_id}/revoke", headers=headers)
+
+
+@pytest.fixture
+def given_consent(api_client, paired_senior):
+    response = api_client.post(
+        CONSENTS,
+        json=self_consent(paired_senior.user.id),
+        headers=paired_senior.headers,
+    )
+    return response.json()
+
+
+def test_senior_revokes_own_consent(
+    api_client, db_session, paired_senior, given_consent
+):
+    response = revoke(api_client, given_consent["id"], paired_senior.headers)
+    assert response.status_code == 200
+    assert response.json()["revoked_at"] is not None
+    assert not has_active_consent(db_session, paired_senior.user.id, Channel.SMS)
+
+
+def test_revoke_twice_keeps_first_date(api_client, paired_senior, given_consent):
+    first = revoke(api_client, given_consent["id"], paired_senior.headers).json()
+    second = revoke(api_client, given_consent["id"], paired_senior.headers).json()
+    assert first["revoked_at"] == second["revoked_at"]
+
+
+def test_guardian_cannot_revoke_senior_self_consent(
+    api_client, guardian_headers, given_consent
+):
+    response = revoke(api_client, given_consent["id"], guardian_headers)
+    assert response.status_code == 404
+
+
+def test_paired_guardian_revokes_guardianship(
+    api_client, paired_senior, guardian, guardian_headers
+):
+    created = api_client.post(
+        CONSENTS,
+        json=guardianship(paired_senior.user.id, guardian.id),
+        headers=guardian_headers,
+    ).json()
+    response = revoke(api_client, created["id"], guardian_headers)
+    assert response.status_code == 200
+
+
+def test_revoke_unknown_consent(api_client, paired_senior):
+    response = revoke(api_client, uuid.uuid4(), paired_senior.headers)
+    assert response.status_code == 404

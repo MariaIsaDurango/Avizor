@@ -87,3 +87,37 @@ def has_active_consent(db: Session, senior_id: uuid.UUID, channel: Channel) -> b
         )
         is not None
     )
+
+
+def revoke_consent(
+    db: Session, token: TokenPayload, consent_id: uuid.UUID
+) -> ConsentRead:
+    """ES: RGPD: el consentimiento se puede retirar en cualquier momento.
+    Lo retira quien pudo darlo: el Sénior (self) o un Tutor vinculado (tutela).
+    EN: GDPR: consent can be withdrawn at any time.
+    Whoever could grant it can revoke it: the senior (self) or a paired guardian.
+    """
+    consent = db.get(Consent, consent_id)
+    # ES: 404 también si no tiene permiso: no revela que existe.
+    # EN: 404 also when not allowed: does not reveal that it exists.
+    not_found = ApiError(404, ErrorCode.NOT_FOUND, "Consentimiento no encontrado.")
+    if consent is None:
+        raise not_found
+
+    if consent.type == ConsentType.SELF:
+        allowed = (
+            token.role == UserRole.SENIOR
+            and senior_id_from_device(db, token.sub) == consent.senior_id
+        )
+    else:
+        allowed = token.role == UserRole.GUARDIAN and is_paired(
+            db, token.sub, consent.senior_id
+        )
+    if not allowed:
+        raise not_found
+
+    # ES: Revocar dos veces no cambia la fecha. EN: Revoking twice keeps the date.
+    if consent.revoked_at is None:
+        consent.revoked_at = datetime.now(UTC)
+        db.commit()
+    return ConsentRead.model_validate(consent, from_attributes=True)
