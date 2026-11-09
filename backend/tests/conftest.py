@@ -122,3 +122,27 @@ def paired_senior(db_session, guardian):
     return SimpleNamespace(
         user=senior, device=device, headers={"Authorization": f"Bearer {token}"}
     )
+
+
+@pytest.fixture
+def consented_senior(db_session, paired_senior):
+    """ES: Sénior vinculado que ya ha dado su consentimiento (todos los canales).
+    EN: Paired senior who has already given consent (all channels).
+    """
+    from datetime import UTC, datetime
+
+    from app.models.user import Consent
+    from app.schemas.enums import Channel, ConsentType
+
+    db_session.add(
+        Consent(
+            senior_id=paired_senior.user.id,
+            type=ConsentType.SELF,
+            scope=[Channel.SMS, Channel.NOTIFICATION, Channel.SCREEN, Channel.CALL],
+            text_version="accessibility-notice-2026-11",
+            granted_by=paired_senior.user.id,
+            granted_at=datetime.now(UTC),
+        )
+    )
+    db_session.flush()
+    return paired_senior

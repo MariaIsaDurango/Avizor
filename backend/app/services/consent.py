@@ -14,7 +14,7 @@ EN: Rules:
 import uuid
 from datetime import UTC, datetime
 
-from sqlalchemy import select
+from sqlalchemy import any_, select
 from sqlalchemy.orm import Session
 
 from app.core.errors import ApiError
@@ -82,7 +82,7 @@ def has_active_consent(db: Session, senior_id: uuid.UUID, channel: Channel) -> b
             select(Consent.id).where(
                 Consent.senior_id == senior_id,
                 Consent.revoked_at.is_(None),
-                Consent.scope.any(channel),
+                channel == any_(Consent.scope),
             )
         )
         is not None
