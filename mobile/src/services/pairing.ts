@@ -1,5 +1,6 @@
 import { Platform } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
+import Constants from 'expo-constants';
 import { apiFetch, saveToken } from './api';
 import { STORAGE_KEYS } from '../constants/storage';
 
@@ -23,7 +24,7 @@ export async function redeemPairing(code: string): Promise<void> {
       code,
       device: {
         platform: Platform.OS as 'ios' | 'android',
-        app_version: '1.0.0',
+        app_version: Constants.expoConfig?.version ?? '1.0.0',
         push_token: null,
       },
     }),
