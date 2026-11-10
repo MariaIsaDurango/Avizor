@@ -1,9 +1,27 @@
+import asyncio
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1.router import api_router
 from app.core.config import settings
 from app.core.errors import register_error_handlers
+from app.jobs.purge import purge_loop
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """ES: Arranca la limpieza periódica (RGPD) al iniciar la API.
+    EN: Starts the periodic purge (GDPR) when the API starts.
+    """
+    task = None
+    if settings.RETENTION_PURGE_MINUTES > 0:
+        task = asyncio.create_task(purge_loop(settings.RETENTION_PURGE_MINUTES))
+    yield
+    if task:
+        task.cancel()
+
 
 app = FastAPI(
     title="Avizor API",
@@ -11,6 +29,7 @@ app = FastAPI(
     docs_url="/api/v1/docs",
     redoc_url="/api/v1/redoc",
     openapi_url="/api/v1/openapi.json",
+    lifespan=lifespan,
 )
 
 # ES: Usamos JWT Bearer (no cookies): sin credenciales y sin "*" con credenciales.
