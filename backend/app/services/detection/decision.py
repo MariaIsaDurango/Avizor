@@ -7,7 +7,7 @@ EN: Combines classifier + link signals + reputation. No LLM or RAG.
     The senior's screen text is ALWAYS a fixed template.
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 from app.schemas.enums import (
     Action,
@@ -168,7 +168,7 @@ def decide(
 ) -> FastDecision:
     if input_type == InputType.PHONE_NUMBER:
         return decide_phone(origin, sender_reports)
-    return decide_message(
+    decision = decide_message(
         text=text,
         urls=urls,
         channel=channel,
@@ -176,3 +176,10 @@ def decide(
         sender_reports=sender_reports,
         domain_reports=domain_reports,
     )
+    # ES: En un reenvío manual el Sénior espera una respuesta: siempre plantilla.
+    #     Sin señales de riesgo no decimos "es seguro", sino "consulta a tu familiar".
+    # EN: In a manual forward the senior expects an answer: always a template.
+    #     With no risk signals we do not say "safe", but "ask your family".
+    if origin == Origin.MANUAL and decision.block_template is None:
+        return replace(decision, block_template=BlockTemplate.UNSURE_CALL_FAMILY)
+    return decision
