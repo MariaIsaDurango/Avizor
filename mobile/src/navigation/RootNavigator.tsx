@@ -33,7 +33,7 @@ export default function RootNavigator({ initialMode }: RootNavigatorProps) {
       <Stack.Screen name="SeniorConsent" component={SeniorConsentScreen} options={{ title: 'Antes de continuar' }} />
       <Stack.Screen name="TutorLogin" component={TutorLoginScreen} />
       <Stack.Screen name="TutorRegister" component={TutorRegisterScreen} />
-      <Stack.Screen name="TutorPairing" component={TutorPairingScreen} />
+      <Stack.Screen name="TutorPairing" component={TutorPairingScreen} options={{ title: 'Vincular dispositivo' }} />
       <Stack.Screen name="TutorDashboard" component={TutorDashboardScreen} options={{ headerShown: false }} />
       <Stack.Screen name="TutorLogout" component={LogoutScreen} options={{ title: 'Cerrar sesión' }} />
       <Stack.Screen name="AlertDetail" component={AlertDetailScreen} />

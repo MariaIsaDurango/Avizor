@@ -14,6 +14,10 @@ export default function TutorDashboardScreen({ navigation }: Props) {
       <Text style={styles.title}>Panel de control</Text>
       <View style={styles.footer}>
         <Button
+          label="Vincular dispositivo Sénior"
+          onPress={() => navigation.navigate('TutorPairing')}
+        />
+        <Button
           label="Cerrar sesión"
           variant="alert"
           onPress={() => navigation.navigate('TutorLogout')}
