@@ -1,9 +1,13 @@
+import pathlib
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from app.api.v1.router import api_router
 from app.core.config import settings
 from app.core.errors import register_error_handlers
+from app.web.router import web_router
 
 app = FastAPI(
     title="Avizor API",
@@ -25,8 +29,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+_STATIC_DIR = pathlib.Path(__file__).parent / "web" / "static"
+app.mount("/static", StaticFiles(directory=str(_STATIC_DIR)), name="web_static")
+
 register_error_handlers(app)
 app.include_router(api_router)
+app.include_router(web_router)
 
 
 @app.middleware("http")
