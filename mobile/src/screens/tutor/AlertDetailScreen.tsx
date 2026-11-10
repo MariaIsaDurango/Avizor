@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -64,6 +64,15 @@ export default function AlertDetailScreen({ route, navigation }: Props) {
       setLoading(false);
     }
   }
+
+  useEffect(() => {
+    if (alert.status === 'new') {
+      updateAlert(alert.id, 'seen')
+        .then(setAlert)
+        .catch(() => {});
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const isResolved = alert.status === 'confirmed_fraud' || alert.status === 'false_positive';
 
