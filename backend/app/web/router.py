@@ -1,11 +1,10 @@
+import pathlib
 from datetime import date
 
 from fastapi import APIRouter
 from fastapi.requests import Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-
-import pathlib
 
 TEMPLATES_DIR = pathlib.Path(__file__).parent / "templates"
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
