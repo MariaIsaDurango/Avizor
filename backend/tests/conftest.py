@@ -57,3 +57,92 @@ def api_client(db_session):
     app.dependency_overrides[get_db] = lambda: db_session
     yield TestClient(app)
     app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def guardian(db_session):
+    """ES: Tutor de prueba guardado en la BD (datos inventados).
+    EN: Test guardian stored in the DB (fake data).
+    """
+    from app.core.security import hash_password
+    from app.models.user import User
+    from app.schemas.enums import UserRole
+
+    user = User(
+        role=UserRole.GUARDIAN,
+        display_name="Lucía",
+        email="lucia.tutora@example.com",
+        password_hash=hash_password("contraseña-larga-1"),
+    )
+    db_session.add(user)
+    db_session.flush()
+    return user
+
+
+@pytest.fixture
+def guardian_headers(guardian):
+    """ES: Cabecera Authorization del Tutor de prueba.
+    EN: Authorization header of the test guardian.
+    """
+    from app.core.security import create_access_token
+    from app.schemas.enums import UserRole
+
+    token = create_access_token(guardian.id, UserRole.GUARDIAN)
+    return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture
+def paired_senior(db_session, guardian):
+    """ES: Sénior ya vinculado al Tutor de prueba, con su dispositivo y token.
+    EN: Senior already paired with the test guardian, with device and token.
+    """
+    from datetime import UTC, datetime, timedelta
+    from types import SimpleNamespace
+
+    from app.core.security import create_access_token
+    from app.models.user import Device, Pairing, User
+    from app.schemas.enums import UserRole
+
+    now = datetime.now(UTC)
+    senior = User(role=UserRole.SENIOR, display_name="Carmen")
+    db_session.add(senior)
+    db_session.flush()
+    device = Device(user_id=senior.id, platform="android", app_version="0.4.0")
+    pairing = Pairing(
+        guardian_id=guardian.id,
+        senior_id=senior.id,
+        code="123456",
+        senior_display_name="Carmen",
+        expires_at=now + timedelta(minutes=10),
+        redeemed_at=now,
+    )
+    db_session.add_all([device, pairing])
+    db_session.flush()
+    token = create_access_token(device.id, UserRole.SENIOR)
+    return SimpleNamespace(
+        user=senior, device=device, headers={"Authorization": f"Bearer {token}"}
+    )
+
+
+@pytest.fixture
+def consented_senior(db_session, paired_senior):
+    """ES: Sénior vinculado que ya ha dado su consentimiento (todos los canales).
+    EN: Paired senior who has already given consent (all channels).
+    """
+    from datetime import UTC, datetime
+
+    from app.models.user import Consent
+    from app.schemas.enums import Channel, ConsentType
+
+    db_session.add(
+        Consent(
+            senior_id=paired_senior.user.id,
+            type=ConsentType.SELF,
+            scope=[Channel.SMS, Channel.NOTIFICATION, Channel.SCREEN, Channel.CALL],
+            text_version="accessibility-notice-2026-11",
+            granted_by=paired_senior.user.id,
+            granted_at=datetime.now(UTC),
+        )
+    )
+    db_session.flush()
+    return paired_senior

@@ -19,6 +19,10 @@ class Settings(BaseSettings):
     # EN: At least 32 characters (openssl rand -hex 32 generates 64).
     JWT_SECRET: str = Field(min_length=32)
     JWT_EXPIRE_MINUTES: int = 60
+    # ES: El móvil del Sénior no inicia sesión: su token dura más.
+    # EN: The senior's phone never logs in: its token lasts longer.
+    DEVICE_TOKEN_EXPIRE_DAYS: int = 180
+    PAIRING_CODE_EXPIRE_MINUTES: int = 10
     PHONE_HMAC_KEY: str = Field(min_length=32)
 
 
