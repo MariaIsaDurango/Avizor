@@ -89,3 +89,36 @@ def guardian_headers(guardian):
 
     token = create_access_token(guardian.id, UserRole.GUARDIAN)
     return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture
+def paired_senior(db_session, guardian):
+    """ES: Sénior ya vinculado al Tutor de prueba, con su dispositivo y token.
+    EN: Senior already paired with the test guardian, with device and token.
+    """
+    from datetime import UTC, datetime, timedelta
+    from types import SimpleNamespace
+
+    from app.core.security import create_access_token
+    from app.models.user import Device, Pairing, User
+    from app.schemas.enums import UserRole
+
+    now = datetime.now(UTC)
+    senior = User(role=UserRole.SENIOR, display_name="Carmen")
+    db_session.add(senior)
+    db_session.flush()
+    device = Device(user_id=senior.id, platform="android", app_version="0.4.0")
+    pairing = Pairing(
+        guardian_id=guardian.id,
+        senior_id=senior.id,
+        code="123456",
+        senior_display_name="Carmen",
+        expires_at=now + timedelta(minutes=10),
+        redeemed_at=now,
+    )
+    db_session.add_all([device, pairing])
+    db_session.flush()
+    token = create_access_token(device.id, UserRole.SENIOR)
+    return SimpleNamespace(
+        user=senior, device=device, headers={"Authorization": f"Bearer {token}"}
+    )

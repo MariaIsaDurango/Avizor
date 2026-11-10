@@ -39,3 +39,12 @@ class Consent(ContractModel):
         if self.type == ConsentType.LEGAL_GUARDIANSHIP and self.evidence is None:
             raise ValueError("evidence is required for legal_guardianship")
         return self
+
+
+class ConsentRead(Consent):
+    """ES: Respuesta 201: el consentimiento guardado con su id.
+    EN: 201 response: the stored consent with its id.
+    """
+
+    id: UUID
+    revoked_at: AwareDatetime | None = None
