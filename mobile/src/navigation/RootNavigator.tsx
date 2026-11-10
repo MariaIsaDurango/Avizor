@@ -7,6 +7,7 @@ import TutorLoginScreen from '../screens/auth/TutorLoginScreen';
 import TutorRegisterScreen from '../screens/auth/TutorRegisterScreen';
 import TutorPairingScreen from '../screens/tutor/PairingScreen';
 import TutorDashboardScreen from '../screens/tutor/DashboardScreen';
+import LogoutScreen from '../screens/tutor/LogoutScreen';
 import AlertDetailScreen from '../screens/tutor/AlertDetailScreen';
 import SeniorHomeScreen from '../screens/senior/HomeScreen';
 
@@ -34,6 +35,7 @@ export default function RootNavigator({ initialMode }: RootNavigatorProps) {
       <Stack.Screen name="TutorRegister" component={TutorRegisterScreen} />
       <Stack.Screen name="TutorPairing" component={TutorPairingScreen} />
       <Stack.Screen name="TutorDashboard" component={TutorDashboardScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="TutorLogout" component={LogoutScreen} options={{ title: 'Cerrar sesión' }} />
       <Stack.Screen name="AlertDetail" component={AlertDetailScreen} />
       <Stack.Screen name="SeniorHome" component={SeniorHomeScreen} options={{ headerShown: false }} />
     </Stack.Navigator>
