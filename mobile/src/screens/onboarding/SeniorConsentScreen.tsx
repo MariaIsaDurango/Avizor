@@ -14,7 +14,7 @@ export default function SeniorConsentScreen({ navigation }: Props) {
   async function handleAccept() {
     await SecureStore.setItemAsync(STORAGE_KEYS.USER_MODE, 'senior');
     await SecureStore.setItemAsync('consent_text_version', CONSENT_TEXT_VERSION);
-    navigation.reset({ index: 0, routes: [{ name: 'SeniorHome' }] });
+    navigation.reset({ index: 0, routes: [{ name: 'SeniorPairing' }] });
   }
 
   return (

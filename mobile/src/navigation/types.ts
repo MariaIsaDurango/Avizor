@@ -1,4 +1,5 @@
 import { Alert } from '../services/alerts';
+import { BlockTemplate } from '../services/analyses';
 
 export type RootStackParamList = {
   Welcome: undefined;
@@ -10,5 +11,7 @@ export type RootStackParamList = {
   TutorDashboard: undefined;
   TutorLogout: undefined;
   AlertDetail: { alert: Alert };
+  SeniorPairing: undefined;
   SeniorHome: undefined;
+  SeniorBlock: { template: BlockTemplate };
 };
