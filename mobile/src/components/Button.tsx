@@ -42,6 +42,7 @@ export default function Button({
       disabled={disabled}
       accessibilityRole="button"
       accessibilityLabel={label}
+      accessibilityState={{ disabled }}
       style={({ pressed }) => [
         styles.base,
         variant === 'primary' && styles.primary,

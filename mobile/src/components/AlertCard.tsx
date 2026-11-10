@@ -18,6 +18,12 @@ const RISK_COLORS: Record<RiskLevel, string> = {
   red: colors.alert,
 };
 
+const RISK_LABELS: Record<RiskLevel, string> = {
+  green: 'seguro',
+  amber: 'sospechoso',
+  red: 'peligro',
+};
+
 export default function AlertCard({ icon, title, description, riskLevel }: AlertCardProps) {
   const accentColor = RISK_COLORS[riskLevel];
 
@@ -25,7 +31,7 @@ export default function AlertCard({ icon, title, description, riskLevel }: Alert
     <View
       style={[styles.card, { borderLeftColor: accentColor }]}
       accessible
-      accessibilityLabel={`Alerta ${riskLevel}: ${title}. ${description}`}
+      accessibilityLabel={`Alerta ${RISK_LABELS[riskLevel]}: ${title}. ${description}`}
     >
       <MaterialIcons name={icon} size={28} color={accentColor} style={styles.icon} />
       <View style={styles.content}>
