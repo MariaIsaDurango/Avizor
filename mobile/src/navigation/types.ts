@@ -1,3 +1,5 @@
+import { Alert } from '../services/alerts';
+
 export type RootStackParamList = {
   Welcome: undefined;
   ModeSelection: undefined;
@@ -7,6 +9,6 @@ export type RootStackParamList = {
   TutorPairing: undefined;
   TutorDashboard: undefined;
   TutorLogout: undefined;
-  AlertDetail: { alertId: string };
+  AlertDetail: { alert: Alert };
   SeniorHome: undefined;
 };

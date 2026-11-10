@@ -87,7 +87,7 @@ export default function TutorDashboardScreen({ navigation }: Props) {
             contentContainerStyle={styles.list}
             renderItem={({ item }) => (
               <Pressable
-                onPress={() => navigation.navigate('AlertDetail', { alertId: item.id })}
+                onPress={() => navigation.navigate('AlertDetail', { alert: item })}
                 accessibilityRole="button"
                 accessibilityLabel={`Alerta de ${item.senior_name}: ${item.summary}`}
               >

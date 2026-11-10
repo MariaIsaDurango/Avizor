@@ -22,6 +22,7 @@ export interface Alert {
   threat_type: ThreatType;
   channel: Channel;
   summary: string;
+  explanation: string;
   status: AlertStatus;
   created_at: string;
 }
@@ -32,10 +33,24 @@ export interface AlertPage {
 }
 
 export async function getAlerts(cursor?: string): Promise<AlertPage> {
-  const url = cursor ? `/api/v1/alerts?cursor=${cursor}` : '/api/v1/alerts';
+  const url = cursor
+    ? `/api/v1/alerts?cursor=${encodeURIComponent(cursor)}`
+    : '/api/v1/alerts';
   const response = await apiFetch(url);
   if (!response.ok) {
     throw new Error('Error al cargar las alertas.');
+  }
+  return response.json();
+}
+
+export async function updateAlert(alertId: string, status: Exclude<AlertStatus, 'new'>): Promise<Alert> {
+  const response = await apiFetch(`/api/v1/alerts/${alertId}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status }),
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail ?? 'Error al actualizar la alerta.');
   }
   return response.json();
 }
