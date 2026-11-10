@@ -6,31 +6,26 @@ import {
   Pressable,
   StyleSheet,
   ActivityIndicator,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 import { MaterialIcons } from '@expo/vector-icons';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Screen from '../../components/Screen';
 import Button from '../../components/Button';
 import BigText from '../../components/BigText';
 import { colors } from '../../constants/colors';
 import { fontSize, fontWeight } from '../../constants/typography';
 import { STORAGE_KEYS } from '../../constants/storage';
-import { submitAnalysis, InputType, Verdict, BlockTemplate } from '../../services/analyses';
+import { submitAnalysis, InputType, Verdict } from '../../services/analyses';
+import { RootStackParamList } from '../../navigation/types';
 
 const TABS: { key: InputType; label: string }[] = [
   { key: 'text', label: 'Texto' },
   { key: 'url', label: 'Enlace' },
   { key: 'phone_number', label: 'Teléfono' },
 ];
-
-const BLOCK_TEMPLATE_MESSAGES: Record<BlockTemplate, string> = {
-  FAKE_DO_NOT_TOUCH: 'No lo toques',
-  DANGEROUS_LINK: 'Enlace peligroso',
-  SUSPICIOUS_CALL: 'Llamada sospechosa',
-  ASKS_BANK_DETAILS: 'Pide datos bancarios',
-  LOOKS_SAFE: 'Parece seguro',
-  UNSURE_CALL_FAMILY: 'Consulta con un familiar',
-};
 
 const RISK_ICONS: Record<string, keyof typeof MaterialIcons.glyphMap> = {
   green: 'check-circle',
@@ -57,11 +52,12 @@ const RISK_MESSAGES: Record<string, string> = {
 };
 
 function verdictMessage(verdict: Verdict): string {
-  if (verdict.block_template) return BLOCK_TEMPLATE_MESSAGES[verdict.block_template];
   return RISK_MESSAGES[verdict.risk_level];
 }
 
-export default function SeniorHomeScreen() {
+type Props = NativeStackScreenProps<RootStackParamList, 'SeniorHome'>;
+
+export default function SeniorHomeScreen({ navigation }: Props) {
   const [inputType, setInputType] = useState<InputType>('text');
   const [value, setValue] = useState('');
   const [loading, setLoading] = useState(false);
@@ -96,7 +92,12 @@ export default function SeniorHomeScreen() {
     setVerdict(null);
     try {
       const result = await submitAnalysis(deviceId, inputType, value.trim());
-      setVerdict(result);
+      if (result.block_template) {
+        handleReset();
+        navigation.navigate('SeniorBlock', { template: result.block_template });
+      } else {
+        setVerdict(result);
+      }
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Error al analizar el contenido.');
     } finally {
@@ -134,84 +135,91 @@ export default function SeniorHomeScreen() {
 
   return (
     <Screen style={styles.screen}>
-      <View style={styles.top}>
-        <BigText style={styles.title}>Avizor</BigText>
-        <Text style={styles.subtitle}>¿Has recibido algo sospechoso?</Text>
-      </View>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <View style={styles.inner}>
+          <View style={styles.top}>
+            <BigText style={styles.title}>Avizor</BigText>
+            <Text style={styles.subtitle}>¿Has recibido algo sospechoso?</Text>
+          </View>
 
-      <View style={styles.middle}>
-        <View style={styles.tabs} accessibilityRole="tablist">
-          {TABS.map((tab) => (
-            <Pressable
-              key={tab.key}
-              onPress={() => handleTabChange(tab.key)}
-              accessibilityRole="tab"
-              accessibilityState={{ selected: inputType === tab.key }}
-              style={[styles.tab, inputType === tab.key && styles.tabActive]}
-            >
-              <Text style={[styles.tabLabel, inputType === tab.key && styles.tabLabelActive]}>
-                {tab.label}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
+          <View style={styles.middle}>
+            <View style={styles.tabs} accessibilityRole="tablist">
+              {TABS.map((tab) => (
+                <Pressable
+                  key={tab.key}
+                  onPress={() => handleTabChange(tab.key)}
+                  accessibilityRole="tab"
+                  accessibilityState={{ selected: inputType === tab.key }}
+                  style={[styles.tab, inputType === tab.key && styles.tabActive]}
+                >
+                  <Text style={[styles.tabLabel, inputType === tab.key && styles.tabLabelActive]}>
+                    {tab.label}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
 
-        <TextInput
-          style={[styles.input, inputType === 'text' && styles.inputMultiline]}
-          placeholder={
-            inputType === 'text'
-              ? 'Pega aquí el mensaje sospechoso'
-              : inputType === 'url'
-              ? 'Pega aquí el enlace sospechoso'
-              : 'Número en formato +34 600 000 000'
-          }
-          placeholderTextColor={colors.primary}
-          value={value}
-          onChangeText={(v) => { setValue(v); setError(null); }}
-          multiline={inputType === 'text'}
-          numberOfLines={inputType === 'text' ? 5 : 1}
-          keyboardType={inputType === 'phone_number' ? 'phone-pad' : 'default'}
-          autoCapitalize="none"
-          autoCorrect={false}
-          accessibilityLabel={
-            inputType === 'text'
-              ? 'Campo de texto del mensaje'
-              : inputType === 'url'
-              ? 'Campo del enlace'
-              : 'Campo del número de teléfono'
-          }
-        />
-
-        {inputType !== 'phone_number' && (
-          <Text style={styles.disclaimer}>
-            No incluyas tu nombre, DNI, número de cuenta ni otros datos personales.
-          </Text>
-        )}
-
-        {error !== null && <Text style={styles.error}>{error}</Text>}
-      </View>
-
-      <View style={styles.footer}>
-        {loading
-          ? <ActivityIndicator size="large" color={colors.primary} />
-          : (
-            <Button
-              label="Analizar"
-              variant="action"
-              disabled={!value.trim()}
-              onPress={handleAnalyze}
+            <TextInput
+              style={[styles.input, inputType === 'text' && styles.inputMultiline]}
+              placeholder={
+                inputType === 'text'
+                  ? 'Pega aquí el mensaje sospechoso'
+                  : inputType === 'url'
+                  ? 'Pega aquí el enlace sospechoso'
+                  : 'Número en formato +34 600 000 000'
+              }
+              placeholderTextColor={colors.primary}
+              value={value}
+              onChangeText={(v) => { setValue(v); setError(null); }}
+              multiline={inputType === 'text'}
+              numberOfLines={inputType === 'text' ? 5 : 1}
+              keyboardType={inputType === 'phone_number' ? 'phone-pad' : 'default'}
+              autoCapitalize="none"
+              autoCorrect={false}
+              accessibilityLabel={
+                inputType === 'text'
+                  ? 'Campo de texto del mensaje'
+                  : inputType === 'url'
+                  ? 'Campo del enlace'
+                  : 'Campo del número de teléfono'
+              }
             />
-          )
-        }
-      </View>
+
+            {inputType !== 'phone_number' && (
+              <Text style={styles.disclaimer}>
+                No incluyas tu nombre, DNI, número de cuenta ni otros datos personales.
+              </Text>
+            )}
+
+            {error !== null && <Text style={styles.error}>{error}</Text>}
+          </View>
+
+          <View style={styles.footer}>
+            {loading
+              ? <ActivityIndicator size="large" color={colors.primary} />
+              : (
+                <Button
+                  label="Analizar"
+                  variant="action"
+                  disabled={!value.trim()}
+                  onPress={handleAnalyze}
+                />
+              )
+            }
+          </View>
+        </View>
+      </TouchableWithoutFeedback>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
   screen: {
-    justifyContent: 'space-between',
     paddingBottom: 40,
+  },
+  inner: {
+    flex: 1,
+    justifyContent: 'space-between',
   },
   top: {
     alignItems: 'center',

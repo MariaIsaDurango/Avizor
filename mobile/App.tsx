@@ -10,19 +10,29 @@ type SavedMode = 'senior' | 'tutor' | null;
 
 export default function App() {
   const [initialMode, setInitialMode] = useState<SavedMode | undefined>(undefined);
+  const [hasDeviceId, setHasDeviceId] = useState<boolean | undefined>(undefined);
 
   useEffect(() => {
-    SecureStore.getItemAsync(STORAGE_KEYS.USER_MODE)
-      .then((value) => setInitialMode((value as SavedMode) ?? null))
-      .catch(() => setInitialMode(null));
+    Promise.all([
+      SecureStore.getItemAsync(STORAGE_KEYS.USER_MODE),
+      SecureStore.getItemAsync(STORAGE_KEYS.DEVICE_ID),
+    ])
+      .then(([mode, deviceId]) => {
+        setInitialMode((mode as SavedMode) ?? null);
+        setHasDeviceId(deviceId !== null);
+      })
+      .catch(() => {
+        setInitialMode(null);
+        setHasDeviceId(false);
+      });
   }, []);
 
-  if (initialMode === undefined) return null;
+  if (initialMode === undefined || hasDeviceId === undefined) return null;
 
   return (
     <NavigationContainer ref={navigationRef}>
       <StatusBar style="auto" />
-      <RootNavigator initialMode={initialMode} />
+      <RootNavigator initialMode={initialMode} hasDeviceId={hasDeviceId} />
     </NavigationContainer>
   );
 }

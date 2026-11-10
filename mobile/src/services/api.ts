@@ -1,6 +1,7 @@
 import * as SecureStore from 'expo-secure-store';
 import { API_BASE_URL } from '../constants/api';
 import { navigationRef } from '../navigation/navigationRef';
+import { STORAGE_KEYS } from '../constants/storage';
 
 const AUTH_TOKEN_KEY = 'auth_token';
 
@@ -27,11 +28,17 @@ export async function apiFetch(path: string, options: RequestInit = {}): Promise
 
   const response = await fetch(`${API_BASE_URL}${path}`, { ...options, headers });
 
-  // no redirigir en endpoints de auth para no romper el flujo de login
-  if (response.status === 401 && !path.startsWith('/api/v1/auth/')) {
+  // no redirigir en endpoints de auth ni en redeem (son públicos)
+  if (response.status === 401 && !path.startsWith('/api/v1/auth/') && !path.startsWith('/api/v1/pairings/redeem')) {
     await clearToken();
     if (navigationRef.isReady()) {
-      navigationRef.reset({ index: 0, routes: [{ name: 'TutorLogin' }] });
+      const mode = await SecureStore.getItemAsync(STORAGE_KEYS.USER_MODE);
+      if (mode === 'senior') {
+        await SecureStore.deleteItemAsync(STORAGE_KEYS.DEVICE_ID);
+        navigationRef.reset({ index: 0, routes: [{ name: 'SeniorPairing' }] });
+      } else {
+        navigationRef.reset({ index: 0, routes: [{ name: 'TutorLogin' }] });
+      }
     }
   }
 
