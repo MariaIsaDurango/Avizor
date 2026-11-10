@@ -1,7 +1,7 @@
 import { apiFetch, saveToken, clearToken } from './api';
 
 interface RegisterData {
-  name: string;
+  display_name: string;
   email: string;
   password: string;
 }
@@ -27,8 +27,8 @@ export async function register(data: RegisterData): Promise<void> {
     throw new Error(error.detail ?? 'Error al registrarse.');
   }
 
-  const result: TokenResponse = await response.json();
-  await saveToken(result.access_token);
+  // Backend devuelve UserRead sin token; hacemos login para obtener el JWT
+  await login({ email: data.email, password: data.password });
 }
 
 export async function login(data: LoginData): Promise<void> {
