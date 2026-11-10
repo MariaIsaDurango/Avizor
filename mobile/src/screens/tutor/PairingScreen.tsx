@@ -81,6 +81,7 @@ export default function TutorPairingScreen({ navigation }: Props) {
             placeholderTextColor={colors.primary}
             value={seniorName}
             onChangeText={(v) => { setSeniorName(v); setError(null); }}
+            maxLength={50}
             autoCapitalize="words"
             autoComplete="name"
           />
@@ -89,7 +90,7 @@ export default function TutorPairingScreen({ navigation }: Props) {
         {!loading && code !== null && !isExpired && (
           <>
             <Text style={styles.codeLabel}>Código de vinculación</Text>
-            <Text style={styles.code} accessibilityLabel={`Código: ${code}`}>
+            <Text style={styles.code} accessibilityLabel={`Código: ${code.split('').join(' ')}`}>
               {formatCode(code)}
             </Text>
             <Text style={styles.countdown}>Expira en {formatTime(secondsLeft)}</Text>
