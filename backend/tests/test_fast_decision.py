@@ -167,3 +167,37 @@ def test_suspicious_urls(url):
 
 def test_normalize_text_removes_accents():
     assert normalize_text("Verifíque su CONTRASEÑA") == "verifique su contrasena"
+
+
+# ---------- Reenvío manual / Manual forward ----------
+
+
+def manual_text(text, urls=()):
+    return decide(
+        input_type=InputType.TEXT,
+        origin=Origin.MANUAL,
+        channel=Channel.MANUAL,
+        text=text,
+        urls=list(urls),
+        classifier=CLASSIFIER,
+    )
+
+
+def test_manual_green_text_never_says_safe():
+    """ES: Contrato: los reenvíos manuales siempre llevan plantilla.
+    EN: Contract: manual forwards always carry a template.
+    """
+    decision = manual_text(FAMILY_SMS)
+    assert decision.risk_level == RiskLevel.GREEN
+    assert decision.block_template == BlockTemplate.UNSURE_CALL_FAMILY
+    as_verdict(decision)
+
+
+def test_manual_red_text_keeps_its_template():
+    decision = manual_text(CONTRACT_SMS, [CONTRACT_URL])
+    assert decision.block_template == BlockTemplate.ASKS_BANK_DETAILS
+
+
+def test_automatic_green_still_has_no_template():
+    """ES: En automático no se muestra nada. EN: Automatic shows nothing."""
+    assert sms(FAMILY_SMS).block_template is None
