@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
-import { apiFetch, saveToken } from './api';
 import * as SecureStore from 'expo-secure-store';
+import { apiFetch, saveToken } from './api';
 import { STORAGE_KEYS } from '../constants/storage';
 
 interface Pairing {
@@ -37,6 +37,7 @@ export async function redeemPairing(code: string): Promise<void> {
   const data: RedeemResponse = await response.json();
   await saveToken(data.access_token);
   await SecureStore.setItemAsync(STORAGE_KEYS.DEVICE_ID, data.device_id);
+  await SecureStore.setItemAsync(STORAGE_KEYS.SENIOR_ID, data.senior_id);
 }
 
 export async function createPairing(seniorDisplayName: string): Promise<Pairing> {
