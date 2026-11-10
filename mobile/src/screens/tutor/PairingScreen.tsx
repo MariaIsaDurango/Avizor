@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, StyleSheet, ActivityIndicator } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/types';
 import Screen from '../../components/Screen';
@@ -21,6 +21,7 @@ function formatCode(code: string): string {
 }
 
 export default function TutorPairingScreen({ navigation }: Props) {
+  const [seniorName, setSeniorName] = useState('');
   const [code, setCode] = useState<string | null>(null);
   const [expiresAt, setExpiresAt] = useState<Date | null>(null);
   const [secondsLeft, setSecondsLeft] = useState(0);
@@ -38,10 +39,14 @@ export default function TutorPairingScreen({ navigation }: Props) {
   }, [expiresAt]);
 
   async function handleGenerate() {
+    if (!seniorName.trim()) {
+      setError('Ingresa el nombre del Sénior.');
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
-      const pairing = await createPairing();
+      const pairing = await createPairing(seniorName.trim());
       const expiry = new Date(pairing.expires_at);
       setCode(pairing.code);
       setExpiresAt(expiry);
@@ -68,6 +73,18 @@ export default function TutorPairingScreen({ navigation }: Props) {
         {loading && <ActivityIndicator size="large" color={colors.primary} />}
 
         {error !== null && <Text style={styles.error}>{error}</Text>}
+
+        {!loading && code === null && (
+          <TextInput
+            style={styles.input}
+            placeholder="Nombre del Sénior"
+            placeholderTextColor={colors.primary}
+            value={seniorName}
+            onChangeText={(v) => { setSeniorName(v); setError(null); }}
+            autoCapitalize="words"
+            autoComplete="name"
+          />
+        )}
 
         {!loading && code !== null && !isExpired && (
           <>
@@ -118,6 +135,7 @@ const styles = StyleSheet.create({
   middle: {
     alignItems: 'center',
     gap: 16,
+    width: '100%',
   },
   footer: {
     gap: 12,
@@ -133,6 +151,16 @@ const styles = StyleSheet.create({
     color: colors.primary,
     textAlign: 'center',
     opacity: 0.7,
+  },
+  input: {
+    width: '100%',
+    borderWidth: 1.5,
+    borderColor: colors.primary,
+    borderRadius: 8,
+    padding: 14,
+    fontSize: fontSize.body,
+    color: colors.primary,
+    backgroundColor: colors.white,
   },
   codeLabel: {
     fontSize: fontSize.body,

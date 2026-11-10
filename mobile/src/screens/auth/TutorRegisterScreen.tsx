@@ -27,14 +27,14 @@ export default function TutorRegisterScreen({ navigation }: Props) {
       setError('Las contraseñas no coinciden.');
       return;
     }
-    if (password.length < 8) {
-      setError('La contraseña debe tener al menos 8 caracteres.');
+    if (password.length < 10) {
+      setError('La contraseña debe tener al menos 10 caracteres.');
       return;
     }
     setLoading(true);
     setError(null);
     try {
-      await register({ name, email, password });
+      await register({ display_name: name, email, password });
       navigation.reset({ index: 0, routes: [{ name: 'TutorDashboard' }] });
     } catch (e) {
       const message = e instanceof Error ? e.message : 'Error al registrarse.';
