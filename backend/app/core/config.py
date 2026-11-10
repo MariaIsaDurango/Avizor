@@ -24,6 +24,9 @@ class Settings(BaseSettings):
     DEVICE_TOKEN_EXPIRE_DAYS: int = 180
     PAIRING_CODE_EXPIRE_MINUTES: int = 10
     PHONE_HMAC_KEY: str = Field(min_length=32)
+    # ES: Cada cuánto se borran los datos caducados (0 = desactivado).
+    # EN: How often expired data is deleted (0 = disabled).
+    RETENTION_PURGE_MINUTES: int = 60
 
 
 settings = Settings()

@@ -16,6 +16,9 @@ from sqlalchemy.orm import Session
 # ES: No se importa app.* aquí arriba: la configuración fallaría sin estos valores.
 # EN: app.* is not imported up here: settings would fail without these values.
 ROOT_ENV_FILE = Path(__file__).resolve().parents[2] / ".env"
+# ES: En los tests no se lanza la limpieza en segundo plano.
+# EN: The background purge is not started in tests.
+os.environ.setdefault("RETENTION_PURGE_MINUTES", "0")
 
 if not ROOT_ENV_FILE.exists():
     os.environ.setdefault(
