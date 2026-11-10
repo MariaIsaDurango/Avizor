@@ -59,6 +59,9 @@ class Pairing(Base):
     # ES: Se rellena al canjear el código. EN: Filled in when the code is redeemed.
     senior_id: Mapped[uuid.UUID | None] = mapped_column(UUID, ForeignKey("users.id"))
     code: Mapped[str] = mapped_column(String(6))
+    # ES: Nombre que escribe el Tutor; se copia al usuario Sénior al canjear.
+    # EN: Name typed by the guardian; copied to the senior user on redeem.
+    senior_display_name: Mapped[str] = mapped_column(Text)
     expires_at: Mapped[datetime] = mapped_column(TZ)
     redeemed_at: Mapped[datetime | None] = mapped_column(TZ)
     active: Mapped[bool] = mapped_column(Boolean, server_default="true")

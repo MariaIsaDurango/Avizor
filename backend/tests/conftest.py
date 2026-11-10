@@ -57,3 +57,35 @@ def api_client(db_session):
     app.dependency_overrides[get_db] = lambda: db_session
     yield TestClient(app)
     app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def guardian(db_session):
+    """ES: Tutor de prueba guardado en la BD (datos inventados).
+    EN: Test guardian stored in the DB (fake data).
+    """
+    from app.core.security import hash_password
+    from app.models.user import User
+    from app.schemas.enums import UserRole
+
+    user = User(
+        role=UserRole.GUARDIAN,
+        display_name="Lucía",
+        email="lucia.tutora@example.com",
+        password_hash=hash_password("contraseña-larga-1"),
+    )
+    db_session.add(user)
+    db_session.flush()
+    return user
+
+
+@pytest.fixture
+def guardian_headers(guardian):
+    """ES: Cabecera Authorization del Tutor de prueba.
+    EN: Authorization header of the test guardian.
+    """
+    from app.core.security import create_access_token
+    from app.schemas.enums import UserRole
+
+    token = create_access_token(guardian.id, UserRole.GUARDIAN)
+    return {"Authorization": f"Bearer {token}"}
