@@ -1,4 +1,5 @@
 import { apiFetch } from './api';
+import { anonymize, toE164, NER_MODEL_VERSION } from './anonymize';
 
 export type InputType = 'text' | 'url' | 'phone_number';
 
@@ -23,6 +24,10 @@ export interface Verdict {
   issued_at: string;
 }
 
+function normalizeUrl(input: string): string {
+  return input.startsWith('http') ? input : `https://${input}`;
+}
+
 export async function submitAnalysis(
   deviceId: string,
   inputType: InputType,
@@ -37,15 +42,19 @@ export async function submitAnalysis(
   };
 
   if (inputType === 'phone_number') {
-    body.sender = { type: 'phone', value };
+    const e164 = toE164(value);
+    if (!e164) throw new Error('Revisa el número. Usa el formato +34 600 000 000.');
+    body.sender = { type: 'phone', value: e164 };
   } else {
+    const rawText = inputType === 'url' ? normalizeUrl(value) : value;
+    const { text: anonText, entities } = anonymize(rawText);
     body.content = {
-      text: value,
-      ...(inputType === 'url' ? { urls: [value] } : {}),
+      text: anonText,
+      ...(inputType === 'url' ? { urls: [rawText] } : {}),
       anonymization: {
         applied: true,
-        // NER en dispositivo pendiente (Laura, issue #37); por ahora declaramos aplicado manualmente
-        ner_model_version: 'ner-v0-manual',
+        ner_model_version: NER_MODEL_VERSION,
+        redacted_entities: entities,
       },
     };
   }

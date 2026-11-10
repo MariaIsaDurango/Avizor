@@ -38,6 +38,12 @@ const RISK_ICONS: Record<string, keyof typeof MaterialIcons.glyphMap> = {
   red: 'dangerous',
 };
 
+const RISK_ACCESSIBILITY: Record<string, string> = {
+  green: 'seguro',
+  amber: 'sospechoso',
+  red: 'peligro',
+};
+
 const RISK_COLORS: Record<string, string> = {
   green: colors.success,
   amber: colors.warning,
@@ -113,7 +119,7 @@ export default function SeniorHomeScreen() {
             name={RISK_ICONS[verdict.risk_level]}
             size={64}
             color={accentColor}
-            accessibilityLabel={`Nivel de riesgo: ${verdict.risk_level}`}
+            accessibilityLabel={`Nivel de riesgo: ${RISK_ACCESSIBILITY[verdict.risk_level]}`}
           />
           <BigText style={{ textAlign: 'center', color: accentColor }}>
             {verdictMessage(verdict)}
