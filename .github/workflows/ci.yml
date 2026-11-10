@@ -13,6 +13,31 @@ jobs:
   backend:
     name: Backend
     runs-on: ubuntu-latest
+
+    # ES: PostgreSQL de pruebas para los tests de la API (se borra al terminar).
+    # EN: Test PostgreSQL for the API tests (deleted when the job ends).
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: avizor
+          POSTGRES_PASSWORD: avizor
+          POSTGRES_DB: avizor
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U avizor -d avizor"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+    # ES: Valores solo para CI, nunca secretos reales.
+    # EN: CI-only values, never real secrets.
+    env:
+      DATABASE_URL: postgresql+psycopg://avizor:avizor@localhost:5432/avizor
+      JWT_SECRET: ci-secret-not-for-production-0123456789abcdef
+      PHONE_HMAC_KEY: ci-hmac-key-not-for-production-0123456789
+
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -32,6 +57,10 @@ jobs:
           ruff check backend
           ruff format --check backend
 
+      - name: Apply database migrations
+        working-directory: backend
+        run: alembic upgrade head
+
       - name: Run backend tests
         if: ${{ hashFiles('backend/tests/**/*.py') != '' }}
         run: pytest backend/tests
@@ -39,6 +68,7 @@ jobs:
       - name: Report missing backend tests
         if: ${{ hashFiles('backend/tests/**/*.py') == '' }}
         run: echo "No backend test files found; pytest was skipped."
+
 
   mobile:
     name: Mobile
