@@ -27,7 +27,8 @@ export async function apiFetch(path: string, options: RequestInit = {}): Promise
 
   const response = await fetch(`${API_BASE_URL}${path}`, { ...options, headers });
 
-  if (response.status === 401) {
+  // no redirigir en endpoints de auth para no romper el flujo de login
+  if (response.status === 401 && !path.startsWith('/api/v1/auth/')) {
     await clearToken();
     if (navigationRef.isReady()) {
       navigationRef.reset({ index: 0, routes: [{ name: 'TutorLogin' }] });

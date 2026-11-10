@@ -1,4 +1,6 @@
+import * as SecureStore from 'expo-secure-store';
 import { apiFetch, saveToken, clearToken } from './api';
+import { STORAGE_KEYS } from '../constants/storage';
 
 interface RegisterData {
   display_name: string;
@@ -43,8 +45,10 @@ export async function login(data: LoginData): Promise<void> {
 
   const result: TokenResponse = await response.json();
   await saveToken(result.access_token);
+  await SecureStore.setItemAsync(STORAGE_KEYS.USER_MODE, 'tutor');
 }
 
 export async function logout(): Promise<void> {
   await clearToken();
+  await SecureStore.deleteItemAsync(STORAGE_KEYS.USER_MODE);
 }
