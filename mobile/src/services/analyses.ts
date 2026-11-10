@@ -71,3 +71,12 @@ export async function submitAnalysis(
 
   return response.json();
 }
+
+export async function getVerdict(analysisId: string): Promise<Verdict> {
+  const response = await apiFetch(`/api/v1/analyses/${analysisId}/verdict`);
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail ?? 'Error al obtener el resultado del análisis.');
+  }
+  return response.json();
+}
