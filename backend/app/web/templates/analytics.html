@@ -1,10 +1,191 @@
 {% extends "base.html" %}
 
 {% block title %}Analítica{% endblock %}
+{% block meta_description %}Estadísticas de amenazas detectadas por Avizor{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  .period-selector { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
+  .period-btn {
+    padding: 0.4rem 1rem;
+    border: 1.5px solid var(--color-primary);
+    border-radius: var(--radius-sm);
+    background: var(--color-white);
+    color: var(--color-primary);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .period-btn--active, .period-btn:hover {
+    background: var(--color-primary);
+    color: var(--color-white);
+  }
+  .charts-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1.5rem;
+  }
+  @media (max-width: 768px) { .charts-grid { grid-template-columns: 1fr; } }
+  .chart-wrap { position: relative; height: 300px; }
+  .stat-total {
+    font-size: var(--font-size-2xl);
+    font-weight: 700;
+    color: var(--color-primary);
+  }
+  .empty-state { text-align: center; padding: 3rem 1rem; color: var(--color-text-muted); }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="card mt-2">
-  <h1 class="card__title">Panel de analítica</h1>
-  <p class="text-muted">Próximamente: gráficas de ataques con Chart.js.</p>
+<h1 style="font-size: var(--font-size-xl); color: var(--color-primary); margin-bottom: 1.5rem;">
+  Panel de analítica
+</h1>
+
+<div class="period-selector" role="group" aria-label="Período de tiempo">
+  <button class="period-btn period-btn--active" data-period="7">7 días</button>
+  <button class="period-btn" data-period="30">30 días</button>
+  <button class="period-btn" data-period="90">3 meses</button>
 </div>
+
+<div class="card mt-2" style="margin-bottom: 1rem;">
+  <p class="text-muted text-sm">Total de análisis en el período</p>
+  <p class="stat-total" id="total-count">—</p>
+</div>
+
+<div class="charts-grid">
+  <div class="card">
+    <p class="card__title">Ataques diarios por nivel de riesgo</p>
+    <div class="chart-wrap">
+      <canvas id="chart-daily"></canvas>
+    </div>
+    <p class="empty-state" id="empty-daily" style="display:none;">
+      Sin datos para este período.
+    </p>
+  </div>
+
+  <div class="card">
+    <p class="card__title">Por tipo de amenaza</p>
+    <div class="chart-wrap">
+      <canvas id="chart-threat"></canvas>
+    </div>
+    <p class="empty-state" id="empty-threat" style="display:none;">
+      Sin datos para este período.
+    </p>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const COLORS = {
+  green: '#2E8B57',
+  amber: '#D97706',
+  red:   '#D93838',
+};
+
+const THREAT_LABELS = {
+  phishing:       'Phishing',
+  smishing:       'Smishing',
+  vishing:        'Vishing',
+  spam:           'Spam',
+  identity_theft: 'Robo de identidad',
+  bank_fraud:     'Fraude bancario',
+  other:          'Otro',
+  none:           'Sin amenaza',
+};
+
+const THREAT_COLORS = [
+  '#164E55','#1d6b74','#D93838','#D97706','#2E8B57','#0F2C59','#F4B19B','#a0aec0'
+];
+
+let chartDaily = null;
+let chartThreat = null;
+
+function destroyCharts() {
+  if (chartDaily) { chartDaily.destroy(); chartDaily = null; }
+  if (chartThreat) { chartThreat.destroy(); chartThreat = null; }
+}
+
+async function loadStats(period) {
+  const [daily, summary] = await Promise.all([
+    fetch(`/api/v1/stats/daily?period=${period}`).then(r => r.json()),
+    fetch(`/api/v1/stats/summary?period=${period}`).then(r => r.json()),
+  ]);
+
+  destroyCharts();
+
+  document.getElementById('total-count').textContent =
+    summary.total.toLocaleString('es-ES');
+
+  // ── Gráfica de barras diaria ──────────────────────────────
+  const emptyDaily = document.getElementById('empty-daily');
+  const canvasDaily = document.getElementById('chart-daily');
+
+  if (!daily.rows.length) {
+    canvasDaily.style.display = 'none';
+    emptyDaily.style.display = 'block';
+  } else {
+    canvasDaily.style.display = 'block';
+    emptyDaily.style.display = 'none';
+    chartDaily = new Chart(canvasDaily, {
+      type: 'bar',
+      data: {
+        labels: daily.rows.map(r => r.date),
+        datasets: [
+          { label: 'Seguro',      data: daily.rows.map(r => r.green), backgroundColor: COLORS.green },
+          { label: 'Sospechoso', data: daily.rows.map(r => r.amber), backgroundColor: COLORS.amber },
+          { label: 'Peligro',    data: daily.rows.map(r => r.red),   backgroundColor: COLORS.red   },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom' } },
+        scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } },
+      },
+    });
+  }
+
+  // ── Gráfica de donut por tipo de amenaza ─────────────────
+  const emptyThreat = document.getElementById('empty-threat');
+  const canvasThreat = document.getElementById('chart-threat');
+  const threatEntries = Object.entries(summary.by_threat_type).filter(([,n]) => n > 0);
+
+  if (!threatEntries.length) {
+    canvasThreat.style.display = 'none';
+    emptyThreat.style.display = 'block';
+  } else {
+    canvasThreat.style.display = 'block';
+    emptyThreat.style.display = 'none';
+    chartThreat = new Chart(canvasThreat, {
+      type: 'doughnut',
+      data: {
+        labels: threatEntries.map(([k]) => THREAT_LABELS[k] ?? k),
+        datasets: [{
+          data: threatEntries.map(([,n]) => n),
+          backgroundColor: THREAT_COLORS.slice(0, threatEntries.length),
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom' } },
+      },
+    });
+  }
+}
+
+// ── Selector de período ───────────────────────────────────
+document.querySelectorAll('.period-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('period-btn--active'));
+    btn.classList.add('period-btn--active');
+    loadStats(btn.dataset.period);
+  });
+});
+
+loadStats(7);
+</script>
 {% endblock %}
