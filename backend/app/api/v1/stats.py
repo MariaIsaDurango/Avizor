@@ -88,9 +88,10 @@ def get_summary_stats(
     """
     since = _since(period)
 
-    total = db.scalar(
-        select(func.count(Analysis.id)).where(Analysis.created_at >= since)
-    ) or 0
+    total = (
+        db.scalar(select(func.count(Analysis.id)).where(Analysis.created_at >= since))
+        or 0
+    )
 
     by_threat = db.execute(
         select(Analysis.threat_type, func.count().label("n"))
