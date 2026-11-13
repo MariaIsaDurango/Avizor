@@ -18,7 +18,9 @@ import Button from '../../components/Button';
 import BigText from '../../components/BigText';
 import { colors } from '../../constants/colors';
 import { fontSize, fontWeight } from '../../constants/typography';
+import { STORAGE_KEYS } from '../../constants/storage';
 import { redeemPairing } from '../../services/pairing';
+import { createSelfConsent } from '../../services/consents';
 import { RootStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SeniorPairing'>;
@@ -37,6 +39,7 @@ export default function SeniorPairingScreen({ navigation }: Props) {
     setError(null);
     try {
       await redeemPairing(code);
+      try { await createSelfConsent(); } catch { /* silent: sin consentimiento el análisis dará 403 */ }
       navigation.reset({ index: 0, routes: [{ name: 'SeniorHome' }] });
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Error al vincular el dispositivo.');
@@ -45,17 +48,17 @@ export default function SeniorPairingScreen({ navigation }: Props) {
     }
   }
 
-  // TEMP: solo desarrollo — eliminar antes de producción
   function handleDevReset() {
-    Alert.alert('[DEV] Borrar datos', 'Elimina token, device_id y modo de usuario.', [
+    Alert.alert('[DEV] Borrar datos', 'Elimina token, device_id, senior_id y modo de usuario.', [
       { text: 'Cancelar', style: 'cancel' },
       {
         text: 'Borrar',
         style: 'destructive',
         onPress: () =>
           Promise.all([
-            SecureStore.deleteItemAsync('user_mode'),
-            SecureStore.deleteItemAsync('device_id'),
+            SecureStore.deleteItemAsync(STORAGE_KEYS.USER_MODE),
+            SecureStore.deleteItemAsync(STORAGE_KEYS.DEVICE_ID),
+            SecureStore.deleteItemAsync(STORAGE_KEYS.SENIOR_ID),
             SecureStore.deleteItemAsync('auth_token'),
           ]).then(() => navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] })),
       },
@@ -102,8 +105,7 @@ export default function SeniorPairingScreen({ navigation }: Props) {
                   />
                 )
               }
-              {/* TEMP: solo desarrollo — eliminar antes de producción */}
-              <Button label="[DEV] Borrar datos guardados" onPress={handleDevReset} />
+              {__DEV__ && <Button label="[DEV] Borrar datos guardados" onPress={handleDevReset} />}
             </View>
           </View>
         </TouchableWithoutFeedback>

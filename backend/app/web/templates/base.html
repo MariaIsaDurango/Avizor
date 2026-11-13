@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="{% block meta_description %}Panel de control Avizor{% endblock %}" />
+  <title>{% block title %}Avizor{% endblock %} — Portal</title>
+
+  <link rel="stylesheet" href="{{ url_for('web_static', path='css/main.css') }}" />
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+  <nav class="navbar" aria-label="Navegación principal">
+    <a href="{{ url_for('dashboard') }}" class="navbar__brand">Avizor</a>
+    <ul class="navbar__nav">
+      <li>
+        <a href="{{ url_for('dashboard') }}"
+           class="navbar__link {% if active_page == 'dashboard' %}navbar__link--active{% endif %}">
+          Inicio
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('analytics') }}"
+           class="navbar__link {% if active_page == 'analytics' %}navbar__link--active{% endif %}">
+          Analítica
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('indicators') }}"
+           class="navbar__link {% if active_page == 'indicators' %}navbar__link--active{% endif %}">
+          Indicadores
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('support') }}"
+           class="navbar__link {% if active_page == 'support' %}navbar__link--active{% endif %}">
+          Soporte
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+  <main class="main-content" id="main-content">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="footer">
+    <p>&copy; {{ year }} Avizor — Protegemos a quienes más quieres</p>
+  </footer>
+
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

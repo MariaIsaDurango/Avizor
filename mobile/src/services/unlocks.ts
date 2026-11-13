@@ -24,6 +24,15 @@ export async function createUnlock(analysisId: string): Promise<Unlock> {
   return response.json();
 }
 
+export async function getUnlock(unlockId: string): Promise<Unlock> {
+  const response = await apiFetch(`/api/v1/unlocks/${unlockId}`);
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail ?? 'Error al obtener la solicitud de desbloqueo.');
+  }
+  return response.json();
+}
+
 export async function updateUnlock(
   unlockId: string,
   status: 'approved' | 'rejected',

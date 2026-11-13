@@ -112,9 +112,9 @@ const styles = StyleSheet.create({
   },
   empathy: {
     fontSize: 20,
+    fontWeight: fontWeight.bold,
     color: colors.white,
     textAlign: 'center',
-    opacity: 0.9,
     lineHeight: 28,
   },
   footer: {
