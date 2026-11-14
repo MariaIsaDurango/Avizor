@@ -29,6 +29,14 @@ def list_alerts(
     return alert_service.list_alerts(db, token.sub, limit, cursor, status)
 
 
+@router.get("/{alert_id}")
+def get_alert(alert_id: uuid.UUID, db: DbSession, token: GuardianToken) -> Alert:
+    """ES: Detalle de una alerta (la app lo abre al tocar el push).
+    EN: Alert detail (the app opens it when the push is tapped).
+    """
+    return alert_service.get_alert(db, token.sub, alert_id)
+
+
 @router.patch("/{alert_id}")
 def update_alert(
     alert_id: uuid.UUID, body: AlertUpdate, db: DbSession, token: GuardianToken

@@ -12,6 +12,7 @@ EN: Stores only metadata in analyses. Anonymized text goes to temp_content
 import uuid
 from datetime import UTC, datetime, timedelta
 from time import perf_counter
+from typing import NamedTuple
 
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
@@ -96,7 +97,7 @@ def _create_alerts(
     senior_id: uuid.UUID,
     decision: FastDecision,
     evidence: list[dict],
-) -> None:
+) -> list[uuid.UUID]:
     senior_name = db.scalar(select(User.display_name).where(User.id == senior_id))
     guardian_ids = db.scalars(
         select(Pairing.guardian_id).where(
@@ -112,19 +113,33 @@ def _create_alerts(
         f"{CHANNEL_NAMES[analysis.channel]} en el móvil de {senior_name}."
     )
     explanation = " ".join(decision.reasons[:3]) or "Contenido peligroso detectado."
-    for guardian_id in set(guardian_ids):
-        db.add(
-            Alert(
-                analysis_id=analysis.id,
-                guardian_id=guardian_id,
-                summary=summary,
-                explanation=explanation,
-                evidence=evidence,
-            )
+
+    alerts = [
+        Alert(
+            analysis_id=analysis.id,
+            guardian_id=guardian_id,
+            summary=summary,
+            explanation=explanation,
+            evidence=evidence,
         )
+        for guardian_id in set(guardian_ids)
+    ]
+    db.add_all(alerts)
+    # ES: flush para que PostgreSQL asigne los ids. EN: flush so PG assigns ids.
+    db.flush()
+    return [alert.id for alert in alerts]
 
 
-def analyze_fast(db: Session, token: TokenPayload, body: AnalysisRequest) -> Verdict:
+class FastResult(NamedTuple):
+    """ES: Veredicto para el Sénior + alertas creadas (para el push).
+    EN: Verdict for the senior + created alerts (for the push).
+    """
+
+    verdict: Verdict
+    alert_ids: list[uuid.UUID]
+
+
+def analyze_fast(db: Session, token: TokenPayload, body: AnalysisRequest) -> FastResult:
     started = perf_counter()
     now = datetime.now(UTC)
 
@@ -226,13 +241,14 @@ def analyze_fast(db: Session, token: TokenPayload, body: AnalysisRequest) -> Ver
                     }
                 )
 
+    alert_ids: list[uuid.UUID] = []
     if decision.risk_level == RiskLevel.RED:
-        _create_alerts(db, analysis, senior_id, decision, evidence)
+        alert_ids = _create_alerts(db, analysis, senior_id, decision, evidence)
 
     analysis.latency_ms = round((perf_counter() - started) * 1000)
     db.commit()
 
-    return Verdict(
+    verdict = Verdict(
         analysis_id=analysis.id,
         phase=VerdictPhase.FAST,
         risk_level=decision.risk_level,
@@ -244,3 +260,4 @@ def analyze_fast(db: Session, token: TokenPayload, body: AnalysisRequest) -> Ver
         retry_after_ms=None,
         issued_at=datetime.now(UTC),
     )
+    return FastResult(verdict, alert_ids)
