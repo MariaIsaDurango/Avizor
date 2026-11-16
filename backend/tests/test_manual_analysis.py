@@ -17,6 +17,7 @@ from sqlalchemy import select
 from app.api import manual_form
 from app.models.alert import Alert
 from app.models.analysis import Analysis, AnalysisAttachment, TempContent
+from app.models.indicator import Indicator
 from app.services import manual_analysis as manual_service
 from app.services.manual_analysis import finish_manual_analysis
 
@@ -182,6 +183,46 @@ def test_agent_timeout_closes_with_fast_path(
     assert db_session.scalars(
         select(Alert).where(Alert.analysis_id == analysis.id)
     ).all()
+
+
+class InventingAgent:
+    """ES: Devuelve un "dominio" que no está en el mensaje (inyección HTML).
+    EN: Returns a "domain" that is not in the message (HTML injection).
+    """
+
+    model_version = "inventing-agent"
+
+    def analyze(self, data):
+        return {
+            "risk_level": "red",
+            "threat_type": "phishing",
+            "block_template": "FAKE_DO_NOT_TOUCH",
+            "confidence": 0.9,
+            "explanation": "Suplanta a un banco.",
+            "evidence": [
+                {
+                    "type": "domain",
+                    "value": "<img src=x onerror=alert(1)>",
+                    "reason": "x",
+                },
+                {
+                    "type": "domain",
+                    "value": "bbva-seguro.top",
+                    "reason": "Dominio falso.",
+                },
+            ],
+        }
+
+
+def test_agent_cannot_invent_indicators(
+    api_client, db_session, paired_senior, jobs, monkeypatch
+):
+    monkeypatch.setattr(manual_service, "get_agent", lambda fast: InventingAgent())
+    send(api_client, paired_senior, metadata(paired_senior))
+    finish_manual_analysis(db_session, jobs[0])
+    values = set(db_session.scalars(select(Indicator.public_value)).all())
+    assert "bbva-seguro.top" in values
+    assert not any("<" in value for value in values)
 
 
 # ---------- Adjuntos / attachments ----------

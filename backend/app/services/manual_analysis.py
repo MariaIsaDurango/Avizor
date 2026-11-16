@@ -53,6 +53,7 @@ from app.services.analysis import (
     record_indicator,
 )
 from app.services.detection.decision import FastDecision, decide
+from app.services.detection.url_rules import domain_of
 from app.services.identity import senior_id_from_device
 
 logger = logging.getLogger(__name__)
@@ -220,9 +221,15 @@ def _complete(
             )
 
         # ES: Solo dominios: el reenvío manual no trae remitente (sin campo sender).
+        #     Y solo los que salen en el mensaje: el agente no puede inventarlos.
         # EN: Domains only: a manual forward has no sender (no sender field).
+        #     And only those in the message: the agent cannot invent them.
+        message_domains = {domain_of(url) for url in extract_urls(text)}
         for item in evidence:
-            if item.get("type") == IndicatorType.DOMAIN:
+            if (
+                item.get("type") == IndicatorType.DOMAIN
+                and item.get("value") in message_domains
+            ):
                 record_indicator(db, IndicatorType.DOMAIN, item["value"], now)
     if risk_level == RiskLevel.RED:
         senior_id = senior_id_from_device(db, analysis.device_id)
