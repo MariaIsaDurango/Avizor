@@ -4,7 +4,10 @@
 {% block meta_description %}Estadísticas de amenazas detectadas por Avizor{% endblock %}
 
 {% block extra_head %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script
+  src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"
+  crossorigin="anonymous"
+></script>
 <style>
   .period-selector { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
   .period-btn {
@@ -35,6 +38,7 @@
     color: var(--color-primary);
   }
   .empty-state { text-align: center; padding: 3rem 1rem; color: var(--color-text-muted); }
+  .fetch-error { color: var(--color-alert); font-size: var(--font-size-sm); margin-top: 0.5rem; }
 </style>
 {% endblock %}
 
@@ -50,8 +54,11 @@
 </div>
 
 <div class="card mt-2" style="margin-bottom: 1rem;">
-  <p class="text-muted text-sm">Total de análisis en el período</p>
+  <p class="text-muted text-sm">Total de ataques detectados en el período</p>
   <p class="stat-total" id="total-count">—</p>
+  <p class="fetch-error" id="fetch-error" style="display:none;">
+    Error al cargar los datos. Inténtalo de nuevo.
+  </p>
 </div>
 
 <div class="charts-grid">
@@ -61,7 +68,7 @@
       <canvas id="chart-daily"></canvas>
     </div>
     <p class="empty-state" id="empty-daily" style="display:none;">
-      Sin datos para este período.
+      Sin ataques registrados en este período.
     </p>
   </div>
 
@@ -71,7 +78,7 @@
       <canvas id="chart-threat"></canvas>
     </div>
     <p class="empty-state" id="empty-threat" style="display:none;">
-      Sin datos para este período.
+      Sin ataques registrados en este período.
     </p>
   </div>
 </div>
@@ -80,7 +87,6 @@
 {% block extra_scripts %}
 <script>
 const COLORS = {
-  green: '#2E8B57',
   amber: '#D97706',
   red:   '#D93838',
 };
@@ -93,11 +99,10 @@ const THREAT_LABELS = {
   identity_theft: 'Robo de identidad',
   bank_fraud:     'Fraude bancario',
   other:          'Otro',
-  none:           'Sin amenaza',
 };
 
 const THREAT_COLORS = [
-  '#164E55','#1d6b74','#D93838','#D97706','#2E8B57','#0F2C59','#F4B19B','#a0aec0'
+  '#164E55','#D93838','#D97706','#0F2C59','#2E8B57','#F4B19B','#1d6b74'
 ];
 
 let chartDaily = null;
@@ -108,11 +113,30 @@ function destroyCharts() {
   if (chartThreat) { chartThreat.destroy(); chartThreat = null; }
 }
 
+function showError(show) {
+  document.getElementById('fetch-error').style.display = show ? 'block' : 'none';
+}
+
 async function loadStats(period) {
-  const [daily, summary] = await Promise.all([
-    fetch(`/api/v1/stats/daily?period=${period}`).then(r => r.json()),
-    fetch(`/api/v1/stats/summary?period=${period}`).then(r => r.json()),
-  ]);
+  showError(false);
+
+  let daily, summary;
+  try {
+    const [resDaily, resSummary] = await Promise.all([
+      fetch(`/api/v1/stats/daily?period=${period}`),
+      fetch(`/api/v1/stats/summary?period=${period}`),
+    ]);
+
+    if (!resDaily.ok || !resSummary.ok) {
+      showError(true);
+      return;
+    }
+
+    [daily, summary] = await Promise.all([resDaily.json(), resSummary.json()]);
+  } catch {
+    showError(true);
+    return;
+  }
 
   destroyCharts();
 
@@ -122,8 +146,9 @@ async function loadStats(period) {
   // ── Gráfica de barras diaria ──────────────────────────────
   const emptyDaily = document.getElementById('empty-daily');
   const canvasDaily = document.getElementById('chart-daily');
+  const hasAttacks = daily.rows.some(r => r.amber > 0 || r.red > 0);
 
-  if (!daily.rows.length) {
+  if (!hasAttacks) {
     canvasDaily.style.display = 'none';
     emptyDaily.style.display = 'block';
   } else {
@@ -134,7 +159,6 @@ async function loadStats(period) {
       data: {
         labels: daily.rows.map(r => r.date),
         datasets: [
-          { label: 'Seguro',      data: daily.rows.map(r => r.green), backgroundColor: COLORS.green },
           { label: 'Sospechoso', data: daily.rows.map(r => r.amber), backgroundColor: COLORS.amber },
           { label: 'Peligro',    data: daily.rows.map(r => r.red),   backgroundColor: COLORS.red   },
         ],
