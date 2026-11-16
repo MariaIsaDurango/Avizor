@@ -42,3 +42,17 @@ def test_summary_stats_returns_200_and_shape(api_client):
 )
 def test_invalid_period_returns_422(api_client, path):
     assert api_client.get(path).status_code == 422
+
+
+def test_indicator_ranking_returns_200_and_shape(api_client):
+    response = api_client.get("/api/v1/stats/indicators")
+    assert response.status_code == 200
+    data = response.json()
+    assert "items" in data
+    assert isinstance(data["items"], list)
+    for item in data["items"]:
+        assert "type" in item
+        assert "public_value" in item
+        assert "report_count" in item
+        assert item["report_count"] >= 5
+        assert "last_seen_at" in item

@@ -12,12 +12,18 @@ from enum import IntEnum
 from typing import Annotated
 
 from fastapi import APIRouter, Query
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text
 
 from app.api.deps import DbSession
 from app.models.analysis import Analysis
 from app.schemas.enums import RiskLevel
-from app.schemas.stats import DailyRow, DailyStatsResponse, SummaryStatsResponse
+from app.schemas.stats import (
+    DailyRow,
+    DailyStatsResponse,
+    IndicatorRankingResponse,
+    IndicatorRow,
+    SummaryStatsResponse,
+)
 
 router = APIRouter(prefix="/stats", tags=["stats"])
 
@@ -119,3 +125,21 @@ def get_summary_stats(
         by_threat_type={row.threat_type: row.n for row in by_threat},
         by_channel={row.channel: row.n for row in by_channel},
     )
+
+
+@router.get("/indicators")
+def get_indicator_ranking(db: DbSession) -> IndicatorRankingResponse:
+    """ES: Ranking público de indicadores con ≥5 reportes (teléfonos enmascarados).
+    EN: Public ranking of indicators with ≥5 reports (phones are masked).
+    """
+    rows = (
+        db.execute(
+            text(
+                "SELECT type, public_value, report_count, last_seen_at"
+                " FROM v_indicator_ranking"
+            )
+        )
+        .mappings()
+        .all()
+    )
+    return IndicatorRankingResponse(items=[IndicatorRow(**dict(row)) for row in rows])

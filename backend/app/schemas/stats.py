@@ -5,6 +5,8 @@ ES: Solo contadores, nunca IDs ni contenido de mensajes.
 EN: Counters only, never IDs or message content.
 """
 
+from datetime import datetime
+
 from app.schemas.common import ContractModel
 
 
@@ -24,3 +26,14 @@ class SummaryStatsResponse(ContractModel):
     total: int
     by_threat_type: dict[str, int]
     by_channel: dict[str, int]
+
+
+class IndicatorRow(ContractModel):
+    type: str
+    public_value: str
+    report_count: int
+    last_seen_at: datetime
+
+
+class IndicatorRankingResponse(ContractModel):
+    items: list[IndicatorRow]

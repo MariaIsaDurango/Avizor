@@ -1,10 +1,143 @@
 {% extends "base.html" %}
 
 {% block title %}Indicadores{% endblock %}
+{% block meta_description %}Ranking de dominios y números maliciosos más reportados en Avizor{% endblock %}
+
+{% block extra_head %}
+<style>
+  .indicators-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-size-sm);
+  }
+  .indicators-table th {
+    text-align: left;
+    padding: 0.625rem 0.75rem;
+    color: var(--color-text-muted);
+    font-weight: 600;
+    border-bottom: 2px solid var(--color-border);
+    white-space: nowrap;
+  }
+  .indicators-table td {
+    padding: 0.625rem 0.75rem;
+    border-bottom: 1px solid var(--color-border);
+    vertical-align: middle;
+  }
+  .indicators-table tr:last-child td { border-bottom: none; }
+  .indicators-table tr:hover td { background-color: var(--color-background); }
+  .value-cell {
+    font-family: 'Courier New', Courier, monospace;
+    word-break: break-all;
+  }
+  .report-count {
+    font-weight: 700;
+    color: var(--color-primary);
+    text-align: right;
+  }
+  .table-wrap { overflow-x: auto; }
+  .empty-state { text-align: center; padding: 3rem 1rem; color: var(--color-text-muted); }
+  .fetch-error { color: var(--color-alert); font-size: var(--font-size-sm); margin-top: 0.5rem; }
+  .loading { color: var(--color-text-muted); font-size: var(--font-size-sm); }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="card mt-2">
-  <h1 class="card__title">Panel de indicadores</h1>
-  <p class="text-muted">Próximamente: ranking de dominios y números maliciosos.</p>
+<h1 style="font-size: var(--font-size-xl); color: var(--color-primary); margin-bottom: 0.5rem;">
+  Panel de indicadores
+</h1>
+<p class="text-muted text-sm" style="margin-bottom: 1.5rem;">
+  Dominios y números con 5 o más reportes, ordenados por frecuencia de aparición.
+</p>
+
+<div class="card">
+  <p class="fetch-error" id="fetch-error" style="display:none;">
+    Error al cargar los indicadores. Inténtalo de nuevo.
+  </p>
+  <p class="loading" id="loading">Cargando indicadores…</p>
+
+  <div class="table-wrap" id="table-wrap" style="display:none;">
+    <table class="indicators-table" aria-label="Ranking de indicadores maliciosos">
+      <thead>
+        <tr>
+          <th>Tipo</th>
+          <th>Valor</th>
+          <th style="text-align:right;">Reportes</th>
+          <th>Último avistamiento</th>
+        </tr>
+      </thead>
+      <tbody id="table-body"></tbody>
+    </table>
+    <p class="empty-state" id="empty-state" style="display:none;">
+      Aún no hay indicadores con suficientes reportes.
+    </p>
+  </div>
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const TYPE_LABELS = {
+  phone:               'Teléfono',
+  domain:              'Dominio',
+  url:                 'URL',
+  alphanumeric_sender: 'Remitente',
+};
+
+const TYPE_BADGE = {
+  phone:               'badge--amber',
+  domain:              'badge--red',
+  url:                 'badge--red',
+  alphanumeric_sender: 'badge--amber',
+};
+
+function formatDate(isoString) {
+  return new Date(isoString).toLocaleDateString('es-ES', {
+    year: 'numeric', month: 'short', day: 'numeric',
+  });
+}
+
+async function loadIndicators() {
+  const loading    = document.getElementById('loading');
+  const tableWrap  = document.getElementById('table-wrap');
+  const tableBody  = document.getElementById('table-body');
+  const emptyState = document.getElementById('empty-state');
+  const fetchError = document.getElementById('fetch-error');
+
+  try {
+    const res = await fetch('/api/v1/stats/indicators');
+    if (!res.ok) {
+      loading.style.display = 'none';
+      fetchError.style.display = 'block';
+      return;
+    }
+    const data = await res.json();
+
+    loading.style.display = 'none';
+    tableWrap.style.display = 'block';
+
+    if (!data.items.length) {
+      emptyState.style.display = 'block';
+      return;
+    }
+
+    tableBody.innerHTML = data.items.map(item => {
+      const badgeClass = TYPE_BADGE[item.type] ?? '';
+      const typeLabel  = TYPE_LABELS[item.type] ?? item.type;
+      return `
+        <tr>
+          <td><span class="badge ${badgeClass}">${typeLabel}</span></td>
+          <td class="value-cell">${item.public_value}</td>
+          <td class="report-count">${item.report_count.toLocaleString('es-ES')}</td>
+          <td class="text-muted">${formatDate(item.last_seen_at)}</td>
+        </tr>`;
+    }).join('');
+
+  } catch {
+    loading.style.display = 'none';
+    fetchError.style.display = 'block';
+  }
+}
+
+loadIndicators();
+</script>
 {% endblock %}
