@@ -6,7 +6,7 @@
 
 **Responsable inicial:** Persona 5 — QA, ciberseguridad, privacidad y documentación.
 
-Este plan convierte los requisitos recogidos en los issues en criterios verificables. No certifica que el sistema ya los cumpla: en la revisión inicial del repositorio solo había marcadores `.gitkeep` en las carpetas de aplicación y pruebas. Los casos que dependen de componentes aún no implementados quedan preparados para ejecutarse cuando estén disponibles.
+Este plan convierte los requisitos recogidos en los issues en criterios verificables. En la revisión inicial solo había marcadores `.gitkeep`; desde entonces, el backend y sus pruebas han avanzado. El estado descrito aquí corresponde a la rama y archivos revisados el 16 de noviembre de 2026, no certifica el despliegue ni sustituye la aprobación del equipo.
 
 ## Objetivos y principios
 
@@ -14,7 +14,7 @@ Este plan convierte los requisitos recogidos en los issues en criterios verifica
 - Priorizar los falsos negativos que dejen pasar una estafa y los fallos que expongan datos personales.
 - Probar con datos sintéticos o debidamente autorizados y minimizados. No incluir mensajes, teléfonos ni credenciales reales en fixtures, logs o informes.
 - Conservar resultados reproducibles: versión del código, modelo y dataset, entorno, fecha, comando, resultado y evidencia sin datos personales.
-- No confundir una ejecución verde de CI con una validación de requisitos: actualmente el workflow omite pruebas si no encuentra archivos o configuración.
+- No confundir una ejecución verde de CI con una validación de requisitos: algunas tareas del workflow siguen siendo condicionales a la existencia de archivos/configuración, y no toda la cobertura se ha ejecutado en este entorno.
 
 ## Alcance funcional y criterios de aceptación
 
@@ -46,11 +46,11 @@ Los siguientes criterios derivan de los issues abiertos y son la base de las pru
 
 | Nivel | Qué verifica | Herramienta prevista | Estado |
 |---|---|---|---|
-| Unitario | Validación de esquemas, autorización, anonimización, reglas de retención, transiciones y clasificación aislada. | `pytest` para Python; Jest solo si se confirma y configura en mobile. | Pendiente: no hay tests implementados. |
-| Integración | API, persistencia, autenticación, permisos, colas/jobs e interacciones entre componentes con servicios de prueba. | `pytest` + `httpx`; PostgreSQL/servicios aislados según arquitectura. | Pendiente: backend no implementado. |
+| Unitario | Validación de esquemas, autorización, anonimización, reglas de retención, transiciones y clasificación aislada. | `pytest` para Python; Jest solo si se confirma y configura en mobile. | Hay suite de backend y tests de retención; requieren PostgreSQL. |
+| Integración | API, persistencia, autenticación, permisos, colas/jobs e interacciones entre componentes con servicios de prueba. | `pytest` + `httpx`; PostgreSQL/servicios aislados según arquitectura. | Backend y tests existen; la suite de retención se omitió localmente por falta de PostgreSQL. |
 | End-to-end | Flujos tutor/sénior y comportamiento de extremo a extremo, incluyendo errores y estados vacíos. | Herramienta por decidir al existir la app. | Pendiente: mobile no contiene `package.json`. |
 | Modelos | Evaluación reproducible, errores por clase y subgrupos pertinentes; comparación con baseline y análisis de falsos positivos/negativos. | Scripts/notebooks del equipo ML; métricas acordadas en ADR. | Pendiente: no hay modelo ni dataset en el repositorio. |
-| Seguridad y privacidad | Control de acceso, entrada no confiable al LLM, minimización, logs, retención y eliminación. | Pruebas automatizadas, inspección de datos de prueba y revisión manual. | Pendiente: implementar componentes y acordar amenazas/política. |
+| Seguridad y privacidad | Control de acceso, entrada no confiable al LLM, minimización, logs, retención y eliminación. | Pruebas automatizadas, inspección de datos de prueba y revisión manual. | La purga está implementada en backend; falta ejecutar sus tests con PostgreSQL y completar revisiones de despliegue/proveedores. |
 | Manual Android | Permisos, accesibilidad, notificaciones/llamadas, legibilidad y uso real en dispositivos soportados. | Dispositivos Android y checklist de ejecución. | Pendiente: coordinar con responsable de la PoC Android. |
 | Regresión | Que cambios no rompan criterios ya aprobados. | CI y suite de pruebas pertinente. | Parcial: CI configura pytest/Ruff y comandos npm condicionales; ML y mobile se omiten cuando faltan tests o `package.json`. |
 
@@ -70,7 +70,8 @@ Usar fixtures sintéticos etiquetados; los ejemplos de inyección no deben conte
 | SEC-03 | Salida intenta elegir una plantilla fuera del enum permitido. | No se muestra ni persiste una plantilla arbitraria. |
 | PRIV-01 | Envío con `applied=false` (anonimización no aplicada). | Respuesta `422 CONTENT_NOT_ANONYMIZED`, según el issue #52; no se persiste el contenido. |
 | PRIV-02 | Inspección posterior de un análisis y adjuntos de prueba. | No hay texto original, número real ni binarios donde el contrato prohíbe almacenarlos; logs tampoco filtran estos datos. |
-| PRIV-03 | Contenido temporal vencido y desbloqueo pendiente expirado. | El job elimina/actualiza los registros conforme a la política aprobada; se registra el resultado sin copiar contenido personal al log. |
+| PRIV-03 | Contenido temporal vencido, desbloqueo pendiente expirado e indicador sin reportes durante 12 meses. | El job elimina/actualiza los registros conforme a la política; el análisis conserva sus metadatos; el resultado del job contiene contadores, no contenido. Ejecutar contra PostgreSQL. |
+| PRIV-04 | Caso abierto o cerrado hace menos de 90 días asociado al texto vencido. | El texto se conserva mientras el caso esté abierto y hasta 90 días tras el cierre; después puede purgarse si su `delete_at` venció. |
 | ML-01 | Evaluación de phishing, smishing y vishing con falsos positivos benignos. | Métricas por clase, matriz de confusión y ejemplos de error anonimizados; umbral conforme a ADR aprobado. |
 | ML-02 | Evaluación por subgrupos y condiciones de entrada (idioma, canal y tipos de mensaje disponibles). | Se documentan tamaño, limitaciones y diferencias; no se concluye ausencia de sesgo por falta de datos. |
 | AND-01 | Revisión de permisos, activación/desactivación de AccessibilityService y NotificationListenerService. | Solicitud informada, privilegios mínimos, desactivación efectiva y comportamiento conforme a políticas de plataforma. |
@@ -95,9 +96,10 @@ La severidad se confirma con el equipo según impacto y probabilidad; no es una 
 
 ## Límites actuales y dependencias
 
-- `backend/tests/` y `ml/tests/` solo contienen `.gitkeep`; `mobile/` no tiene `package.json`.
-- No se encontró una definición versionada de `Contract Schemas`, el modelo de amenazas, el dataset, el esquema de base de datos ni el contrato API. Los nombres de campos y códigos de respuesta citados provienen de los issues y deben cotejarse con el contrato real.
-- Los umbrales del clasificador, la política de retención y la herramienta de pruebas E2E/mobile requieren aprobación.
+- La suite específica de retención es [backend/tests/test_retention.py](../../backend/tests/test_retention.py). En esta revisión local, `pytest tests/test_retention.py -q` reportó **10 skipped** porque no había PostgreSQL disponible; no se cuenta como suite pasada. Ruff sí pasó en los archivos del job, servicio, arranque y test.
+- `mobile/` no tiene `package.json`; la herramienta de pruebas E2E/mobile requiere definición.
+- No se encontró una especificación `Contract Schemas` versionada en `docs/`; el backend sí contiene modelos y migraciones. Los nombres de campos y códigos citados deben cotejarse con la versión vigente del contrato.
+- Los umbrales del clasificador y la aprobación legal de los plazos de retención siguen pendientes. La implementación técnica de la purga no constituye por sí misma una decisión jurídica ni prueba el borrado de backups o proveedores externos.
 - Los issues #31 y #32 asignan las PoC Android a otra persona; Persona 5 coordina/revisa pruebas, no sustituye su implementación.
 
 ## Referencias de trabajo

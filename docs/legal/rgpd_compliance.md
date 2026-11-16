@@ -47,13 +47,25 @@ El issue #49 plantea flujos `self` y `legal_guardianship`; son etiquetas del pro
 
 ## Retención y borrado
 
-El issue #49 propone los plazos `green: 0 días`, `amber: 7 días`, `red: 30 días` y `caso abierto: cierre + 90 días`. **Son propuestas pendientes de aprobación, no plazos impuestos por el RGPD ni política ya implementada.** Antes de adoptarlos, el equipo debe:
+El issue #49 propuso `green: 0 días`, `amber: 7 días`, `red: 30 días` y, ante un caso, conservar el texto hasta 90 días después de su cierre. **En el backend revisado, la purga ya está implementada conforme a esas reglas para el contenido temporal, además de las reglas de desbloqueos e indicadores.** Esto describe el comportamiento del código; no significa que el equipo haya aprobado jurídicamente la necesidad de cada plazo ni demuestra por sí solo el borrado en producción.
 
-1. Precisar a qué entidad y finalidad aplica cada plazo (texto temporal, metadatos, análisis, alerta, logs, backups y evidencia de consentimiento no son necesariamente el mismo tratamiento).
-2. Justificar cada plazo por necesidad y base jurídica, explicar el inicio del cómputo y resolver qué significa “caso abierto” y quién lo cierra.
-3. Definir qué ocurre al revocar el consentimiento, cerrar una cuenta, recibir una solicitud de supresión o existir una obligación legal distinta.
-4. Implementar y probar borrado efectivo en base de datos y, según diseño, copias, índices, colas y proveedores; conservar evidencia mínima del borrado sin duplicar datos personales.
-5. Definir responsable, frecuencia, monitorización, reintentos, alertas y tratamiento de fallos del job del issue #19.
+### Comportamiento implementado en el backend revisado
+
+- **Texto temporal (`temp_content`):** el servicio asigna 7 días a resultados `amber` y 30 días a `red`. No persiste texto temporal para `green`. La purga elimina filas cuyo `delete_at` ya venció, salvo si hay un caso abierto o cerrado hace menos de 90 días; en esos casos conserva el texto hasta 90 días después del cierre. A los 90 días exactos deja de aplicar la retención del caso y el texto vencido puede eliminarse.
+- **Metadatos del análisis:** la operación elimina la fila de `temp_content`, no la de `analyses`; así se conservan los metadatos que utilizan las estadísticas. La clave foránea de `temp_content` apunta a `analyses`, por lo que este borrado de la fila hija no borra el análisis.
+- **Desbloqueos:** las solicitudes `pending_guardian` con `expires_at` vencido pasan a `expired`. El servicio establece `expires_at` a 24 horas desde la solicitud. También hay caducidad perezosa al consultar/resolver una solicitud; el job no es el único mecanismo.
+- **Indicadores:** se eliminan si `last_seen_at` tiene al menos 365 días y no existe ningún caso asociado. La condición protege indicadores con cualquier caso asociado, incluso cerrado.
+- **Ejecución:** `app.main` inicia el bucle al arrancar la API. `RETENTION_PURGE_MINUTES` vale 60 por defecto y `0` lo desactiva; el bucle ejecuta una purga inmediata y continúa al intervalo configurado. También se puede ejecutar una vez desde `backend` con `python -m app.jobs.purge`. Un bloqueo asesor de PostgreSQL evita que varias réplicas purguen a la vez; los fallos quedan en el log y no terminan el bucle.
+
+Referencias de implementación: [reglas de retención](../../backend/app/services/retention.py), [job manual y periódico](../../backend/app/jobs/purge.py), [arranque de la API](../../backend/app/main.py), [asignación de vencimiento del contenido](../../backend/app/services/analysis.py) y [TTL de desbloqueo](../../backend/app/services/unlocks.py).
+
+### Evidencia y límites de la verificación
+
+Hay pruebas específicas en [test_retention.py](../../backend/tests/test_retention.py) para la eliminación del texto vencido, casos abiertos y cerrados, conservación de metadatos de análisis, expiración de desbloqueos y borrado/exclusión de indicadores. En la revisión del **16 de noviembre de 2026**, `ruff check` y `ruff format --check` pasaron sobre el job, servicio, arranque y test. La ejecución local de `pytest tests/test_retention.py -q` produjo **10 skipped** porque PostgreSQL no estaba disponible; por tanto, esos comportamientos **no se han validado aquí contra la base de datos**. La suite usa PostgreSQL y el test fixture omite los casos si no puede conectarse.
+
+Para cerrar la verificación, ejecutar la suite con PostgreSQL de pruebas disponible y conservar el resultado de CI. También deben revisarse fallos/reintentos, despliegue con varias réplicas, backups y sistemas externos si almacenan contenido. Un `.delete()` en la base de datos principal no prueba por sí solo el borrado de copias ni de proveedores.
+
+Los plazos son decisiones del proyecto informadas por el contrato, no plazos que el RGPD imponga literalmente. El responsable del tratamiento debe justificar y aprobar su necesidad por finalidad. También debe aclararse qué datos distintos del texto temporal (por ejemplo, alertas, logs y evidencia de consentimiento) tienen sus propios plazos y cómo se atienden solicitudes de supresión u obligaciones legales.
 
 ## Derechos, proveedores y evaluación de impacto
 
@@ -65,7 +77,7 @@ El issue #49 propone los plazos `green: 0 días`, `amber: 7 días`, `red: 30 dí
 
 ## Criterios de verificación pendientes
 
-No declarar cumplimiento hasta demostrar al menos: inventario y base jurídica aprobados; avisos y consentimientos coherentes entre app y documentación; minimización antes de transferencias; ausencia de contenido personal en persistencia no permitida y logs; control de acceso; plazos aprobados e implementados; prueba de borrado/retirada; inventario y revisión de proveedores; procedimiento de derechos; y decisión documentada sobre EIPD y normativa de IA.
+No declarar cumplimiento hasta demostrar al menos: inventario y base jurídica aprobados; avisos y consentimientos coherentes entre app y documentación; minimización antes de transferencias; ausencia de contenido personal en persistencia no permitida y logs; control de acceso; plazos aprobados; prueba de borrado/retirada en una base de datos de prueba y verificación operativa en despliegue; inventario y revisión de proveedores; procedimiento de derechos; y decisión documentada sobre EIPD y normativa de IA. La purga implementada cubre las reglas descritas arriba, pero la prueba de integración quedó pendiente de ejecutarse con PostgreSQL.
 
 La revisión técnica deberá usar datos sintéticos. Cualquier prueba con personas o mensajes reales exige aprobación previa, base y salvaguardas apropiadas.
 
