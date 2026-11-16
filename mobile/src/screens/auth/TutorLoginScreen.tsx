@@ -7,6 +7,7 @@ import Button from '../../components/Button';
 import { colors } from '../../constants/colors';
 import { fontSize, fontWeight } from '../../constants/typography';
 import { login } from '../../services/auth';
+import { registerDevice } from '../../services/devices';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TutorLogin'>;
 
@@ -25,6 +26,7 @@ export default function TutorLoginScreen({ navigation }: Props) {
     setError(null);
     try {
       await login({ email, password });
+      registerDevice().catch(() => {});
       navigation.reset({ index: 0, routes: [{ name: 'TutorDashboard' }] });
     } catch {
       setError('Credenciales incorrectas. Verifica tu email y contraseña.');

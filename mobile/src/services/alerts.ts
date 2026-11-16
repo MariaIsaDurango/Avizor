@@ -43,6 +43,15 @@ export async function getAlerts(cursor?: string): Promise<AlertPage> {
   return response.json();
 }
 
+export async function getAlert(alertId: string): Promise<Alert> {
+  const response = await apiFetch(`/api/v1/alerts/${alertId}`);
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail ?? 'Error al cargar la alerta.');
+  }
+  return response.json();
+}
+
 export async function updateAlert(alertId: string, status: Exclude<AlertStatus, 'new'>): Promise<Alert> {
   const response = await apiFetch(`/api/v1/alerts/${alertId}`, {
     method: 'PATCH',
