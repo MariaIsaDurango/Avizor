@@ -63,6 +63,9 @@ class Analysis(Base):
     model_version: Mapped[str] = mapped_column(Text)
     latency_ms: Mapped[int | None] = mapped_column(Integer)
     server_processed: Mapped[bool] = mapped_column(Boolean, server_default="false")
+    # ES: false = reenvío manual pendiente del agente (migración 0003).
+    # EN: false = manual forward waiting for the agent (migration 0003).
+    final: Mapped[bool] = mapped_column(Boolean, server_default="true")
     created_at: Mapped[datetime] = created_at()
 
 

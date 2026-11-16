@@ -37,7 +37,7 @@ from app.schemas.enums import (
 )
 from app.schemas.verdict import Verdict
 from app.services.consent import has_active_consent
-from app.services.detection.decision import AMBER_THRESHOLD, FastDecision, decide
+from app.services.detection.decision import AMBER_THRESHOLD, decide
 from app.services.detection.text_rules import KeywordClassifier, ThreatClassifier
 from app.services.detection.url_rules import domain_of
 from app.services.identity import senior_id_from_device
@@ -67,7 +67,7 @@ def _report_count(db: Session, indicator_type: IndicatorType, value_hash: str) -
     return count or 0
 
 
-def _record_indicator(
+def record_indicator(
     db: Session, indicator_type: IndicatorType, value: str, now: datetime
 ) -> None:
     """ES: Suma un reporte (crea el indicador si no existe).
@@ -91,11 +91,11 @@ def _record_indicator(
     )
 
 
-def _create_alerts(
+def create_alerts(
     db: Session,
     analysis: Analysis,
     senior_id: uuid.UUID,
-    decision: FastDecision,
+    explanation: str,
     evidence: list[dict],
 ) -> list[uuid.UUID]:
     senior_name = db.scalar(select(User.display_name).where(User.id == senior_id))
@@ -112,7 +112,6 @@ def _create_alerts(
         f"Hemos bloqueado un intento de estafa por "
         f"{CHANNEL_NAMES[analysis.channel]} en el móvil de {senior_name}."
     )
-    explanation = " ".join(decision.reasons[:3]) or "Contenido peligroso detectado."
 
     alerts = [
         Alert(
@@ -128,6 +127,13 @@ def _create_alerts(
     # ES: flush para que PostgreSQL asigne los ids. EN: flush so PG assigns ids.
     db.flush()
     return [alert.id for alert in alerts]
+
+
+def explain(reasons: list[str]) -> str:
+    """ES: Explicación para el Tutor con motivos fijos (nunca texto del mensaje).
+    EN: Explanation for the guardian with fixed reasons (never message text).
+    """
+    return " ".join(reasons[:3]) or "Contenido peligroso detectado."
 
 
 class FastResult(NamedTuple):
@@ -222,7 +228,7 @@ def analyze_fast(db: Session, token: TokenPayload, body: AnalysisRequest) -> Fas
             )
         for finding in decision.url_findings:
             if finding.score >= AMBER_THRESHOLD and finding.domain:
-                _record_indicator(db, IndicatorType.DOMAIN, finding.domain, now)
+                record_indicator(db, IndicatorType.DOMAIN, finding.domain, now)
                 evidence.append(
                     {
                         "type": "domain",
@@ -231,7 +237,7 @@ def analyze_fast(db: Session, token: TokenPayload, body: AnalysisRequest) -> Fas
                     }
                 )
         if body.sender and sender_type:
-            _record_indicator(db, sender_type, body.sender.value, now)
+            record_indicator(db, sender_type, body.sender.value, now)
             if sender_reports:
                 evidence.append(
                     {
@@ -243,8 +249,9 @@ def analyze_fast(db: Session, token: TokenPayload, body: AnalysisRequest) -> Fas
 
     alert_ids: list[uuid.UUID] = []
     if decision.risk_level == RiskLevel.RED:
-        alert_ids = _create_alerts(db, analysis, senior_id, decision, evidence)
-
+        alert_ids = create_alerts(
+            db, analysis, senior_id, explain(decision.reasons), evidence
+        )
     analysis.latency_ms = round((perf_counter() - started) * 1000)
     db.commit()
 
