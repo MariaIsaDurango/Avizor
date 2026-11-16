@@ -36,7 +36,9 @@ export default function TutorRegisterScreen({ navigation }: Props) {
     setError(null);
     try {
       await register({ display_name: name, email, password });
-      registerDevice().catch(() => {});
+      registerDevice().catch((e) => {
+        if (__DEV__) console.warn('[devices] registerDevice failed:', e);
+      });
       navigation.reset({ index: 0, routes: [{ name: 'TutorDashboard' }] });
     } catch (e) {
       const message = e instanceof Error ? e.message : 'Error al registrarse.';

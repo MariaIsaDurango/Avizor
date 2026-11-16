@@ -26,7 +26,9 @@ export default function TutorLoginScreen({ navigation }: Props) {
     setError(null);
     try {
       await login({ email, password });
-      registerDevice().catch(() => {});
+      registerDevice().catch((e) => {
+        if (__DEV__) console.warn('[devices] registerDevice failed:', e);
+      });
       navigation.reset({ index: 0, routes: [{ name: 'TutorDashboard' }] });
     } catch {
       setError('Credenciales incorrectas. Verifica tu email y contraseña.');

@@ -31,7 +31,13 @@
     "scheme": "avizor",
     "plugins": [
       "expo-secure-store",
-      "expo-status-bar"
-    ]
+      "expo-status-bar",
+      "expo-notifications"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": ""
+      }
+    }
   }
 }

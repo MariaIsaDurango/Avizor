@@ -7,6 +7,7 @@ import RootNavigator from './src/navigation/RootNavigator';
 import { navigationRef } from './src/navigation/navigationRef';
 import { STORAGE_KEYS } from './src/constants/storage';
 import { getAlert } from './src/services/alerts';
+import { registerDevice } from './src/services/devices';
 
 type SavedMode = 'senior' | 'tutor' | null;
 
@@ -47,17 +48,16 @@ export default function App() {
       .then(([mode, deviceId]) => {
         setInitialMode((mode as SavedMode) ?? null);
         setHasDeviceId(deviceId !== null);
+        if (mode === 'tutor') {
+          registerDevice().catch((e) => {
+            if (__DEV__) console.warn('[App] registerDevice failed:', e);
+          });
+        }
       })
       .catch(() => {
         setInitialMode(null);
         setHasDeviceId(false);
       });
-
-    // ES: Notificación pendiente si la app estaba cerrada al llegar el push.
-    // EN: Pending notification if the app was closed when the push arrived.
-    Notifications.getLastNotificationResponseAsync().then((response) => {
-      if (response) handleNotificationResponse(response);
-    });
 
     const subscription = Notifications.addNotificationResponseReceivedListener(
       handleNotificationResponse,
@@ -68,7 +68,16 @@ export default function App() {
   if (initialMode === undefined || hasDeviceId === undefined) return null;
 
   return (
-    <NavigationContainer ref={navigationRef}>
+    <NavigationContainer
+      ref={navigationRef}
+      onReady={() => {
+        // ES: Notificación pendiente si la app estaba cerrada al llegar el push.
+        // EN: Pending notification if the app was closed when the push arrived.
+        Notifications.getLastNotificationResponseAsync().then((response) => {
+          if (response) handleNotificationResponse(response);
+        });
+      }}
+    >
       <StatusBar style="auto" />
       <RootNavigator initialMode={initialMode} hasDeviceId={hasDeviceId} />
     </NavigationContainer>
