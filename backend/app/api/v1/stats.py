@@ -99,9 +99,7 @@ def get_summary_stats(
         Analysis.risk_level != RiskLevel.GREEN,
     )
 
-    total = (
-        db.scalar(select(func.count(Analysis.id)).where(*attacks_filter)) or 0
-    )
+    total = db.scalar(select(func.count(Analysis.id)).where(*attacks_filter)) or 0
 
     by_threat = db.execute(
         select(Analysis.threat_type, func.count().label("n"))

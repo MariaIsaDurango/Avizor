@@ -31,11 +31,14 @@ def test_summary_stats_returns_200_and_shape(api_client):
     assert "by_channel" in data
 
 
-@pytest.mark.parametrize("path", [
-    "/api/v1/stats/daily?period=15",
-    "/api/v1/stats/summary?period=15",
-    "/api/v1/stats/daily?period=0",
-    "/api/v1/stats/daily?period=abc",
-])
+@pytest.mark.parametrize(
+    "path",
+    [
+        "/api/v1/stats/daily?period=15",
+        "/api/v1/stats/summary?period=15",
+        "/api/v1/stats/daily?period=0",
+        "/api/v1/stats/daily?period=abc",
+    ],
+)
 def test_invalid_period_returns_422(api_client, path):
     assert api_client.get(path).status_code == 422
