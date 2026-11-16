@@ -218,6 +218,9 @@ def _complete(
                     delete_at=now + timedelta(days=RETENTION_DAYS[risk_level]),
                 )
             )
+
+        # ES: Solo dominios: el reenvío manual no trae remitente (sin campo sender).
+        # EN: Domains only: a manual forward has no sender (no sender field).
         for item in evidence:
             if item.get("type") == IndicatorType.DOMAIN:
                 record_indicator(db, IndicatorType.DOMAIN, item["value"], now)
