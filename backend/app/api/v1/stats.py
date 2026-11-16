@@ -136,7 +136,7 @@ def get_indicator_ranking(db: DbSession) -> IndicatorRankingResponse:
         db.execute(
             text(
                 "SELECT type, public_value, report_count, last_seen_at"
-                " FROM v_indicator_ranking"
+                " FROM v_indicator_ranking LIMIT 100"
             )
         )
         .mappings()

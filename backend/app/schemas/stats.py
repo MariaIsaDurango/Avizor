@@ -8,6 +8,7 @@ EN: Counters only, never IDs or message content.
 from datetime import datetime
 
 from app.schemas.common import ContractModel
+from app.schemas.enums import IndicatorType
 
 
 class DailyRow(ContractModel):
@@ -29,7 +30,7 @@ class SummaryStatsResponse(ContractModel):
 
 
 class IndicatorRow(ContractModel):
-    type: str
+    type: IndicatorType
     public_value: str
     report_count: int
     last_seen_at: datetime
