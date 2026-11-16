@@ -34,19 +34,19 @@ export async function registerDevice(): Promise<void> {
 
   if (response.ok) {
     const device: { id: string } = await response.json();
-    await SecureStore.setItemAsync(STORAGE_KEYS.DEVICE_ID, device.id);
+    await SecureStore.setItemAsync(STORAGE_KEYS.GUARDIAN_DEVICE_ID, device.id);
   } else if (__DEV__) {
     console.warn('[devices] POST /devices failed:', response.status);
   }
 }
 
 export async function unregisterDevice(): Promise<void> {
-  const deviceId = await SecureStore.getItemAsync(STORAGE_KEYS.DEVICE_ID);
+  const deviceId = await SecureStore.getItemAsync(STORAGE_KEYS.GUARDIAN_DEVICE_ID);
   if (!deviceId) return;
   try {
     await apiFetch(`/api/v1/devices/${deviceId}`, { method: 'DELETE' });
   } catch {
     if (__DEV__) console.warn('[devices] DELETE /devices failed');
   }
-  await SecureStore.deleteItemAsync(STORAGE_KEYS.DEVICE_ID);
+  await SecureStore.deleteItemAsync(STORAGE_KEYS.GUARDIAN_DEVICE_ID);
 }
