@@ -44,7 +44,9 @@ def test_invalid_period_returns_422(api_client, path):
     assert api_client.get(path).status_code == 422
 
 
-def _make_indicator(db_session, *, report_count, type="domain", public_value="evil.com"):
+def _make_indicator(
+    db_session, *, report_count, type="domain", public_value="evil.com"
+):
     from datetime import UTC, datetime
 
     from app.models.indicator import Indicator
