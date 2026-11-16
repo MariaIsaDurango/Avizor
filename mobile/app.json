@@ -36,8 +36,9 @@
     ],
     "extra": {
       "eas": {
-        "projectId": ""
+        "projectId": "b61cab23-d909-4f78-9bca-bc740780eb88"
       }
-    }
+    },
+    "owner": "majorodri"
   }
 }
