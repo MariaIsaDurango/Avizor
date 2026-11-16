@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Literal
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -27,6 +28,12 @@ class Settings(BaseSettings):
     # ES: Cada cuánto se borran los datos caducados (0 = desactivado).
     # EN: How often expired data is deleted (0 = disabled).
     RETENTION_PURGE_MINUTES: int = 60
+    # ES: "log" solo lo escribe en el log (desarrollo); "expo" envía el push real.
+    # EN: "log" only writes it to the log (development); "expo" sends the real push.
+    PUSH_PROVIDER: Literal["log", "expo"] = "log"
+    # ES: Opcional: solo si el proyecto de Expo exige token de acceso.
+    # EN: Optional: only if the Expo project requires an access token.
+    EXPO_ACCESS_TOKEN: str | None = None
 
 
 settings = Settings()

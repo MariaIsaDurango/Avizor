@@ -109,6 +109,15 @@ def list_alerts(
     )
 
 
+def get_alert(db: Session, guardian_id: uuid.UUID, alert_id: uuid.UUID) -> AlertSchema:
+    row = db.execute(_base_query(guardian_id).where(Alert.id == alert_id)).first()
+    # ES: 404 también si es de otro Tutor: no revela que existe.
+    # EN: 404 also if it belongs to another guardian: does not reveal it exists.
+    if row is None:
+        raise ApiError(404, ErrorCode.NOT_FOUND, "Alerta no encontrada.")
+    return _to_schema(row.Alert, row.Analysis, row.User)
+
+
 def update_alert(
     db: Session, guardian_id: uuid.UUID, alert_id: uuid.UUID, body: AlertUpdate
 ) -> AlertSchema:

@@ -166,3 +166,41 @@ def test_other_guardian_cannot_update(api_client, db_session, one_alert):
         headers={"Authorization": f"Bearer {token}"},
     )
     assert response.status_code == 404
+
+
+# ---------- GET /alerts/{id} ----------
+
+
+def test_get_alert_detail(api_client, guardian_headers, one_alert):
+    response = api_client.get(f"{ALERTS}/{one_alert['id']}", headers=guardian_headers)
+    assert response.status_code == 200
+    assert Alert.model_validate(response.json()).id == uuid.UUID(one_alert["id"])
+    assert "[IBAN]" not in response.text
+
+
+def test_get_unknown_alert_is_404(api_client, guardian_headers):
+    response = api_client.get(f"{ALERTS}/{uuid.uuid4()}", headers=guardian_headers)
+    assert response.status_code == 404
+
+
+def test_other_guardian_cannot_get(api_client, db_session, one_alert):
+    stranger = User(
+        role=UserRole.GUARDIAN,
+        display_name="Otro",
+        email="otro3.tutor@example.com",
+        password_hash=hash_password("contraseña-larga-4"),
+    )
+    db_session.add(stranger)
+    db_session.flush()
+    token = create_access_token(stranger.id, UserRole.GUARDIAN)
+    response = api_client.get(
+        f"{ALERTS}/{one_alert['id']}", headers={"Authorization": f"Bearer {token}"}
+    )
+    assert response.status_code == 404
+
+
+def test_senior_cannot_get_alert(api_client, consented_senior, one_alert):
+    response = api_client.get(
+        f"{ALERTS}/{one_alert['id']}", headers=consented_senior.headers
+    )
+    assert response.status_code == 403
