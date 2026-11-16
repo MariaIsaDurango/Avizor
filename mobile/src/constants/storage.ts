@@ -1,6 +1,7 @@
 export const STORAGE_KEYS = {
   USER_MODE: 'user_mode',
   DEVICE_ID: 'device_id',
+  GUARDIAN_DEVICE_ID: 'guardian_device_id',
   SENIOR_ID: 'senior_id',
 } as const;
 
