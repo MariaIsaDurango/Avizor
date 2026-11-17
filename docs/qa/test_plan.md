@@ -6,7 +6,7 @@
 
 **Responsable inicial:** Persona 5 — QA, ciberseguridad, privacidad y documentación.
 
-Este plan convierte los requisitos recogidos en los issues en criterios verificables. En la revisión inicial solo había marcadores `.gitkeep`; desde entonces, el backend y sus pruebas han avanzado. El estado descrito aquí corresponde a la rama y archivos revisados el 16 de noviembre de 2026, no certifica el despliegue ni sustituye la aprobación del equipo.
+Este plan convierte los requisitos recogidos en los issues en criterios verificables. El estado descrito aquí corresponde a la rama y validación local del 17 de noviembre de 2026, no certifica el despliegue ni sustituye la aprobación del equipo.
 
 ## Objetivos y principios
 
@@ -46,13 +46,13 @@ Los siguientes criterios derivan de los issues abiertos y son la base de las pru
 
 | Nivel | Qué verifica | Herramienta prevista | Estado |
 |---|---|---|---|
-| Unitario | Validación de esquemas, autorización, anonimización, reglas de retención, transiciones y clasificación aislada. | `pytest` para Python; Jest solo si se confirma y configura en mobile. | Hay suite de backend y tests de retención; requieren PostgreSQL. |
-| Integración | API, persistencia, autenticación, permisos, colas/jobs e interacciones entre componentes con servicios de prueba. | `pytest` + `httpx`; PostgreSQL/servicios aislados según arquitectura. | Backend y tests existen; la suite de retención se omitió localmente por falta de PostgreSQL. |
-| End-to-end | Flujos tutor/sénior y comportamiento de extremo a extremo, incluyendo errores y estados vacíos. | Herramienta por decidir al existir la app. | Pendiente: mobile no contiene `package.json`. |
+| Unitario | Validación de esquemas, autorización, anonimización, reglas de retención, transiciones y clasificación aislada. | `pytest` para Python. En mobile hay ESLint y TypeScript; Jest aún no está configurado. | Las pruebas unitarias forman parte de la suite completa del backend ejecutada el 17-11-2026 con PostgreSQL 16: 250 passed. |
+| Integración | API, persistencia, autenticación, permisos, colas/jobs e interacciones entre componentes con servicios de prueba. | `pytest` + `httpx`; PostgreSQL/servicios aislados según arquitectura. | CI aplica migraciones y ejecuta `pytest backend/tests` con PostgreSQL. La [prueba de flujo API](../../backend/tests/test_mvp_flow.py) recorre registro, vinculación, consentimiento, análisis, alerta y desbloqueo. |
+| End-to-end | Flujos tutor/sénior y comportamiento de extremo a extremo, incluyendo errores y estados vacíos. | La prueba API de flujo completo usa `pytest`; la herramienta E2E móvil aún debe acordarse. | Existe prueba del flujo API de registro a desbloqueo. Mobile tiene `package.json` y checks de lint/tipos, pero no Jest ni un runner E2E configurado. |
 | Modelos | Evaluación reproducible, errores por clase y subgrupos pertinentes; comparación con baseline y análisis de falsos positivos/negativos. | Scripts/notebooks del equipo ML; métricas acordadas en ADR. | Pendiente: no hay modelo ni dataset en el repositorio. |
-| Seguridad y privacidad | Control de acceso, entrada no confiable al LLM, minimización, logs, retención y eliminación. | Pruebas automatizadas, inspección de datos de prueba y revisión manual. | La purga está implementada en backend; falta ejecutar sus tests con PostgreSQL y completar revisiones de despliegue/proveedores. |
+| Seguridad y privacidad | Control de acceso, entrada no confiable al LLM, minimización, logs, retención y eliminación. | Pruebas automatizadas, inspección de datos de prueba y revisión manual. | Las pruebas locales del backend pasan con PostgreSQL. Siguen pendientes pruebas adversariales del LLM, revisión de logs/proveedores y comprobaciones del despliegue. |
 | Manual Android | Permisos, accesibilidad, notificaciones/llamadas, legibilidad y uso real en dispositivos soportados. | Dispositivos Android y checklist de ejecución. | Pendiente: coordinar con responsable de la PoC Android. |
-| Regresión | Que cambios no rompan criterios ya aprobados. | CI y suite de pruebas pertinente. | Parcial: CI configura pytest/Ruff y comandos npm condicionales; ML y mobile se omiten cuando faltan tests o `package.json`. |
+| Regresión | Que cambios no rompan criterios ya aprobados. | CI y suite de pruebas pertinente. | Localmente pasaron migraciones, `python -m pytest -q` (250 passed, 1 warning), `python -m ruff check .` y `python -m ruff format --check .` desde `backend`. CI móvil ejecuta `npm ci`, lint y type-check; no ejecuta Jest. Un check verde no significa que los modelos o Android se hayan probado. |
 
 ## Casos iniciales
 
@@ -96,14 +96,14 @@ La severidad se confirma con el equipo según impacto y probabilidad; no es una 
 
 ## Límites actuales y dependencias
 
-- La suite específica de retención es [backend/tests/test_retention.py](../../backend/tests/test_retention.py). En esta revisión local, `pytest tests/test_retention.py -q` reportó **10 skipped** porque no había PostgreSQL disponible; no se cuenta como suite pasada. Ruff sí pasó en los archivos del job, servicio, arranque y test.
-- `mobile/` no tiene `package.json`; la herramienta de pruebas E2E/mobile requiere definición.
-- No se encontró una especificación `Contract Schemas` versionada en `docs/`; el backend sí contiene modelos y migraciones. Los nombres de campos y códigos citados deben cotejarse con la versión vigente del contrato.
+- La suite específica de retención es [backend/tests/test_retention.py](../../backend/tests/test_retention.py). El 17 de noviembre se ejecutó la suite local con PostgreSQL 16 saludable y migraciones aplicadas: **250 passed, 1 warning**, incluidos los tests de retención y el nuevo flujo API completo. `python -m ruff check .` y `python -m ruff format --check .` también pasaron desde `backend`.
+- `mobile/package.json` existe y CI instala sus dependencias y ejecuta lint/type-check. No hay Jest ni runner E2E móvil configurado; `npm ci` y un entorno Android serán necesarios para validar esas partes localmente.
+- El backend declara `CONTRACT_VERSION = "1.0.0"` y contiene esquemas y migraciones Alembic. No se encontró una especificación normativa independiente en `docs/contract/`; hasta que se documente, la referencia técnica disponible son los esquemas del backend.
 - Los umbrales del clasificador y la aprobación legal de los plazos de retención siguen pendientes. La implementación técnica de la purga no constituye por sí misma una decisión jurídica ni prueba el borrado de backups o proveedores externos.
 - Los issues #31 y #32 asignan las PoC Android a otra persona; Persona 5 coordina/revisa pruebas, no sustituye su implementación.
 
 ## Referencias de trabajo
 
-- Issues [#48](https://github.com/MariaIsaDurango/Avizor/issues/48), [#50](https://github.com/MariaIsaDurango/Avizor/issues/50), [#51](https://github.com/MariaIsaDurango/Avizor/issues/51), [#52](https://github.com/MariaIsaDurango/Avizor/issues/52) y ADR compartido [#7](https://github.com/MariaIsaDurango/Avizor/issues/7).
+- Issues [#48](https://github.com/MariaIsaDurango/Avizor/issues/48), [#49](https://github.com/MariaIsaDurango/Avizor/issues/49), [#50](https://github.com/MariaIsaDurango/Avizor/issues/50), [#51](https://github.com/MariaIsaDurango/Avizor/issues/51), [#52](https://github.com/MariaIsaDurango/Avizor/issues/52) y ADR compartido [#7](https://github.com/MariaIsaDurango/Avizor/issues/7).
 - [Workflow CI del repositorio](../../.github/workflows/ci.yml).
 - [Matriz de riesgos](./risk_matrix.md).
