@@ -11,6 +11,11 @@ SOURCE = Source(
         "https://www.incibe.es/index.php/ciudadania/blog",
     ),
     article_pattern=r"/(?:index\.php/)?ciudadania/blog/[A-Za-z0-9_%-]+/?",
-    body_selectors=(".field--name-body", "article .node__content", "article"),
+    body_selectors=(
+        "article .field--name-body.field--type-text-with-summary",
+        "article .node__content",
+        "article",
+        ".field--name-body",
+    ),
     publisher="incibe",
 )

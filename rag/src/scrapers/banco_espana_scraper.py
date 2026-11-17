@@ -22,6 +22,7 @@ SOURCE = Source(
     ),
     article_pattern=r"/pcb/es/blog/[A-Za-z0-9_%-]+\.html",
     body_selectors=(
+        "div#collapseContent.plaintext",
         "[itemprop='articleBody']",
         ".article-body",
         ".blog-content",
