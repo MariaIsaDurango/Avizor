@@ -43,10 +43,13 @@
 
 html {
   font-size: 16px;
-  scroll-behavior: smooth;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
 }
 
 body {
@@ -339,3 +342,54 @@ a:hover {
 @media (max-width: 480px) {
   .main-content { padding: 1.25rem 0.875rem; }
 }
+
+/* ─── Dark mode ───────────────────────────────────────────── */
+
+@media (prefers-color-scheme: dark) {
+
+  :root {
+    --color-background:    #f5f0e8;
+    --color-white:         #fdfaf4;
+    --color-text:          #2c2416;
+    --color-text-muted:    #6b5d4e;
+    --color-border:        #ddd5c8;
+    --shadow-sm: 0 1px 3px rgba(44, 36, 22, 0.08);
+    --shadow-md: 0 4px 12px rgba(44, 36, 22, 0.12);
+  }
+
+  /* Hero */
+  .hero { background: #ede7db !important; }
+
+  /* Semáforo de riesgo */
+  .risk-level--green { background: #eaf6ef; border-color: #9fcfb3; color: #1a4d2e; }
+  .risk-level--amber { background: #fef8ec; border-color: #e8c97a; color: #6b3f00; }
+  .risk-level--red   { background: #fdf0f0; border-color: #e8a5a5; color: #6b1a1a; }
+
+  /* Formularios */
+  .form-input {
+    background: #fdfaf4;
+    border-color: #c8bfb0;
+    color: #2c2416;
+  }
+  .form-input::placeholder { color: #9b8e80; }
+}
+
+/* ─── Focus visible ───────────────────────────────────────── */
+
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+/* ─── Reduced motion ──────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
