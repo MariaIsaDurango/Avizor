@@ -5,34 +5,63 @@
 
 {% block extra_head %}
 <style>
+  /* ── Tab nav ──────────────────────────────────────────── */
   .section-nav {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
     margin-bottom: 2rem;
   }
-  .section-nav__link {
+  .section-nav__btn {
     padding: 0.4rem 0.875rem;
     border: 1.5px solid var(--color-primary);
     border-radius: var(--radius-sm);
     font-size: var(--font-size-sm);
     font-weight: 500;
     color: var(--color-primary);
-    text-decoration: none;
+    background: var(--color-white);
+    cursor: pointer;
     transition: background 0.15s, color 0.15s;
+    font-family: var(--font-family);
   }
-  .section-nav__link:hover {
+  .section-nav__btn:hover,
+  .section-nav__btn--active {
     background: var(--color-primary);
     color: var(--color-white);
-    text-decoration: none;
   }
 
+  /* ── Sections — desktop: tab panels ──────────────────── */
   .support-section { margin-bottom: 2rem; }
+
+  @media (min-width: 769px) {
+    .support-section {
+      display: none;
+    }
+    .support-section--active {
+      display: block;
+      animation: fadeInUp 0.25s ease both;
+    }
+  }
+
+  /* ── Sections — mobile: all visible ──────────────────── */
+  @media (max-width: 768px) {
+    .section-nav { display: none; }
+    .support-section { display: block !important; }
+  }
+
   .support-section h2 {
     font-size: var(--font-size-lg);
     font-weight: 700;
     color: var(--color-primary);
     margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .support-section h2 svg {
+    width: 1.125rem;
+    height: 1.125rem;
+    flex-shrink: 0;
   }
   .support-section h3 {
     font-size: var(--font-size-base);
@@ -50,10 +79,16 @@
     margin-bottom: 0.75rem;
   }
 
-  /* ── FAQ accordion ─────────────────────────────────── */
-  .faq-item {
-    border-bottom: 1px solid var(--color-border);
+  /* ── Mobile section headings ──────────────────────────── */
+  @media (max-width: 768px) {
+    .support-section h2 {
+      font-size: var(--font-size-base);
+      padding-top: 0.5rem;
+    }
   }
+
+  /* ── FAQ accordion ────────────────────────────────────── */
+  .faq-item { border-bottom: 1px solid var(--color-border); }
   .faq-item:last-child { border-bottom: none; }
   .faq-item summary {
     padding: 0.875rem 0;
@@ -72,7 +107,6 @@
     font-size: 1.25rem;
     color: var(--color-primary);
     flex-shrink: 0;
-    transition: transform 0.2s;
   }
   .faq-item[open] summary::after { content: '−'; }
   .faq-item p {
@@ -81,7 +115,7 @@
     line-height: 1.7;
   }
 
-  /* ── Pasos del Tutor ───────────────────────────────── */
+  /* ── Pasos del Tutor ──────────────────────────────────── */
   .steps { counter-reset: step; padding: 0; list-style: none; }
   .steps li {
     counter-increment: step;
@@ -105,62 +139,28 @@
     flex-shrink: 0;
     margin-top: 0.1rem;
   }
-
-  /* ── Versión Sénior ────────────────────────────────── */
-  .senior-card {
-    background: #0F2C59;
-    border-radius: var(--radius-lg);
-    padding: 2.5rem 2rem;
-    text-align: center;
-    color: #FFFFFF;
-  }
-  .senior-card__title {
-    font-size: 2rem;
-    font-weight: 700;
-    margin-bottom: 1rem;
-    line-height: 1.3;
-  }
-  .senior-card__text {
-    font-size: 1.25rem;
-    line-height: 1.6;
-    margin-bottom: 2rem;
-    color: rgba(255,255,255,0.9);
-  }
-  .senior-card__btn {
-    display: inline-block;
-    background: #F4B19B;
-    color: #0F2C59;
-    font-size: 1.5rem;
-    font-weight: 700;
-    padding: 1rem 2.5rem;
-    border-radius: var(--radius-md);
-    text-decoration: none;
-    transition: opacity 0.15s;
-  }
-  .senior-card__btn:hover {
-    opacity: 0.9;
-    text-decoration: none;
-    color: #0F2C59;
-  }
 </style>
 {% endblock %}
 
 {% block content %}
-<h1 style="font-size: var(--font-size-xl); color: var(--color-primary); margin-bottom: 1.5rem;">
+<h1 class="page-heading">
+  <i data-lucide="life-buoy" aria-hidden="true"></i>
   Centro de soporte
 </h1>
 
-<nav class="section-nav" aria-label="Secciones de soporte">
-  <a class="section-nav__link" href="#tutor">Guía del Tutor</a>
-  <a class="section-nav__link" href="#ia">Cómo funciona la IA</a>
-  <a class="section-nav__link" href="#privacidad">Privacidad</a>
-  <a class="section-nav__link" href="#faq">Preguntas frecuentes</a>
-  <a class="section-nav__link" href="#senior">Versión para el Sénior</a>
+<nav class="section-nav" aria-label="Secciones de soporte" role="tablist">
+  <button class="section-nav__btn section-nav__btn--active" data-tab="tutor" role="tab" aria-selected="true">Guía del Tutor</button>
+  <button class="section-nav__btn" data-tab="ia" role="tab" aria-selected="false">Cómo funciona la IA</button>
+  <button class="section-nav__btn" data-tab="privacidad" role="tab" aria-selected="false">Privacidad</button>
+  <button class="section-nav__btn" data-tab="faq" role="tab" aria-selected="false">Preguntas frecuentes</button>
 </nav>
 
 <!-- ── Guía del Tutor ─────────────────────────────────── -->
-<section id="tutor" class="card support-section">
-  <h2>Guía del Tutor</h2>
+<section id="tutor" class="card support-section support-section--active" role="tabpanel">
+  <h2>
+    <i data-lucide="user-check" aria-hidden="true"></i>
+    Guía del Tutor
+  </h2>
 
   <h3>Cómo vincular un dispositivo Sénior</h3>
   <ol class="steps">
@@ -188,8 +188,11 @@
 </section>
 
 <!-- ── Cómo funciona la IA ─────────────────────────────── -->
-<section id="ia" class="card support-section">
-  <h2>Cómo analiza Avizor los mensajes</h2>
+<section id="ia" class="card support-section" role="tabpanel">
+  <h2>
+    <i data-lucide="zap" aria-hidden="true"></i>
+    Cómo analiza Avizor los mensajes
+  </h2>
 
   <p>
     Cuando llega un SMS, notificación o llamada al móvil de la persona mayor, Avizor lo revisa
@@ -211,9 +214,7 @@
   </p>
 
   <h3>3. Decisión</h3>
-  <p>
-    Avizor clasifica el mensaje en tres niveles:
-  </p>
+  <p>Avizor clasifica el mensaje en tres niveles:</p>
   <ul>
     <li><span class="badge badge--green">Seguro</span> — no hay señales de fraude, el mensaje se entrega con normalidad.</li>
     <li><span class="badge badge--amber">Sospechoso</span> — hay indicios leves; el mensaje se bloquea silenciosamente sin generar alerta.</li>
@@ -229,8 +230,11 @@
 </section>
 
 <!-- ── Privacidad y RGPD ──────────────────────────────── -->
-<section id="privacidad" class="card support-section">
-  <h2>Privacidad y protección de datos</h2>
+<section id="privacidad" class="card support-section" role="tabpanel">
+  <h2>
+    <i data-lucide="lock" aria-hidden="true"></i>
+    Privacidad y protección de datos
+  </h2>
 
   <h3>Cómo se protegen los datos personales</h3>
   <p>
@@ -266,8 +270,11 @@
 </section>
 
 <!-- ── FAQ ───────────────────────────────────────────── -->
-<section id="faq" class="card support-section">
-  <h2>Preguntas frecuentes</h2>
+<section id="faq" class="card support-section" role="tabpanel">
+  <h2>
+    <i data-lucide="help-circle" aria-hidden="true"></i>
+    Preguntas frecuentes
+  </h2>
 
   <details class="faq-item">
     <summary>¿Avizor lee todos los mensajes de la persona mayor?</summary>
@@ -323,29 +330,25 @@
   </details>
 </section>
 
-<!-- ── Versión para el Sénior ─────────────────────────── -->
-<section id="senior" class="support-section">
-  <h2 style="font-size: var(--font-size-lg); font-weight: 700; color: var(--color-primary); margin-bottom: 1rem;">
-    Versión para el Sénior
-  </h2>
-  <p class="text-muted text-sm" style="margin-bottom: 1.5rem;">
-    Esta tarjeta está diseñada para que la persona mayor pueda encontrar ayuda fácilmente.
-    Puedes compartirle este enlace o mostrarle directamente esta sección.
-  </p>
+{% endblock %}
 
-  <div class="senior-card" role="region" aria-label="Ayuda para la persona mayor">
-    <p class="senior-card__title">¿Necesitas ayuda?</p>
-    <p class="senior-card__text">
-      Avizor protege tu móvil de mensajes y llamadas peligrosas.<br>
-      Si ves una pantalla de aviso, <strong>no hagas nada</strong> hasta hablar con tu familiar.<br>
-      Puedes llamarle ahora:
-    </p>
-    <a class="senior-card__btn" href="tel:" aria-label="Llamar a mi familiar">
-      📞 Llamar a mi familiar
-    </a>
-    <p style="margin-top: 1.5rem; font-size: 1rem; color: rgba(255,255,255,0.75);">
-      Si tienes dudas, llama también al <strong>017</strong> (Línea de Ayuda en Ciberseguridad del INCIBE, gratuita).
-    </p>
-  </div>
-</section>
+{% block extra_scripts %}
+<script>
+  const btns     = document.querySelectorAll('.section-nav__btn');
+  const sections = document.querySelectorAll('.support-section');
+
+  btns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      btns.forEach(b => {
+        b.classList.remove('section-nav__btn--active');
+        b.setAttribute('aria-selected', 'false');
+      });
+      sections.forEach(s => s.classList.remove('support-section--active'));
+
+      btn.classList.add('section-nav__btn--active');
+      btn.setAttribute('aria-selected', 'true');
+      document.getElementById(btn.dataset.tab).classList.add('support-section--active');
+    });
+  });
+</script>
 {% endblock %}

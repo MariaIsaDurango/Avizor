@@ -43,7 +43,8 @@
 {% endblock %}
 
 {% block content %}
-<h1 style="font-size: var(--font-size-xl); color: var(--color-primary); margin-bottom: 1.5rem;">
+<h1 class="page-heading">
+  <i data-lucide="bar-chart-2" aria-hidden="true"></i>
   Panel de analítica
 </h1>
 
@@ -55,7 +56,7 @@
 
 <div class="card mt-2" style="margin-bottom: 1rem;">
   <p class="text-muted text-sm">Total de ataques detectados en el período</p>
-  <p class="stat-total" id="total-count">—</p>
+  <p class="stat-total" id="total-count">-</p>
   <p class="fetch-error" id="fetch-error" style="display:none;">
     Error al cargar los datos. Inténtalo de nuevo.
   </p>

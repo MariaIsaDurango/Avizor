@@ -50,3 +50,21 @@ async def support(request: Request):
         "support.html",
         {"active_page": "support", **_COMMON},
     )
+
+
+@web_router.get("/register", response_class=HTMLResponse, name="register")
+async def register(request: Request):
+    return templates.TemplateResponse(
+        request,
+        "register.html",
+        {**_COMMON},
+    )
+
+
+@web_router.get("/login", response_class=HTMLResponse, name="login_page")
+async def login_page(request: Request):
+    return templates.TemplateResponse(
+        request,
+        "login.html",
+        {**_COMMON},
+    )
