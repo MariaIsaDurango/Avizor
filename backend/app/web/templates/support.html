@@ -1,10 +1,352 @@
 {% extends "base.html" %}
 
 {% block title %}Soporte{% endblock %}
+{% block meta_description %}Guía de uso, transparencia de la IA, privacidad y preguntas frecuentes de Avizor{% endblock %}
+
+{% block extra_head %}
+<style>
+  .section-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+  }
+  .section-nav__link {
+    padding: 0.4rem 0.875rem;
+    border: 1.5px solid var(--color-primary);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--color-primary);
+    text-decoration: none;
+    transition: background 0.15s, color 0.15s;
+  }
+  .section-nav__link:hover {
+    background: var(--color-primary);
+    color: var(--color-white);
+    text-decoration: none;
+  }
+
+  .support-section { margin-bottom: 2rem; }
+  .support-section h2 {
+    font-size: var(--font-size-lg);
+    font-weight: 700;
+    color: var(--color-primary);
+    margin-bottom: 1rem;
+  }
+  .support-section h3 {
+    font-size: var(--font-size-base);
+    font-weight: 600;
+    color: var(--color-primary);
+    margin: 1rem 0 0.5rem;
+  }
+  .support-section p, .support-section li {
+    color: var(--color-text);
+    line-height: 1.7;
+    margin-bottom: 0.5rem;
+  }
+  .support-section ol, .support-section ul {
+    padding-left: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  /* ── FAQ accordion ─────────────────────────────────── */
+  .faq-item {
+    border-bottom: 1px solid var(--color-border);
+  }
+  .faq-item:last-child { border-bottom: none; }
+  .faq-item summary {
+    padding: 0.875rem 0;
+    font-weight: 600;
+    color: var(--color-primary);
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+  }
+  .faq-item summary::-webkit-details-marker { display: none; }
+  .faq-item summary::after {
+    content: '+';
+    font-size: 1.25rem;
+    color: var(--color-primary);
+    flex-shrink: 0;
+    transition: transform 0.2s;
+  }
+  .faq-item[open] summary::after { content: '−'; }
+  .faq-item p {
+    padding: 0 0 0.875rem;
+    color: var(--color-text);
+    line-height: 1.7;
+  }
+
+  /* ── Pasos del Tutor ───────────────────────────────── */
+  .steps { counter-reset: step; padding: 0; list-style: none; }
+  .steps li {
+    counter-increment: step;
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    align-items: flex-start;
+  }
+  .steps li::before {
+    content: counter(step);
+    background: var(--color-primary);
+    color: var(--color-white);
+    border-radius: 50%;
+    width: 1.75rem;
+    height: 1.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: var(--font-size-sm);
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+  }
+
+  /* ── Versión Sénior ────────────────────────────────── */
+  .senior-card {
+    background: #0F2C59;
+    border-radius: var(--radius-lg);
+    padding: 2.5rem 2rem;
+    text-align: center;
+    color: #FFFFFF;
+  }
+  .senior-card__title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    line-height: 1.3;
+  }
+  .senior-card__text {
+    font-size: 1.25rem;
+    line-height: 1.6;
+    margin-bottom: 2rem;
+    color: rgba(255,255,255,0.9);
+  }
+  .senior-card__btn {
+    display: inline-block;
+    background: #F4B19B;
+    color: #0F2C59;
+    font-size: 1.5rem;
+    font-weight: 700;
+    padding: 1rem 2.5rem;
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    transition: opacity 0.15s;
+  }
+  .senior-card__btn:hover {
+    opacity: 0.9;
+    text-decoration: none;
+    color: #0F2C59;
+  }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="card mt-2">
-  <h1 class="card__title">Centro de soporte</h1>
-  <p class="text-muted">Próximamente: transparencia, FAQ y canal de contacto.</p>
-</div>
+<h1 style="font-size: var(--font-size-xl); color: var(--color-primary); margin-bottom: 1.5rem;">
+  Centro de soporte
+</h1>
+
+<nav class="section-nav" aria-label="Secciones de soporte">
+  <a class="section-nav__link" href="#tutor">Guía del Tutor</a>
+  <a class="section-nav__link" href="#ia">Cómo funciona la IA</a>
+  <a class="section-nav__link" href="#privacidad">Privacidad</a>
+  <a class="section-nav__link" href="#faq">Preguntas frecuentes</a>
+  <a class="section-nav__link" href="#senior">Versión para el Sénior</a>
+</nav>
+
+<!-- ── Guía del Tutor ─────────────────────────────────── -->
+<section id="tutor" class="card support-section">
+  <h2>Guía del Tutor</h2>
+
+  <h3>Cómo vincular un dispositivo Sénior</h3>
+  <ol class="steps">
+    <li>Abre la app Avizor Tutor y ve a <strong>Vincular dispositivo</strong>.</li>
+    <li>Se genera un código de 6 dígitos que caduca en 10 minutos.</li>
+    <li>En el móvil de la persona mayor, abre Avizor y pulsa <strong>Tengo un código</strong>.</li>
+    <li>Introduce el código. Cuando se muestre "¡Vinculados!", la conexión está activa.</li>
+    <li>La persona mayor debe aceptar el aviso de accesibilidad para que Avizor pueda analizar sus mensajes.</li>
+  </ol>
+
+  <h3>Cómo gestionar las alertas</h3>
+  <ol class="steps">
+    <li>Las alertas aparecen en tu bandeja ordenadas por fecha. Las nuevas se marcan en rojo.</li>
+    <li>Pulsa sobre una alerta para ver el detalle: canal, tipo de fraude y explicación.</li>
+    <li>Si confirmas que era un fraude, pulsa <strong>Confirmar fraude</strong>. Si fue un error, pulsa <strong>Falso positivo</strong>. Esto ayuda a mejorar la detección.</li>
+    <li>Recibirás una notificación push en cuanto se detecte una nueva amenaza.</li>
+  </ol>
+
+  <h3>Cómo desbloquear contenido bloqueado</h3>
+  <ol class="steps">
+    <li>Si la persona mayor cree que un mensaje fue bloqueado por error, puede pedir un desbloqueo desde su app.</li>
+    <li>Recibirás una solicitud en la sección <strong>Desbloqueos pendientes</strong>.</li>
+    <li>Puedes aprobarla o rechazarla. La persona mayor verá tu respuesta en su móvil.</li>
+  </ol>
+</section>
+
+<!-- ── Cómo funciona la IA ─────────────────────────────── -->
+<section id="ia" class="card support-section">
+  <h2>Cómo analiza Avizor los mensajes</h2>
+
+  <p>
+    Cuando llega un SMS, notificación o llamada al móvil de la persona mayor, Avizor lo revisa
+    de forma automática antes de que lo vea. Este es el proceso, explicado sin tecnicismos:
+  </p>
+
+  <h3>1. Lectura del mensaje</h3>
+  <p>
+    Avizor lee el texto del mensaje en el propio móvil. <strong>El contenido nunca sale
+    del dispositivo sin antes borrar los datos personales</strong> (nombres, números de cuenta,
+    teléfonos, etc.).
+  </p>
+
+  <h3>2. Búsqueda de señales de alerta</h3>
+  <p>
+    Se comprueba si el mensaje contiene frases típicas de estafa (urgencia, premios, amenazas),
+    si incluye enlaces a páginas conocidas como peligrosas, o si el número de teléfono que lo
+    envió ha sido reportado por otras personas.
+  </p>
+
+  <h3>3. Decisión</h3>
+  <p>
+    Avizor clasifica el mensaje en tres niveles:
+  </p>
+  <ul>
+    <li><span class="badge badge--green">Seguro</span> — no hay señales de fraude, el mensaje se entrega con normalidad.</li>
+    <li><span class="badge badge--amber">Sospechoso</span> — hay indicios leves; el mensaje se bloquea silenciosamente y se te notifica.</li>
+    <li><span class="badge badge--red">Peligroso</span> — señales claras de estafa; el mensaje se bloquea, la persona mayor ve una pantalla de aviso y tú recibes una alerta.</li>
+  </ul>
+
+  <h3>4. Reenvíos manuales</h3>
+  <p>
+    La persona mayor también puede reenviar mensajes de forma manual (fotos, audios, capturas)
+    para que Avizor los analice con más detalle. En ese caso la respuesta puede tardar hasta
+    15 segundos mientras se realiza un análisis más profundo.
+  </p>
+</section>
+
+<!-- ── Privacidad y RGPD ──────────────────────────────── -->
+<section id="privacidad" class="card support-section">
+  <h2>Privacidad y protección de datos</h2>
+
+  <h3>Cómo se protegen los datos personales</h3>
+  <p>
+    Antes de analizar cualquier mensaje, Avizor elimina automáticamente del texto los datos
+    personales: nombres, números de documento, cuentas bancarias, tarjetas, teléfonos,
+    correos y direcciones. Este proceso se llama <strong>anonimización</strong> y ocurre
+    en el propio móvil, antes de enviar nada a nuestros servidores.
+  </p>
+  <p>
+    Por ejemplo, el texto <em>"Hola María, tu cuenta ES12 3456 lleva bloqueada 24h"</em>
+    se convierte en <em>"Hola [NAME], tu cuenta [IBAN] lleva bloqueada 24h"</em> antes
+    de salir del dispositivo.
+  </p>
+
+  <h3>Cuánto tiempo se guardan los datos</h3>
+  <ul>
+    <li><strong>Mensajes seguros (verde):</strong> no se guardan. Se descartan inmediatamente.</li>
+    <li><strong>Mensajes sospechosos (ámbar):</strong> el texto anonimizado se guarda 7 días y luego se borra automáticamente.</li>
+    <li><strong>Mensajes peligrosos (rojo):</strong> el texto anonimizado se guarda 30 días para poder revisar el caso.</li>
+    <li><strong>Imágenes, audios y vídeos:</strong> nunca se guardan. Se procesan en memoria y se descartan.</li>
+  </ul>
+
+  <h3>Tus derechos</h3>
+  <p>
+    Según el Reglamento General de Protección de Datos (RGPD), tienes derecho a acceder a tus datos,
+    rectificarlos, suprimirlos y oponerte a su tratamiento. Para ejercer estos derechos o si tienes
+    cualquier duda, escríbenos a <strong>privacidad@avizor.app</strong>.
+  </p>
+  <p>
+    El responsable del tratamiento es <strong>Avizor Technologies S.L.</strong>,
+    con domicilio en España. Los datos no se ceden a terceros ni se usan para publicidad.
+  </p>
+</section>
+
+<!-- ── FAQ ───────────────────────────────────────────── -->
+<section id="faq" class="card support-section">
+  <h2>Preguntas frecuentes</h2>
+
+  <details class="faq-item">
+    <summary>¿Avizor lee todos los mensajes de la persona mayor?</summary>
+    <p>
+      Avizor analiza los mensajes entrantes para detectar fraudes, pero <strong>no almacena
+      el contenido personal</strong>. Los datos personales se eliminan antes de cualquier
+      análisis en nuestros servidores, y los mensajes seguros se descartan de inmediato.
+    </p>
+  </details>
+
+  <details class="faq-item">
+    <summary>¿Qué pasa si Avizor bloquea un mensaje legítimo?</summary>
+    <p>
+      La persona mayor puede pulsar "Creo que esto es seguro" en la pantalla de bloqueo
+      para enviar una solicitud de desbloqueo. Tú la recibirás en la sección
+      <strong>Desbloqueos pendientes</strong> y podrás aprobarla. También puedes marcar
+      la alerta como "Falso positivo" para ayudar a mejorar el sistema.
+    </p>
+  </details>
+
+  <details class="faq-item">
+    <summary>¿Avizor funciona con llamadas?</summary>
+    <p>
+      Sí. En dispositivos Android compatibles, Avizor puede detectar llamadas sospechosas
+      (vishing). La persona mayor ve una pantalla de aviso antes de descolgar. Esta función
+      requiere activar el permiso de gestión de llamadas en el móvil.
+    </p>
+  </details>
+
+  <details class="faq-item">
+    <summary>¿Puedo tener varios séniors vinculados?</summary>
+    <p>
+      En la versión actual, cada cuenta de Tutor puede vincularse con un dispositivo Sénior.
+      El soporte para múltiples séniors está en nuestra hoja de ruta.
+    </p>
+  </details>
+
+  <details class="faq-item">
+    <summary>¿Qué ocurre si la persona mayor no tiene conexión a internet?</summary>
+    <p>
+      El análisis básico (reglas y palabras clave) se realiza en el propio móvil y no
+      requiere conexión. El análisis profundo (reenvíos manuales) sí necesita conexión,
+      y en ese caso el mensaje queda pendiente hasta que haya red.
+    </p>
+  </details>
+
+  <details class="faq-item">
+    <summary>¿Cómo puedo desactivar Avizor?</summary>
+    <p>
+      Puedes desvincular el dispositivo desde la app Tutor en cualquier momento. Al
+      desvincular, Avizor deja de analizar los mensajes del dispositivo y se eliminan
+      los datos asociados.
+    </p>
+  </details>
+</section>
+
+<!-- ── Versión para el Sénior ─────────────────────────── -->
+<section id="senior" class="support-section">
+  <h2 style="font-size: var(--font-size-lg); font-weight: 700; color: var(--color-primary); margin-bottom: 1rem;">
+    Versión para el Sénior
+  </h2>
+  <p class="text-muted text-sm" style="margin-bottom: 1.5rem;">
+    Esta tarjeta está diseñada para que la persona mayor pueda encontrar ayuda fácilmente.
+    Puedes compartirle este enlace o mostrarle directamente esta sección.
+  </p>
+
+  <div class="senior-card" role="region" aria-label="Ayuda para la persona mayor">
+    <p class="senior-card__title">¿Necesitas ayuda?</p>
+    <p class="senior-card__text">
+      Avizor protege tu móvil de mensajes y llamadas peligrosas.<br>
+      Si ves una pantalla de aviso, <strong>no hagas nada</strong> hasta hablar con tu familiar.<br>
+      Puedes llamarle ahora:
+    </p>
+    <a class="senior-card__btn" href="tel:" aria-label="Llamar a mi familiar">
+      📞 Llamar a mi familiar
+    </a>
+    <p style="margin-top: 1.5rem; font-size: 1rem; color: rgba(255,255,255,0.75);">
+      Si tienes dudas, llama también al <strong>017</strong> (Línea de Ayuda en Ciberseguridad del INCIBE, gratuita).
+    </p>
+  </div>
+</section>
 {% endblock %}
