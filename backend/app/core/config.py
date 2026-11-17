@@ -4,13 +4,18 @@ from typing import Literal
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-# ES: Ruta absoluta al .env de la raíz del repo (funciona desde cualquier carpeta).
-# EN: Absolute path to the repo root .env (works from any folder).
+# ES: Lee primero el .env de la raíz del repo y luego el de backend/ (si existe).
+#     El backend/ sobreescribe la raíz, así que funciona en ambos setups.
+# EN: Reads root .env first, then backend/ .env (if present).
+#     backend/ overrides root, so it works in both setups.
 ROOT_ENV_FILE = Path(__file__).resolve().parents[3] / ".env"
+BACKEND_ENV_FILE = Path(__file__).resolve().parents[2] / ".env"
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=ROOT_ENV_FILE, extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=(ROOT_ENV_FILE, BACKEND_ENV_FILE), extra="ignore"
+    )
 
     APP_ENV: str = "development"
     CONTRACT_VERSION: str = "1.0.0"
