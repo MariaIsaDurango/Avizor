@@ -116,3 +116,54 @@ Resultado del entorno de preparación (Python 3.13.5): 46 casos superados, cober
 | Revisión/CI | Pendiente |
 
 No cerrar #40 ni usar `Closes #40` en una PR lista para fusionar hasta cumplir los criterios o acordar explícitamente con el equipo las excepciones y registrar evidencia. Los bloqueos de acceso, redirección de OSI y permisos de corpus no se resuelven fingiendo avisos ni repitiendo registros. El pipeline #41 no está incluido.
+
+## Validación real de contenidos / Real content validation
+
+| Fuente | Metadatos | Textos | SHA256 válidos |
+|---|---:|---:|---:|
+| INCIBE | 10 | 10 | 10 |
+| OSI | 10 | 10 | 10 |
+| Banco de España | 10 | 10 | 10 |
+| Policía Nacional | 10 | 0 | 0 |
+| TOTAL | 40 | 30 | 30 |
+
+## Decisiones de alcance / Scope decisions
+
+Se propone finalizar la primera fase de desarrollo de los
+scrapers con 40 registros de metadatos y 30 documentos reales
+validados técnicamente.
+
+La extracción de textos completos de Policía Nacional se
+aplaza hasta confirmar sus condiciones de reutilización.
+
+Esta limitación no se debe a un fallo técnico del scraper,
+que se encuentra operativo y ha recuperado los diez avisos
+previstos.
+
+## Cumplimiento legal / Legal compliance
+
+- Extracción de metadatos por defecto.
+- Referencia explícita a las condiciones de reutilización.
+- Almacenamiento local de los textos.
+- Exclusión del corpus documental de GitHub.
+- Identificación y atribución de las fuentes originales.
+- Validación de integridad mediante SHA256.
+- Revisión de fidelidad de los textos pendiente.
+- Uso mediante RAG sujeto a la verificación de permisos.
+
+## Deuda técnica / Technical debt
+
+- Confirmar los permisos de reutilización de Policía Nacional.
+- Validar la extracción real de sus diez textos.
+- Confirmar los permisos de uso mediante RAG.
+- Completar la revisión manual de fidelidad documental.
+- Ampliar la cobertura de tests del orquestador.
+
+## Continuidad del proyecto / Next steps
+
+Se congela el desarrollo de nuevas funcionalidades de scraping
+para priorizar la implementación del sistema RAG.
+
+La issue #41 podrá desarrollarse con documentos sintéticos
+mientras se resuelven las cuestiones de reutilización
+de los contenidos reales.
