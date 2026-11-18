@@ -2,7 +2,7 @@
 
 **Estado:** borrador de trabajo; requiere validación del equipo y asesoramiento jurídico antes de presentar Avizor como conforme o usarlo con datos reales.
 
-**Ámbito:** diseño previsto en los issues; todavía no hay implementación ni contrato de datos versionado que permita verificar controles.
+**Ámbito:** análisis del contrato v1.0.0 declarado por el backend, sus esquemas y migración Alembic, y los controles implementados en el código revisado. La existencia de estos controles no acredita por sí sola el cumplimiento legal, la configuración del despliegue ni la aprobación del equipo.
 
 Este documento identifica cuestiones y controles que el equipo debe resolver. No es asesoramiento jurídico, no determina por sí solo la base jurídica de cada tratamiento y no declara cumplimiento del RGPD o de la LOPDGDD.
 
@@ -14,13 +14,13 @@ La edad avanzada no implica por sí sola incapacidad ni autoriza a un tercero a 
 
 ## Inventario preliminar y minimización
 
-Los siguientes elementos provienen de los issues, no de un esquema de datos verificado:
+Los siguientes elementos se contrastan con los esquemas y modelos actuales del backend. La versión `1.0.0` está declarada en la configuración de la API; no se encontró una especificación normativa independiente en `docs/contract/`, por lo que los esquemas del backend son la referencia técnica disponible.
 
 | Dato/flujo previsto | Riesgo y tratamiento recomendado para el diseño |
 |---|---|
-| Mensaje o texto analizado | Puede contener identificadores, conversaciones privadas o datos sensibles. Minimizarlo en el dispositivo y antes de enviarlo; no persistir el texto en claro si el requisito del proyecto lo prohíbe; definir si el análisis local permite evitar la transferencia. |
-| Remitente/teléfono | Un HMAC puede reducir exposición directa, pero si es enlazable o puede asociarse a una persona sigue siendo dato seudonimizado, no anónimo. Limitar finalidad, accesos, retención y protección de la clave; evitar incluir el número real en registros. |
-| Imágenes, audio y documentos | No conservar binarios salvo necesidad aprobada. Definir extracción/anonimización, almacenamiento temporal, terceros que reciben el contenido y borrado. La decisión de arquitectura multimodal del ADR #7 está pendiente. |
+| Mensaje o texto analizado | El backend no guarda el texto en `analyses`; el texto anonimizado se conserva temporalmente en `temp_content` y se purga según las reglas descritas abajo. El endpoint rechaza `anonymization.applied=false` con `422 CONTENT_NOT_ANONYMIZED`; esto no demuestra que cada texto marcado como anonimizado haya sido redactado correctamente. |
+| Remitente/teléfono | El backend persiste un HMAC-SHA256 del remitente y una versión enmascarada, no el teléfono original en claro. Los tests cubren normalización, enmascarado y hash. El HMAC sigue siendo dato seudonimizado si puede enlazarse o asociarse a una persona; hay que proteger la clave y limitar finalidad y acceso. |
+| Imágenes, audio y documentos | El modelo de base de datos guarda metadatos de adjuntos, no el binario original. El esquema describe una vía `multipart` para reenvío manual, pero el endpoint de análisis revisado implementa la vía rápida JSON; el procesamiento en memoria y la transferencia multimodal deben verificarse al completar esa ruta. La decisión de arquitectura multimodal del ADR #7 está pendiente. |
 | Consentimiento, cuenta, pairing y alertas | Minimizar atributos y separar datos de cuenta de contenido analizado. Definir controles de acceso, trazabilidad, rectificación/borrado y efectos de revocar consentimiento. |
 | Registros técnicos y métricas | Excluir texto, teléfonos, tokens y contenido de adjuntos; usar identificadores efímeros y agregados cuando sea posible; fijar acceso y retención específicos para logs. |
 | Datos de datasets/modelos | Documentar origen, licencia, restricciones, calidad y posible información personal; no incorporar conjuntos sin una revisión de procedencia y uso permitido. |
@@ -39,11 +39,14 @@ El issue #49 plantea flujos `self` y `legal_guardianship`; son etiquetas del pro
 
 ## Anonimización, seudonimización y seguridad
 
-- El requisito del issue #52 indica que `analyses` no debe contener texto en claro, que los adjuntos guardan solo metadatos y que `sender` contiene un HMAC en vez del teléfono. Confirmar estos puntos contra el contrato y el esquema implementado antes de considerarlos controles efectivos.
+- El backend declara el contrato `1.0.0`, contiene esquemas Pydantic y una migración Alembic. En el modelo actual, `analyses` no guarda el texto del mensaje, `temp_content` guarda el texto anonimizado con vencimiento y `analysis_attachments` guarda metadatos, no binarios originales. Véanse [configuración de versión](../../backend/app/core/config.py), [modelos](../../backend/app/models/analysis.py) y [migración inicial](../../backend/migrations/versions/0001_initial_schema.py).
+- Si `anonymization.applied` es `false`, el backend devuelve `422 CONTENT_NOT_ANONYMIZED`; hay una prueba de integración para este rechazo en [test_analyses_fast.py](../../backend/tests/test_analyses_fast.py). El servidor recibe una declaración del cliente: no verifica por sí mismo que el NER haya eliminado todos los identificadores.
+- El remitente se transforma con HMAC-SHA256 y el valor público se enmascara; [test_privacy.py](../../backend/tests/test_privacy.py) cubre estos comportamientos. El hash no debe describirse como dato anónimo.
+- El modelo de adjuntos declara que no persiste el archivo original y solo guarda metadatos. No se debe afirmar que la ruta multimodal completa ya procesa los archivos en memoria: el endpoint revisado solo implementa la vía rápida JSON y el propio código remite el reenvío multipart a la issue #15.
 - La sustitución de nombres, teléfonos u otros identificadores reduce exposición, pero no garantiza anonimización si el mensaje todavía puede identificar a alguien por contexto. Tratar texto transformado y HMAC como datos personales mientras exista posibilidad razonable de reidentificación.
 - Evitar que contenido original alcance logs, telemetría, excepciones, herramientas de depuración, prompts de terceros o datos de entrenamiento. Probar también el camino de error, no solo respuestas exitosas.
 - Limitar permisos y acceso a claves y bases de datos; separar secretos de configuración versionada; usar transporte y almacenamiento protegidos y auditar accesos apropiadamente.
-- Rechazar, antes de persistir, entradas declaradas no anonimizadas cuando así lo exige el contrato (`422 CONTENT_NOT_ANONYMIZED`, según el issue #52).
+- Rechazar, antes de persistir, entradas declaradas no anonimizadas (`422 CONTENT_NOT_ANONYMIZED`); este comportamiento tiene una prueba automatizada.
 
 ## Retención y borrado
 
@@ -61,9 +64,11 @@ Referencias de implementación: [reglas de retención](../../backend/app/service
 
 ### Evidencia y límites de la verificación
 
-Hay pruebas específicas en [test_retention.py](../../backend/tests/test_retention.py) para la eliminación del texto vencido, casos abiertos y cerrados, conservación de metadatos de análisis, expiración de desbloqueos y borrado/exclusión de indicadores. En la revisión del **16 de noviembre de 2026**, `ruff check` y `ruff format --check` pasaron sobre el job, servicio, arranque y test. La ejecución local de `pytest tests/test_retention.py -q` produjo **10 skipped** porque PostgreSQL no estaba disponible; por tanto, esos comportamientos **no se han validado aquí contra la base de datos**. La suite usa PostgreSQL y el test fixture omite los casos si no puede conectarse.
+Hay pruebas específicas en [test_retention.py](../../backend/tests/test_retention.py) para la eliminación del texto vencido, casos abiertos y cerrados, conservación de metadatos de análisis, expiración de desbloqueos y borrado/exclusión de indicadores. El **17 de noviembre de 2026** se ejecutó localmente la suite completa del backend con PostgreSQL 16 saludable y migraciones aplicadas: **250 passed, 1 warning**, incluidos los tests de retención. `ruff check` y `ruff format --check` también pasaron. La configuración de CI levanta PostgreSQL 16, aplica las migraciones y ejecuta `pytest backend/tests`; la fixture omite las pruebas que necesitan base de datos cuando no puede conectarse.
 
-Para cerrar la verificación, ejecutar la suite con PostgreSQL de pruebas disponible y conservar el resultado de CI. También deben revisarse fallos/reintentos, despliegue con varias réplicas, backups y sistemas externos si almacenan contenido. Un `.delete()` en la base de datos principal no prueba por sí solo el borrado de copias ni de proveedores.
+Las pruebas de privacidad del endpoint cubren HMAC, rechazo `422` y vencimientos `amber`/`red` en [test_analyses_fast.py](../../backend/tests/test_analyses_fast.py). [test_models.py](../../backend/tests/test_models.py) comprueba que el esquema de adjuntos contiene solo metadatos; la ruta multimodal aún requiere validación cuando esté integrada.
+
+La suite de backend se ejecuta en CI con PostgreSQL; para reproducirla localmente debe estar disponible la base de pruebas. También deben revisarse fallos/reintentos, despliegue con varias réplicas, backups y sistemas externos si almacenan contenido. Un `.delete()` en la base de datos principal no prueba por sí solo el borrado de copias ni de proveedores.
 
 Los plazos son decisiones del proyecto informadas por el contrato, no plazos que el RGPD imponga literalmente. El responsable del tratamiento debe justificar y aprobar su necesidad por finalidad. También debe aclararse qué datos distintos del texto temporal (por ejemplo, alertas, logs y evidencia de consentimiento) tienen sus propios plazos y cómo se atienden solicitudes de supresión u obligaciones legales.
 
@@ -77,7 +82,7 @@ Los plazos son decisiones del proyecto informadas por el contrato, no plazos que
 
 ## Criterios de verificación pendientes
 
-No declarar cumplimiento hasta demostrar al menos: inventario y base jurídica aprobados; avisos y consentimientos coherentes entre app y documentación; minimización antes de transferencias; ausencia de contenido personal en persistencia no permitida y logs; control de acceso; plazos aprobados; prueba de borrado/retirada en una base de datos de prueba y verificación operativa en despliegue; inventario y revisión de proveedores; procedimiento de derechos; y decisión documentada sobre EIPD y normativa de IA. La purga implementada cubre las reglas descritas arriba, pero la prueba de integración quedó pendiente de ejecutarse con PostgreSQL.
+No declarar cumplimiento hasta demostrar al menos: inventario y base jurídica aprobados; avisos y consentimientos coherentes entre app y documentación; minimización antes de transferencias; ausencia de contenido personal en persistencia no permitida y logs; control de acceso; plazos aprobados; borrado/retirada verificados en despliegue; inventario y revisión de proveedores; procedimiento de derechos; y decisión documentada sobre EIPD y normativa de IA. La purga está implementada y sus pruebas locales y de CI se ejecutaron con PostgreSQL; siguen pendientes la aprobación legal, las comprobaciones operativas y la verificación de backups o proveedores.
 
 La revisión técnica deberá usar datos sintéticos. Cualquier prueba con personas o mensajes reales exige aprobación previa, base y salvaguardas apropiadas.
 

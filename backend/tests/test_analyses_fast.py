@@ -53,6 +53,7 @@ def phone_lookup(device_id, number=SPAM_PHONE):
 
 PHISHING = "BBVA: su cuenta [IBAN] ha sido bloqueada. Verifique en el enlace."
 PHISHING_URL = "https://bbva-seguro.top/login"
+SPAM = "Has ganado un premio. Oferta exclusiva solo hoy."
 FAMILY = "Hola mamá, llego a las 8 para cenar."
 
 
@@ -109,6 +110,18 @@ def test_red_text_is_kept_30_days(db_session, red_response):
     assert temp.anonymized_text == PHISHING
     remaining = temp.delete_at - datetime.now(UTC)
     assert timedelta(days=29) < remaining <= timedelta(days=30)
+
+
+def test_amber_text_is_kept_7_days(api_client, db_session, consented_senior):
+    body = sms_request(consented_senior.device.id, SPAM)
+    response = api_client.post(ANALYSES, json=body, headers=consented_senior.headers)
+
+    assert response.status_code == 200
+    assert response.json()["risk_level"] == "amber"
+    temp = db_session.get(TempContent, response.json()["analysis_id"])
+    assert temp.anonymized_text == SPAM
+    remaining = temp.delete_at - datetime.now(UTC)
+    assert timedelta(days=6) < remaining <= timedelta(days=7)
 
 
 def test_indicators_store_masked_phone_and_domain(db_session, red_response):
