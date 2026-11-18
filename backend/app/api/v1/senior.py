@@ -9,13 +9,13 @@ from app.api.deps import DbSession, GuardianToken
 from app.core.errors import ApiError
 from app.models.user import Device, Pairing
 from app.schemas.enums import ErrorCode
-from app.schemas.senior import SeniorOut
+from app.schemas.senior import SeniorRead
 
 router = APIRouter(tags=["senior"])
 
 
 @router.get("/senior")
-def get_senior(db: DbSession, token: GuardianToken) -> SeniorOut:
+def get_senior(db: DbSession, token: GuardianToken) -> SeniorRead:
     """ES: Devuelve los datos del Sénior activo vinculado al Tutor autenticado.
     404 si aún no hay vinculación activa.
 
@@ -30,6 +30,7 @@ def get_senior(db: DbSession, token: GuardianToken) -> SeniorOut:
             Pairing.senior_id.is_not(None),
             Pairing.active.is_(True),
         )
+        .order_by(Pairing.redeemed_at.desc(), Device.last_seen_at.desc().nulls_last())
         .limit(1)
     ).first()
 
@@ -37,7 +38,7 @@ def get_senior(db: DbSession, token: GuardianToken) -> SeniorOut:
         raise ApiError(404, ErrorCode.NOT_FOUND, "No tienes un Sénior vinculado.")
 
     pairing, device = row
-    return SeniorOut(
+    return SeniorRead(
         senior_display_name=pairing.senior_display_name,
         platform=device.platform if device else None,
         app_version=device.app_version if device else None,
