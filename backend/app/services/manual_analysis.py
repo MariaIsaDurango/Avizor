@@ -54,6 +54,7 @@ from app.services.analysis import (
 )
 from app.services.detection.decision import FastDecision, decide
 from app.services.detection.url_rules import domain_of
+from app.services.devices import touch_device
 from app.services.identity import senior_id_from_device
 
 logger = logging.getLogger(__name__)
@@ -130,6 +131,9 @@ def start_manual_analysis(
     senior_id_from_device(db, token.sub)
     if not metadata.anonymization.applied:
         raise ApiError(422, ErrorCode.CONTENT_NOT_ANONYMIZED)
+    # ES: Solo cuenta como actividad una petición válida.
+    # EN: Only a valid request counts as activity.
+    touch_device(db, token.sub)
 
     texts = [metadata.text] if metadata.text else []
     rows = []

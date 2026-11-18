@@ -40,6 +40,7 @@ from app.services.consent import has_active_consent
 from app.services.detection.decision import AMBER_THRESHOLD, decide
 from app.services.detection.text_rules import KeywordClassifier, ThreatClassifier
 from app.services.detection.url_rules import domain_of
+from app.services.devices import touch_device
 from app.services.identity import senior_id_from_device
 
 # ES: Cambiar aquí por el modelo de Laura cuando esté listo.
@@ -159,6 +160,9 @@ def analyze_fast(db: Session, token: TokenPayload, body: AnalysisRequest) -> Fas
         raise ApiError(403, ErrorCode.CONSENT_MISSING)
     if body.content and not body.content.anonymization.applied:
         raise ApiError(422, ErrorCode.CONTENT_NOT_ANONYMIZED)
+    # ES: Solo cuenta como actividad una petición válida.
+    # EN: Only a valid request counts as activity.
+    touch_device(db, token.sub, now)
 
     # ES: Remitente: solo HMAC. EN: Sender: HMAC only.
     sender_hash, sender_reports, sender_type = None, 0, None

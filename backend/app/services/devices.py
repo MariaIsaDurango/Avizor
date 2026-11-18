@@ -1,11 +1,11 @@
-"""Registro de los móviles del Tutor para las notificaciones push.
-Registration of the guardian's phones for push notifications.
+"""Registro de los móviles del Tutor y actividad del móvil del Sénior.
+Guardian phone registration and senior phone activity.
 """
 
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import select, update
+from sqlalchemy import or_, select, update
 from sqlalchemy.orm import Session
 
 from app.core.errors import ApiError
@@ -57,3 +57,32 @@ def delete_guardian_device(
         raise ApiError(404, ErrorCode.NOT_FOUND, "Dispositivo no encontrado.")
     db.delete(device)
     db.commit()
+
+
+# ES: Como mucho una escritura por minuto y dispositivo (evita una escritura
+#     en la base de datos por cada mensaje analizado).
+# EN: At most one write per minute per device (avoids a database write for
+#     every analysed message).
+TOUCH_INTERVAL = timedelta(minutes=1)
+
+
+def touch_device(
+    db: Session, device_id: uuid.UUID, now: datetime | None = None
+) -> None:
+    """ES: Marca la última actividad del móvil del Sénior. No hace commit: se
+    guarda junto con el resto de la operación (si falla, no cuenta).
+    EN: Marks the senior phone's last activity. Does not commit: it is saved
+    with the rest of the operation (if that fails, it does not count).
+    """
+    now = now or datetime.now(UTC)
+    db.execute(
+        update(Device)
+        .where(
+            Device.id == device_id,
+            or_(
+                Device.last_seen_at.is_(None),
+                Device.last_seen_at < now - TOUCH_INTERVAL,
+            ),
+        )
+        .values(last_seen_at=now)
+    )
