@@ -12,6 +12,7 @@ import AlertDetailScreen from '../screens/tutor/AlertDetailScreen';
 import SeniorPairingScreen from '../screens/senior/PairingScreen';
 import SeniorHomeScreen from '../screens/senior/HomeScreen';
 import SeniorBlockScreen from '../screens/senior/BlockScreen';
+import AccessibilityPocScreen from '../screens/senior/AccessibilityPocScreen';
 
 type SavedMode = 'senior' | 'tutor' | null;
 
@@ -34,18 +35,23 @@ export default function RootNavigator({ initialMode, hasDeviceId }: RootNavigato
       <Stack.Screen name="Welcome" component={WelcomeScreen} options={{ headerShown: false }} />
       <Stack.Screen name="ModeSelection" component={ModeSelectionScreen} options={{ headerShown: false }} />
       <Stack.Screen name="SeniorConsent" component={SeniorConsentScreen} options={{ title: 'Antes de continuar' }} />
-      <Stack.Screen name="TutorLogin" component={TutorLoginScreen} />
-      <Stack.Screen name="TutorRegister" component={TutorRegisterScreen} />
+      <Stack.Screen name="TutorLogin" component={TutorLoginScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="TutorRegister" component={TutorRegisterScreen} options={{ headerShown: false }} />
       <Stack.Screen name="TutorPairing" component={TutorPairingScreen} options={{ title: 'Vincular dispositivo' }} />
       <Stack.Screen name="TutorDashboard" component={TutorDashboardScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="TutorLogout" component={LogoutScreen} options={{ title: 'Cerrar sesión' }} />
+      <Stack.Screen name="TutorLogout" component={LogoutScreen} options={{ headerShown: false }} />
       <Stack.Screen name="AlertDetail" component={AlertDetailScreen} />
-      <Stack.Screen name="SeniorPairing" component={SeniorPairingScreen} options={{ title: 'Vincular dispositivo', headerShown: false }} />
+      <Stack.Screen name="SeniorPairing" component={SeniorPairingScreen} options={{ headerShown: false }} />
       <Stack.Screen name="SeniorHome" component={SeniorHomeScreen} options={{ headerShown: false }} />
       <Stack.Screen
         name="SeniorBlock"
         component={SeniorBlockScreen}
         options={{ headerShown: false, gestureEnabled: false, animation: 'fade' }}
+      />
+      <Stack.Screen
+        name="AccessibilityPoc"
+        component={AccessibilityPocScreen}
+        options={{ headerShown: false }}
       />
     </Stack.Navigator>
   );

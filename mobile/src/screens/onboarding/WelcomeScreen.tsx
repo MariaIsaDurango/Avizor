@@ -1,8 +1,6 @@
-import { View, Text, StyleSheet, Alert } from 'react-native';
-import * as SecureStore from 'expo-secure-store';
+import { View, Text, StyleSheet } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/types';
-import { STORAGE_KEYS } from '../../constants/storage';
 import Screen from '../../components/Screen';
 import BigText from '../../components/BigText';
 import Button from '../../components/Button';
@@ -11,34 +9,7 @@ import { fontSize, fontWeight } from '../../constants/typography';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Welcome'>;
 
-async function resetDevStorage(): Promise<void> {
-  await Promise.all([
-    SecureStore.deleteItemAsync(STORAGE_KEYS.USER_MODE),
-    SecureStore.deleteItemAsync(STORAGE_KEYS.DEVICE_ID),
-    SecureStore.deleteItemAsync(STORAGE_KEYS.SENIOR_ID),
-    SecureStore.deleteItemAsync('auth_token'),
-  ]);
-}
-
 export default function WelcomeScreen({ navigation }: Props) {
-  function handleDevReset() {
-    Alert.alert(
-      '[DEV] Borrar datos',
-      'Elimina token JWT, device_id y modo de usuario del Keychain.',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Borrar',
-          style: 'destructive',
-          onPress: () =>
-            resetDevStorage().then(() =>
-              Alert.alert('[DEV]', 'SecureStore limpiado. Reinicia la app.'),
-            ),
-        },
-      ],
-    );
-  }
-
   return (
     <Screen style={styles.screen}>
       <View style={styles.hero}>
@@ -49,7 +20,6 @@ export default function WelcomeScreen({ navigation }: Props) {
         label="Comenzar"
         onPress={() => navigation.navigate('ModeSelection')}
       />
-      {__DEV__ && <Button label="[DEV] Borrar datos guardados" onPress={handleDevReset} />}
     </Screen>
   );
 }
