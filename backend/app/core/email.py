@@ -1,5 +1,5 @@
-"""Envío de correos (verificación de email del Tutor).
-Email sending (guardian email verification).
+"""Envío de correos (verificación de email y recuperación de contraseña).
+Email sending (email verification and password recovery).
 
 ES: Con MAIL_PROVIDER=log (desarrollo y CI) no sale nada a internet: el código
     se escribe en la terminal. Con "smtp" se envía por Gmail.
@@ -78,3 +78,34 @@ def send_verification_email(to: str, code: str) -> None:
         get_email_sender().send(build_verification_email(to, code))
     except Exception:
         logger.exception("Verification email could not be sent")
+
+
+def build_password_reset_email(to: str, link: str) -> EmailMessage:
+    """ES: Texto fijo; el enlace es de un solo uso y caduca.
+    EN: Fixed text; the link is single-use and expires.
+    """
+    message = EmailMessage()
+    message["From"] = settings.MAIL_FROM or settings.MAIL_USERNAME or "avizor"
+    message["To"] = to
+    message["Subject"] = "Avizor: cambia tu contraseña"
+    message.set_content(
+        f"Hola,\n\n"
+        f"Hemos recibido una solicitud para cambiar la contraseña de tu cuenta "
+        f"de Avizor. Abre este enlace para elegir una nueva:\n\n"
+        f"{link}\n\n"
+        f"El enlace caduca en {settings.PASSWORD_RESET_EXPIRE_MINUTES} minutos "
+        f"y solo se puede usar una vez.\n"
+        f"Si no lo has pedido tú, ignora este correo: tu contraseña no cambia.\n\n"
+        f"Equipo Avizor"
+    )
+    return message
+
+
+def send_password_reset_email(to: str, link: str) -> None:
+    """ES: Tarea en segundo plano; si falla, se registra y se puede pedir otro.
+    EN: Background task; if it fails, it is logged and another can be requested.
+    """
+    try:
+        get_email_sender().send(build_password_reset_email(to, link))
+    except Exception:
+        logger.exception("Password reset email could not be sent")

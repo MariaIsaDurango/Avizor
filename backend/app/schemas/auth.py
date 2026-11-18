@@ -57,6 +57,21 @@ class ResendVerificationRequest(ContractModel):
         return value.strip().lower()
 
 
+class ForgotPasswordRequest(ContractModel):
+    email: str = Field(max_length=254)
+
+    @field_validator("email")
+    @classmethod
+    def normalize_email(cls, value: str) -> str:
+        return value.strip().lower()
+
+
+class ResetPasswordRequest(ContractModel):
+    token: str = Field(min_length=1, max_length=2048)
+    # ES: Misma regla que en el registro. EN: Same rule as sign-up.
+    new_password: str = Field(min_length=10, max_length=128)
+
+
 class MessageResponse(ContractModel):
     message: str
 

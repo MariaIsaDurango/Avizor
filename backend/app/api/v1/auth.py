@@ -8,21 +8,23 @@ from sqlalchemy.exc import IntegrityError
 
 from app.api.deps import CurrentToken, DbSession
 from app.core.config import settings
-from app.core.email import send_verification_email
+from app.core.email import send_password_reset_email, send_verification_email
 from app.core.errors import ApiError
 from app.core.security import create_access_token, hash_password, verify_password
 from app.models.user import User
 from app.schemas.auth import (
+    ForgotPasswordRequest,
     GuardianRegister,
     LoginRequest,
     MessageResponse,
     ResendVerificationRequest,
+    ResetPasswordRequest,
     TokenResponse,
     UserRead,
     VerifyEmailRequest,
 )
 from app.schemas.enums import ErrorCode, UserRole
-from app.services import email_verification
+from app.services import email_verification, password_reset
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -91,6 +93,30 @@ def resend_verification(
     return MessageResponse(
         message="Si la cuenta existe y no está verificada, recibirás un código nuevo."
     )
+
+
+@router.post("/forgot-password", status_code=status.HTTP_202_ACCEPTED)
+def forgot_password(
+    body: ForgotPasswordRequest, db: DbSession, background_tasks: BackgroundTasks
+) -> MessageResponse:
+    """ES: Siempre responde lo mismo, exista o no la cuenta.
+    EN: Always answers the same, whether the account exists or not.
+    """
+    link = password_reset.request_reset(db, body.email)
+    if link:
+        background_tasks.add_task(send_password_reset_email, body.email, link)
+    return MessageResponse(
+        message="Si la cuenta existe, recibirás un correo para cambiar la contraseña."
+    )
+
+
+@router.post("/reset-password", status_code=status.HTTP_204_NO_CONTENT)
+def reset_password(body: ResetPasswordRequest, db: DbSession):
+    """ES: Cambia la contraseña con el enlace del correo (un solo uso).
+    EN: Changes the password with the emailed link (single use).
+    """
+    password_reset.reset_password(db, body.token, body.new_password)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.post("/login")
