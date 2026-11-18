@@ -10,6 +10,7 @@ import {
   Keyboard,
 } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
+import * as Haptics from 'expo-haptics';
 import { MaterialIcons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Screen from '../../components/Screen';
@@ -19,6 +20,7 @@ import { colors } from '../../constants/colors';
 import { fontSize, fontWeight } from '../../constants/typography';
 import { STORAGE_KEYS } from '../../constants/storage';
 import { submitAnalysis, InputType, Verdict } from '../../services/analyses';
+import { useAccessibility } from '../../contexts/AccessibilityContext';
 import { RootStackParamList } from '../../navigation/types';
 
 const TABS: { key: InputType; label: string }[] = [
@@ -64,6 +66,7 @@ export default function SeniorHomeScreen({ navigation }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [verdict, setVerdict] = useState<Verdict | null>(null);
   const [deviceId, setDeviceId] = useState<string | null>(null);
+  const { largeText, colorBlind, hardOfHearing } = useAccessibility();
 
   useEffect(() => {
     SecureStore.getItemAsync(STORAGE_KEYS.DEVICE_ID)
@@ -93,9 +96,20 @@ export default function SeniorHomeScreen({ navigation }: Props) {
     try {
       const result = await submitAnalysis(deviceId, inputType, value.trim());
       if (result.block_template) {
+        if (hardOfHearing) {
+          await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch(() => {});
+        }
         handleReset();
         navigation.navigate('SeniorBlock', { template: result.block_template });
       } else {
+        if (hardOfHearing) {
+          const feedbackType = result.risk_level === 'green'
+            ? Haptics.NotificationFeedbackType.Success
+            : result.risk_level === 'red'
+            ? Haptics.NotificationFeedbackType.Error
+            : Haptics.NotificationFeedbackType.Warning;
+          await Haptics.notificationAsync(feedbackType).catch(() => {});
+        }
         setVerdict(result);
       }
     } catch (e: unknown) {
@@ -122,12 +136,17 @@ export default function SeniorHomeScreen({ navigation }: Props) {
             color={accentColor}
             accessibilityLabel={`Nivel de riesgo: ${RISK_ACCESSIBILITY[verdict.risk_level]}`}
           />
+          {colorBlind && (
+            <Text style={[styles.verdictLabel, { color: accentColor }]}>
+              {RISK_ACCESSIBILITY[verdict.risk_level].toUpperCase()}
+            </Text>
+          )}
           <BigText style={{ textAlign: 'center', color: accentColor }}>
             {verdictMessage(verdict)}
           </BigText>
         </View>
         <View style={styles.footer}>
-          <Button label="Analizar otro mensaje" onPress={handleReset} />
+          <Button label="Analizar otro mensaje" large={largeText} onPress={handleReset} />
         </View>
       </Screen>
     );
@@ -150,9 +169,9 @@ export default function SeniorHomeScreen({ navigation }: Props) {
                   onPress={() => handleTabChange(tab.key)}
                   accessibilityRole="tab"
                   accessibilityState={{ selected: inputType === tab.key }}
-                  style={[styles.tab, inputType === tab.key && styles.tabActive]}
+                  style={[styles.tab, largeText && styles.tabLarge, inputType === tab.key && styles.tabActive]}
                 >
-                  <Text style={[styles.tabLabel, inputType === tab.key && styles.tabLabelActive]}>
+                  <Text style={[styles.tabLabel, largeText && styles.tabLabelLarge, inputType === tab.key && styles.tabLabelActive]}>
                     {tab.label}
                   </Text>
                 </Pressable>
@@ -160,7 +179,11 @@ export default function SeniorHomeScreen({ navigation }: Props) {
             </View>
 
             <TextInput
-              style={[styles.input, inputType === 'text' && styles.inputMultiline]}
+              style={[
+                styles.input,
+                inputType === 'text' && styles.inputMultiline,
+                largeText && styles.inputLarge,
+              ]}
               placeholder={
                 inputType === 'text'
                   ? 'Pega aquí el mensaje sospechoso'
@@ -183,15 +206,18 @@ export default function SeniorHomeScreen({ navigation }: Props) {
                   ? 'Campo del enlace'
                   : 'Campo del número de teléfono'
               }
+              accessibilityHint="Escribe o pega el contenido que quieres analizar y luego pulsa Analizar"
             />
 
             {inputType !== 'phone_number' && (
-              <Text style={styles.disclaimer}>
+              <Text style={[styles.disclaimer, largeText && styles.disclaimerLarge]}>
                 No incluyas tu nombre, DNI, número de cuenta ni otros datos personales.
               </Text>
             )}
 
-            {error !== null && <Text style={styles.error}>{error}</Text>}
+            {error !== null && (
+              <Text style={[styles.error, largeText && styles.errorLarge]}>{error}</Text>
+            )}
           </View>
 
           <View style={styles.footer}>
@@ -202,6 +228,7 @@ export default function SeniorHomeScreen({ navigation }: Props) {
                   label="Analizar"
                   variant="action"
                   disabled={!value.trim()}
+                  large={largeText}
                   onPress={handleAnalyze}
                 />
               )
@@ -251,6 +278,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.white,
   },
+  tabLarge: {
+    paddingVertical: 18,
+  },
   tabActive: {
     backgroundColor: colors.primary,
   },
@@ -258,6 +288,9 @@ const styles = StyleSheet.create({
     fontSize: fontSize.body,
     fontWeight: fontWeight.bold,
     color: colors.primary,
+  },
+  tabLabelLarge: {
+    fontSize: 22,
   },
   tabLabelActive: {
     color: colors.white,
@@ -275,16 +308,26 @@ const styles = StyleSheet.create({
     minHeight: 120,
     textAlignVertical: 'top',
   },
+  inputLarge: {
+    fontSize: 20,
+    minHeight: 140,
+  },
   disclaimer: {
     fontSize: 14,
     color: colors.primary,
     opacity: 0.6,
     textAlign: 'center',
   },
+  disclaimerLarge: {
+    fontSize: 18,
+  },
   error: {
     fontSize: fontSize.body,
     color: colors.alert,
     textAlign: 'center',
+  },
+  errorLarge: {
+    fontSize: 22,
   },
   footer: {
     gap: 12,
@@ -300,6 +343,12 @@ const styles = StyleSheet.create({
     padding: 32,
   },
   verdictMessage: {
+    textAlign: 'center',
+  },
+  verdictLabel: {
+    fontSize: 22,
+    fontWeight: '800',
+    letterSpacing: 3,
     textAlign: 'center',
   },
 });

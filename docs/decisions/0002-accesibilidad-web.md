@@ -75,6 +75,15 @@ El portal web de Avizor está dirigido a Tutores (familiares de personas mayores
 **Decisión:** Los pasos de la guía del Tutor (`.steps li`) usan `position: relative` + `::before` con `position: absolute` en lugar de `display: grid`.  
 **Por qué:** Con `display: grid` en un `<li>`, los navegadores pueden tratar los nodos de texto y los elementos inline (`<strong>`) como ítems de grid separados, rompiendo el layout. El posicionamiento absoluto del número es siempre predecible independientemente del contenido inline del paso.
 
+### 17. Perfil de accesibilidad del Sénior
+**Decisión:** Al crear un código de vinculación, el Tutor puede indicar las condiciones del Sénior: daltonismo, baja visión, ceguera e hipoacusia. El perfil se guarda en el backend y se devuelve al dispositivo Sénior al canjear el código, donde se persiste en SecureStore y se aplica globalmente via `AccessibilityContext`.  
+**Por qué:** Las adaptaciones deben estar disponibles desde el primer uso sin que el Sénior tenga que configurar nada. El Tutor, que conoce las necesidades del familiar, es quien lo configura durante el proceso de vinculación.  
+**Adaptaciones aplicadas:**
+- `largeText` (baja visión o ceguera): aumenta el tamaño de fuente en inputs, tabs, botones, mensajes de error y pantallas de bloqueo
+- `colorBlind` (daltonismo): añade etiqueta de texto SEGURO / SOSPECHOSO / PELIGRO junto al indicador de color en el resultado del análisis y en la pantalla de bloqueo
+- `hardOfHearing` (hipoacusia): reservado — pendiente de implementación (ver issue abierto)  
+**Recogida del perfil en:** `PairingScreen` (mobile), `panel.html` (web), paso 2 de `register.html` (web).
+
 ### 16. Separación de contenido público y autenticado
 **Decisión:** Las páginas con datos personales (analítica por usuario, panel del Tutor) están detrás de autenticación. La landing pública no incluye links a esas secciones ni en el navbar ni en los accesos rápidos.  
 **Por qué:** Mostrar datos de protección a usuarios no autenticados no tiene sentido y podría exponer información privada. Además, reduce la carga cognitiva de la landing: los usuarios anónimos ven solo información sobre el producto.
@@ -89,7 +98,7 @@ El portal web de Avizor está dirigido a Tutores (familiares de personas mayores
 | Toggle manual de modo calma (animaciones) | Media | Ahora solo se activa con `prefers-reduced-motion` del SO |
 | Testing con NVDA (lector de pantalla Windows) | Alta | Probar navegación por teclado en landing, login, registro y panel |
 | Documentar resultado del testing con NVDA | Alta | Añadir hallazgos a este ADR |
-| Accesibilidad en perfil del Sénior (feature pendiente) | Alta | Al registrarse, el Tutor podrá indicar condiciones del Sénior (daltonismo, baja visión, ceguera, dificultad auditiva) para adaptar la app |
+| Adaptaciones para hipoacusia (`hardOfHearing`) | Alta | Vibración reforzada en notificaciones push y animación de alerta en BlockScreen cuando `hearing_impairment = true` |
 
 ---
 

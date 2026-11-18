@@ -1,11 +1,14 @@
-import { View, Text, Pressable, StyleSheet, Linking } from 'react-native';
+import { useEffect, useState } from 'react';
+import { View, Text, Pressable, StyleSheet, Linking, Animated } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MaterialIcons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import Screen from '../../components/Screen';
 import { RootStackParamList } from '../../navigation/types';
 import { BlockTemplate } from '../../services/analyses';
 import { colors } from '../../constants/colors';
 import { fontWeight } from '../../constants/typography';
+import { useAccessibility } from '../../contexts/AccessibilityContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SeniorBlock'>;
 
@@ -14,6 +17,7 @@ type Config = {
   empathy: string;
   icon: keyof typeof MaterialIcons.glyphMap;
   background: string;
+  riskLabel: string;
 };
 
 const CONFIGS: Record<BlockTemplate, Config> = {
@@ -22,74 +26,104 @@ const CONFIGS: Record<BlockTemplate, Config> = {
     empathy: 'Tranquilo/a, lo hemos bloqueado por ti.\nNo pasa nada.',
     icon: 'dangerous',
     background: colors.alert,
+    riskLabel: 'PELIGRO',
   },
   DANGEROUS_LINK: {
     message: 'Este enlace es peligroso.\nNo lo abras.',
     empathy: 'Tranquilo/a, lo hemos bloqueado por ti.\nNo pasa nada.',
     icon: 'dangerous',
     background: colors.alert,
+    riskLabel: 'PELIGRO',
   },
   SUSPICIOUS_CALL: {
     message: 'Esta llamada puede ser una estafa.\nDesconfía.',
     empathy: 'No respondas. Estás protegido/a.',
     icon: 'warning',
     background: colors.alert,
+    riskLabel: 'PELIGRO',
   },
   ASKS_BANK_DETAILS: {
     message: 'Nunca des tus datos bancarios.\nEsto es un fraude.',
     empathy: 'Tranquilo/a, lo hemos bloqueado por ti.\nNo pasa nada.',
     icon: 'dangerous',
     background: colors.alert,
+    riskLabel: 'PELIGRO',
   },
   LOOKS_SAFE: {
     message: 'Este mensaje parece seguro.',
     empathy: '¡Todo bien! No hay nada de qué preocuparse.',
     icon: 'check-circle',
     background: colors.success,
+    riskLabel: 'SEGURO',
   },
   UNSURE_CALL_FAMILY: {
     message: 'No estamos seguros.\nConsulta con tu familiar\nantes de hacer nada.',
     empathy: 'Es mejor preguntar cuando hay dudas.',
     icon: 'warning',
     background: colors.warning,
+    riskLabel: 'ATENCIÓN',
   },
 };
 
 export default function SeniorBlockScreen({ navigation, route }: Props) {
   const config = CONFIGS[route.params.template];
+  const { largeText, colorBlind, hardOfHearing } = useAccessibility();
+  const [pulseAnim] = useState(() => new Animated.Value(1));
+
+  useEffect(() => {
+    if (!hardOfHearing) return;
+
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch(() => {});
+
+    const pulse = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, { toValue: 1.25, duration: 350, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1, duration: 350, useNativeDriver: true }),
+      ]),
+    );
+    pulse.start();
+    return () => pulse.stop();
+  }, [hardOfHearing, pulseAnim]);
 
   return (
     <Screen style={{ backgroundColor: config.background }}>
       <View style={styles.content}>
-        <MaterialIcons
-          name={config.icon}
-          size={96}
-          color={colors.white}
-          importantForAccessibility="no-hide-descendants"
-          accessibilityElementsHidden
-        />
-        <Text style={styles.message}>{config.message}</Text>
-        <Text style={styles.empathy}>{config.empathy}</Text>
+        <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
+          <MaterialIcons
+            name={config.icon}
+            size={96}
+            color={colors.white}
+            importantForAccessibility="no-hide-descendants"
+            accessibilityElementsHidden
+          />
+        </Animated.View>
+        {colorBlind && (
+          <Text style={[styles.riskLabel, largeText && styles.riskLabelLarge]}>
+            {config.riskLabel}
+          </Text>
+        )}
+        <Text style={[styles.message, largeText && styles.messageLarge]}>{config.message}</Text>
+        <Text style={[styles.empathy, largeText && styles.empathyLarge]}>{config.empathy}</Text>
       </View>
 
       <View style={styles.footer}>
         <Pressable
-          style={styles.callButton}
+          style={[styles.callButton, largeText && styles.callButtonLarge]}
           onPress={() => Linking.openURL('tel:')}
           accessibilityRole="button"
           accessibilityLabel="Llamar a tu familiar"
         >
-          <MaterialIcons name="phone" size={28} color={colors.success} />
-          <Text style={styles.callLabel}>Llamar a tu familiar</Text>
+          <MaterialIcons name="phone" size={largeText ? 36 : 28} color={colors.success} />
+          <Text style={[styles.callLabel, largeText && styles.callLabelLarge]}>Llamar a tu familiar</Text>
         </Pressable>
 
         <Pressable
-          style={styles.dismissButton}
+          style={[styles.dismissButton, largeText && styles.dismissButtonLarge]}
           onPress={() => navigation.goBack()}
           accessibilityRole="button"
-          accessibilityLabel="Estoy protegida, gracias"
+          accessibilityLabel="Estoy protegido/a, gracias"
         >
-          <Text style={styles.dismissLabel}>Estoy protegido/a, gracias</Text>
+          <Text style={[styles.dismissLabel, largeText && styles.dismissLabelLarge]}>Estoy protegido/a, gracias</Text>
         </Pressable>
       </View>
     </Screen>
@@ -98,10 +132,27 @@ export default function SeniorBlockScreen({ navigation, route }: Props) {
 
 const styles = StyleSheet.create({
   content: {
-    flex: 1,
+    flexShrink: 1,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 24,
+    paddingVertical: 24,
+  },
+  riskLabel: {
+    fontSize: 20,
+    fontWeight: '900',
+    letterSpacing: 4,
+    color: colors.white,
+    textAlign: 'center',
+    opacity: 0.85,
+    borderWidth: 2,
+    borderColor: colors.white,
+    borderRadius: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 4,
+  },
+  riskLabelLarge: {
+    fontSize: 26,
   },
   message: {
     fontSize: 28,
@@ -110,12 +161,20 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 38,
   },
+  messageLarge: {
+    fontSize: 36,
+    lineHeight: 48,
+  },
   empathy: {
     fontSize: 20,
     fontWeight: fontWeight.bold,
     color: colors.white,
     textAlign: 'center',
     lineHeight: 28,
+  },
+  empathyLarge: {
+    fontSize: 26,
+    lineHeight: 36,
   },
   footer: {
     backgroundColor: colors.white,
@@ -134,18 +193,30 @@ const styles = StyleSheet.create({
     paddingVertical: 18,
     paddingHorizontal: 20,
   },
+  callButtonLarge: {
+    paddingVertical: 24,
+  },
   callLabel: {
     fontSize: 22,
     fontWeight: fontWeight.bold,
     color: colors.success,
   },
+  callLabelLarge: {
+    fontSize: 28,
+  },
   dismissButton: {
     alignItems: 'center',
     paddingVertical: 14,
+  },
+  dismissButtonLarge: {
+    paddingVertical: 18,
   },
   dismissLabel: {
     fontSize: 18,
     color: colors.primary,
     opacity: 0.7,
+  },
+  dismissLabelLarge: {
+    fontSize: 22,
   },
 });

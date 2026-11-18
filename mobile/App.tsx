@@ -3,22 +3,33 @@ import { NavigationContainer } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import * as SecureStore from 'expo-secure-store';
 import * as Notifications from 'expo-notifications';
+import * as Haptics from 'expo-haptics';
 import RootNavigator from './src/navigation/RootNavigator';
 import { navigationRef } from './src/navigation/navigationRef';
 import { STORAGE_KEYS } from './src/constants/storage';
 import { getAlert } from './src/services/alerts';
 import { registerDevice } from './src/services/devices';
+import { AccessibilityProvider } from './src/contexts/AccessibilityContext';
 
 type SavedMode = 'senior' | 'tutor' | null;
 
 Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-  }),
+  handleNotification: async () => {
+    try {
+      const raw = await SecureStore.getItemAsync(STORAGE_KEYS.ACCESSIBILITY_PROFILE);
+      const profile = raw ? JSON.parse(raw) : null;
+      if (profile?.hearing_impairment) {
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      }
+    } catch {}
+    return {
+      shouldShowAlert: true,
+      shouldShowBanner: true,
+      shouldShowList: true,
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+    };
+  },
 });
 
 async function handleNotificationResponse(
@@ -68,18 +79,20 @@ export default function App() {
   if (initialMode === undefined || hasDeviceId === undefined) return null;
 
   return (
-    <NavigationContainer
-      ref={navigationRef}
-      onReady={() => {
-        // ES: Notificación pendiente si la app estaba cerrada al llegar el push.
-        // EN: Pending notification if the app was closed when the push arrived.
-        Notifications.getLastNotificationResponseAsync().then((response) => {
-          if (response) handleNotificationResponse(response);
-        });
-      }}
-    >
-      <StatusBar style="auto" />
-      <RootNavigator initialMode={initialMode} hasDeviceId={hasDeviceId} />
-    </NavigationContainer>
+    <AccessibilityProvider>
+      <NavigationContainer
+        ref={navigationRef}
+        onReady={() => {
+          // ES: Notificación pendiente si la app estaba cerrada al llegar el push.
+          // EN: Pending notification if the app was closed when the push arrived.
+          Notifications.getLastNotificationResponseAsync().then((response) => {
+            if (response) handleNotificationResponse(response);
+          });
+        }}
+      >
+        <StatusBar style="auto" />
+        <RootNavigator initialMode={initialMode} hasDeviceId={hasDeviceId} />
+      </NavigationContainer>
+    </AccessibilityProvider>
   );
 }

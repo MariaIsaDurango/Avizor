@@ -1,14 +1,29 @@
 import { useState, useEffect } from 'react';
-import { View, Text, TextInput, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { MaterialIcons } from '@expo/vector-icons';
 import { RootStackParamList } from '../../navigation/types';
 import Screen from '../../components/Screen';
 import Button from '../../components/Button';
 import { colors } from '../../constants/colors';
 import { fontSize, fontWeight } from '../../constants/typography';
-import { createPairing } from '../../services/pairing';
+import { createPairing, AccessibilityProfile } from '../../services/pairing';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TutorPairing'>;
+
+const ACCESSIBILITY_OPTIONS: { key: keyof AccessibilityProfile; label: string }[] = [
+  { key: 'color_blindness',    label: 'Daltonismo' },
+  { key: 'low_vision',         label: 'Baja visión' },
+  { key: 'blindness',          label: 'Ceguera' },
+  { key: 'hearing_impairment', label: 'Dificultad auditiva' },
+];
+
+const EMPTY_PROFILE: AccessibilityProfile = {
+  color_blindness: false,
+  low_vision: false,
+  blindness: false,
+  hearing_impairment: false,
+};
 
 function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60).toString().padStart(2, '0');
@@ -22,6 +37,7 @@ function formatCode(code: string): string {
 
 export default function TutorPairingScreen({ navigation }: Props) {
   const [seniorName, setSeniorName] = useState('');
+  const [profile, setProfile] = useState<AccessibilityProfile>(EMPTY_PROFILE);
   const [code, setCode] = useState<string | null>(null);
   const [expiresAt, setExpiresAt] = useState<Date | null>(null);
   const [secondsLeft, setSecondsLeft] = useState(0);
@@ -38,6 +54,12 @@ export default function TutorPairingScreen({ navigation }: Props) {
     return () => clearInterval(interval);
   }, [expiresAt]);
 
+  function toggleProfile(key: keyof AccessibilityProfile) {
+    setProfile((prev) => ({ ...prev, [key]: !prev[key] }));
+  }
+
+  const hasProfile = Object.values(profile).some(Boolean);
+
   async function handleGenerate() {
     if (!seniorName.trim()) {
       setError('Ingresa el nombre del Sénior.');
@@ -46,7 +68,10 @@ export default function TutorPairingScreen({ navigation }: Props) {
     setLoading(true);
     setError(null);
     try {
-      const pairing = await createPairing(seniorName.trim());
+      const pairing = await createPairing(
+        seniorName.trim(),
+        hasProfile ? profile : undefined,
+      );
       const expiry = new Date(pairing.expires_at);
       setCode(pairing.code);
       setExpiresAt(expiry);
@@ -61,7 +86,7 @@ export default function TutorPairingScreen({ navigation }: Props) {
   const isExpired = expiresAt !== null && secondsLeft === 0;
 
   return (
-    <Screen style={styles.screen}>
+    <Screen scrollable style={styles.screen}>
       <View style={styles.top}>
         <Text style={styles.title}>Vincular dispositivo Sénior</Text>
         <Text style={styles.subtitle}>
@@ -71,20 +96,48 @@ export default function TutorPairingScreen({ navigation }: Props) {
 
       <View style={styles.middle}>
         {loading && <ActivityIndicator size="large" color={colors.primary} />}
-
         {error !== null && <Text style={styles.error}>{error}</Text>}
 
         {!loading && code === null && (
-          <TextInput
-            style={styles.input}
-            placeholder="Nombre del Sénior"
-            placeholderTextColor={colors.primary}
-            value={seniorName}
-            onChangeText={(v) => { setSeniorName(v); setError(null); }}
-            maxLength={50}
-            autoCapitalize="words"
-            autoComplete="name"
-          />
+          <>
+            <TextInput
+              style={styles.input}
+              placeholder="Nombre del Sénior"
+              placeholderTextColor={colors.primary}
+              value={seniorName}
+              onChangeText={(v) => { setSeniorName(v); setError(null); }}
+              maxLength={50}
+              autoCapitalize="words"
+              autoComplete="name"
+            />
+
+            <View style={styles.accessibilitySection}>
+              <Text style={styles.accessibilityTitle}>
+                Perfil de accesibilidad{' '}
+                <Text style={styles.accessibilityOptional}>(opcional)</Text>
+              </Text>
+              <Text style={styles.accessibilityHint}>
+                La app del Sénior adaptará su interfaz según estas necesidades.
+              </Text>
+              {ACCESSIBILITY_OPTIONS.map(({ key, label }) => (
+                <Pressable
+                  key={key}
+                  style={styles.checkRow}
+                  onPress={() => toggleProfile(key)}
+                  accessibilityRole="checkbox"
+                  accessibilityState={{ checked: profile[key] }}
+                  accessibilityLabel={label}
+                >
+                  <View style={[styles.checkbox, profile[key] && styles.checkboxChecked]}>
+                    {profile[key] && (
+                      <MaterialIcons name="check" size={16} color={colors.white} />
+                    )}
+                  </View>
+                  <Text style={styles.checkLabel}>{label}</Text>
+                </Pressable>
+              ))}
+            </View>
+          </>
         )}
 
         {!loading && code !== null && !isExpired && (
@@ -126,7 +179,6 @@ export default function TutorPairingScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   screen: {
-    justifyContent: 'space-between',
     paddingBottom: 40,
   },
   top: {
@@ -134,12 +186,13 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   middle: {
-    alignItems: 'center',
     gap: 16,
     width: '100%',
+    marginTop: 24,
   },
   footer: {
     gap: 12,
+    marginTop: 24,
   },
   title: {
     fontSize: fontSize.heading,
@@ -162,6 +215,53 @@ const styles = StyleSheet.create({
     fontSize: fontSize.body,
     color: colors.primary,
     backgroundColor: colors.white,
+  },
+  accessibilitySection: {
+    backgroundColor: colors.white,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: colors.primary,
+    padding: 16,
+    gap: 10,
+  },
+  accessibilityTitle: {
+    fontSize: fontSize.body,
+    fontWeight: fontWeight.bold,
+    color: colors.primary,
+  },
+  accessibilityOptional: {
+    fontWeight: '400',
+    opacity: 0.6,
+  },
+  accessibilityHint: {
+    fontSize: 13,
+    color: colors.primary,
+    opacity: 0.6,
+    marginBottom: 4,
+  },
+  checkRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 4,
+  },
+  checkbox: {
+    width: 22,
+    height: 22,
+    borderRadius: 5,
+    borderWidth: 1.5,
+    borderColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.white,
+  },
+  checkboxChecked: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  checkLabel: {
+    fontSize: fontSize.body,
+    color: colors.primary,
   },
   codeLabel: {
     fontSize: fontSize.body,

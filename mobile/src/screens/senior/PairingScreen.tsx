@@ -18,6 +18,7 @@ import { colors } from '../../constants/colors';
 import { fontSize, fontWeight } from '../../constants/typography';
 import { redeemPairing } from '../../services/pairing';
 import { createSelfConsent } from '../../services/consents';
+import { useAccessibility } from '../../contexts/AccessibilityContext';
 import { RootStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SeniorPairing'>;
@@ -26,7 +27,7 @@ export default function SeniorPairingScreen({ navigation }: Props) {
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
+  const { reload } = useAccessibility();
 
   async function handleRedeem() {
     if (code.length !== 6) {
@@ -37,6 +38,7 @@ export default function SeniorPairingScreen({ navigation }: Props) {
     setError(null);
     try {
       await redeemPairing(code);
+      reload();
       try { await createSelfConsent(); } catch { /* silent: sin consentimiento el análisis dará 403 */ }
       navigation.reset({ index: 0, routes: [{ name: 'SeniorHome' }] });
     } catch (e: unknown) {
