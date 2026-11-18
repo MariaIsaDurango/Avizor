@@ -167,3 +167,25 @@ para priorizar la implementación del sistema RAG.
 La issue #41 podrá desarrollarse con documentos sintéticos
 mientras se resuelven las cuestiones de reutilización
 de los contenidos reales.
+
+## Gestión de artículos no disponibles (HTTP 404)
+
+Mejora introducida durante la revisión de la PR #92.
+
+- Se incorpora la excepción ArticleNotFoundError.
+- Un HTTP 404 durante la descarga de un artículo no
+  interrumpe el scraping del resto de artículos.
+- Los artículos descartados se registran en skipped_404.
+- Se mantiene el contador de registros rechazados.
+- No se realizan reintentos automáticos.
+- Los errores 401, 403, 429 y 5xx mantienen su
+  comportamiento de parada.
+- Los errores 404 de índices, cookies y endpoints AJAX
+  no se consideran recuperables.
+- Se mantienen los controles de seguridad y acceso.
+
+### Testing
+
+Se añaden 12 tests de regresión en:
+
+rag/tests/test_scraper_404.py

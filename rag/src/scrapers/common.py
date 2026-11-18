@@ -193,6 +193,10 @@ class FetchError(RuntimeError):
     """An access or parsing problem, not a reason to bypass restrictions."""
 
 
+class ArticleNotFoundError(FetchError):
+    """HTTP 404 from the requested article, not a prerequisite or listing."""
+
+
 def robots_normalize(value: str) -> str:
     """Normalize percent-encoding for robots comparisons (RFC 9309)."""
 
@@ -320,6 +324,7 @@ class SafeFetcher:
         *,
         method: str = "GET",
         form: dict[str, str] | None = None,
+        article: bool = False,
     ) -> str:
         if method != "GET" and not (
             method == "POST"
@@ -356,6 +361,8 @@ class SafeFetcher:
             ) as response:
                 if robots and response.status_code == 404:
                     return "User-agent: *\nDisallow:"
+                if article and method == "GET" and response.status_code == 404:
+                    raise ArticleNotFoundError("HTTP 404; article not found")
                 if response.status_code != 200:
                     if (
                         response.status_code in {401, 403, 429}
@@ -460,7 +467,7 @@ class SafeFetcher:
         ):
             self._prepare_police_session()
 
-        html = self._request(url, source.host)
+        html = self._request(url, source.host, article=source.article_url(url) == url)
         soup = BeautifulSoup(html, "html.parser")
         title = normalize(soup.title.get_text(" ", strip=True)) if soup.title else ""
         if re.search(

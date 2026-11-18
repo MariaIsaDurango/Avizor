@@ -10,6 +10,7 @@ import httpx
 
 from .banco_espana_scraper import SOURCE as BANCO
 from .common import (
+    ArticleNotFoundError,
     FetchError,
     Notice,
     SafeFetcher,
@@ -55,6 +56,7 @@ def scrape_source(
     previous_urls = set(visited_articles)
     months_scanned: set[str] = set()
     errors: list[str] = []
+    skipped_404: list[str] = []
     rejected = 0
     initial_requests = fetcher.requests
 
@@ -75,6 +77,10 @@ def scrape_source(
             visited_articles.add(alias_key)
             try:
                 html = fetcher.get(url, source)
+            except ArticleNotFoundError:
+                skipped_404.append(url)
+                rejected += 1
+                continue
             except FetchError as exc:
                 if str(exc) == "Expected HTML":
                     rejected += 1
@@ -133,6 +139,7 @@ def scrape_source(
         "rejected": rejected,
         "requests": fetcher.requests - initial_requests,
         "errors": errors,
+        "skipped_404": skipped_404,
         "target_met": len(notices) >= limit and not errors,
     }
     if source.name == "policia_nacional":
