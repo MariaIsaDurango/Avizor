@@ -64,3 +64,19 @@ def test_analyses_does_not_store_message_text():
     """
     columns = set(Base.metadata.tables["analyses"].c.keys())
     assert not columns & {"text", "content", "anonymized_text", "message"}
+
+
+def test_analysis_attachments_store_metadata_only():
+    columns = set(Base.metadata.tables["analysis_attachments"].c.keys())
+    assert columns == {
+        "id",
+        "analysis_id",
+        "type",
+        "mime",
+        "size_bytes",
+        "duration_s",
+        "local_preprocessing",
+        "extraction_engine",
+        "ner_applied_on",
+        "created_at",
+    }
