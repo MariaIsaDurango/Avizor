@@ -13,6 +13,7 @@ import SeniorPairingScreen from '../screens/senior/PairingScreen';
 import SeniorHomeScreen from '../screens/senior/HomeScreen';
 import SeniorBlockScreen from '../screens/senior/BlockScreen';
 import AccessibilityPocScreen from '../screens/senior/AccessibilityPocScreen';
+import VerifyEmailScreen from '../screens/auth/VerifyEmailScreen';
 import CallScreeningPocScreen from '../screens/senior/CallScreeningPocScreen';
 import NotificationPocScreen from '../screens/senior/NotificationPocScreen';
 
@@ -55,11 +56,8 @@ export default function RootNavigator({ initialMode, hasDeviceId }: RootNavigato
         component={AccessibilityPocScreen}
         options={{ headerShown: false }}
       />
-      <Stack.Screen
-        name="CallScreeningPoc"
-        component={CallScreeningPocScreen}
-        options={{ headerShown: false }}
-      />
+      <Stack.Screen name="VerifyEmail" component={VerifyEmailScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="CallScreeningPoc" component={CallScreeningPocScreen} options={{ headerShown: false }} />
       <Stack.Screen
         name="NotificationPoc"
         component={NotificationPocScreen}

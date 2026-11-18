@@ -1,11 +1,10 @@
 import { useState, useCallback } from 'react';
-import { View, Text, FlatList, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, Image, FlatList, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { RootStackParamList } from '../../navigation/types';
 import Screen from '../../components/Screen';
-import Button from '../../components/Button';
 import AlertCard from '../../components/AlertCard';
 import { colors } from '../../constants/colors';
 import { fontSize, fontWeight } from '../../constants/typography';
@@ -71,99 +70,177 @@ export default function TutorDashboardScreen({ navigation }: Props) {
 
   return (
     <Screen style={styles.screen}>
-      <Text style={styles.title}>Panel de control</Text>
-
-      <View style={styles.content}>
-        {loading && (
-          <ActivityIndicator size="large" color={colors.primary} style={styles.loader} />
-        )}
-
-        {error !== null && <Text style={styles.error}>{error}</Text>}
-
-        {!loading && (
-          <FlatList
-            data={alerts}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.list}
-            renderItem={({ item }) => (
-              <Pressable
-                onPress={() => navigation.navigate('AlertDetail', { alert: item })}
-                accessibilityRole="button"
-                accessibilityLabel={`Alerta de ${item.senior_name}: ${item.summary}`}
-              >
-                {item.status === 'new' && (
-                  <View style={styles.newBadge}>
-                    <Text style={styles.newLabel}>NUEVA</Text>
-                  </View>
-                )}
-                <AlertCard
-                  icon={THREAT_ICONS[item.threat_type]}
-                  title={item.senior_name}
-                  description={`${item.summary} · ${formatDate(item.created_at)}`}
-                  riskLevel="red"
-                />
-              </Pressable>
-            )}
-            ItemSeparatorComponent={() => <View style={styles.separator} />}
-            ListEmptyComponent={
-              <Text style={styles.empty}>No hay alertas por el momento.</Text>
-            }
-            ListFooterComponent={
-              nextCursor ? (
-                <Button
-                  label={loadingMore ? 'Cargando...' : 'Cargar más'}
-                  onPress={handleLoadMore}
-                  disabled={loadingMore}
-                  style={styles.loadMore}
-                />
-              ) : undefined
-            }
+      {/* Header */}
+      <View style={styles.header}>
+        <View style={styles.brand}>
+          <Image
+            source={require('../../../assets/logo-web.png')}
+            style={styles.logo}
+            resizeMode="contain"
+            accessibilityLabel=""
           />
+          <Text style={styles.brandName}>Avizor</Text>
+        </View>
+        <Pressable
+          onPress={() => navigation.navigate('TutorLogout')}
+          style={styles.logoutBtn}
+          accessibilityRole="button"
+          accessibilityLabel="Cerrar sesión"
+        >
+          <MaterialIcons name="logout" size={20} color={colors.primary} style={{ opacity: 0.45 }} />
+        </Pressable>
+      </View>
+
+      {/* Section header + alerts list */}
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>Alertas recientes</Text>
+        {alerts.length > 0 && (
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>{alerts.length}</Text>
+          </View>
         )}
       </View>
 
-      <View style={styles.footer}>
-        <Button
-          label="Vincular dispositivo Sénior"
-          onPress={() => navigation.navigate('TutorPairing')}
+      {loading && (
+        <ActivityIndicator size="large" color={colors.primary} style={styles.loader} />
+      )}
+
+      {error !== null && <Text style={styles.error}>{error}</Text>}
+
+      {!loading && (
+        <FlatList
+          data={alerts}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.list}
+          renderItem={({ item }) => (
+            <Pressable
+              onPress={() => navigation.navigate('AlertDetail', { alert: item })}
+              accessibilityRole="button"
+              accessibilityLabel={`Alerta de ${item.senior_name}: ${item.summary}`}
+            >
+              {item.status === 'new' && (
+                <View style={styles.newBadge}>
+                  <Text style={styles.newLabel}>NUEVA</Text>
+                </View>
+              )}
+              <AlertCard
+                icon={THREAT_ICONS[item.threat_type]}
+                title={item.senior_name}
+                description={`${item.summary} · ${formatDate(item.created_at)}`}
+                riskLevel="red"
+              />
+            </Pressable>
+          )}
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
+          ListEmptyComponent={
+            <View style={styles.emptyState}>
+              <MaterialIcons name="notifications-none" size={52} color={colors.primary} style={styles.emptyIcon} />
+              <Text style={styles.emptyText}>No hay alertas por el momento.</Text>
+            </View>
+          }
+          ListFooterComponent={
+            nextCursor ? (
+              <Pressable
+                onPress={handleLoadMore}
+                disabled={loadingMore}
+                style={styles.loadMoreBtn}
+                accessibilityRole="button"
+                accessibilityLabel="Cargar más alertas"
+              >
+                <Text style={styles.loadMoreText}>
+                  {loadingMore ? 'Cargando…' : 'Cargar más'}
+                </Text>
+              </Pressable>
+            ) : undefined
+          }
         />
-        <Button
-          label="Cerrar sesión"
-          variant="alert"
-          onPress={() => navigation.navigate('TutorLogout')}
-        />
-      </View>
+      )}
+
+      {/* Footer actions */}
+      <Pressable
+        style={({ pressed }) => [styles.linkCard, pressed && styles.linkCardPressed]}
+        onPress={() => navigation.navigate('TutorPairing')}
+        accessibilityRole="button"
+        accessibilityLabel="Vincular dispositivo sénior"
+      >
+        <MaterialIcons name="add-circle-outline" size={20} color={colors.primary} />
+        <Text style={styles.linkCardText}>Vincular dispositivo sénior</Text>
+      </Pressable>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
   screen: {
-    paddingBottom: 40,
+    paddingBottom: 24,
   },
-  title: {
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: 16,
+    paddingBottom: 20,
+  },
+  brand: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  logo: {
+    width: 32,
+    height: 32,
+  },
+  brandName: {
     fontSize: fontSize.heading,
     fontWeight: fontWeight.bold,
     color: colors.primary,
-    marginTop: 24,
-    marginBottom: 16,
-    textAlign: 'center',
+    fontStyle: 'italic',
   },
-  content: {
-    flex: 1,
+  logoutBtn: {
+    padding: 8,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
+  sectionTitle: {
+    fontSize: fontSize.body,
+    fontWeight: fontWeight.bold,
+    color: colors.primary,
+  },
+  badge: {
+    backgroundColor: colors.alert,
+    borderRadius: 10,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+  },
+  badgeText: {
+    color: colors.white,
+    fontSize: 11,
+    fontWeight: fontWeight.bold,
   },
   loader: {
-    flex: 1,
+    marginTop: 48,
   },
   list: {
     paddingBottom: 8,
+    flexGrow: 1,
   },
-  empty: {
+  emptyState: {
+    alignItems: 'center',
+    marginTop: 48,
+    gap: 12,
+  },
+  emptyIcon: {
+    opacity: 0.25,
+  },
+  emptyText: {
     fontSize: fontSize.body,
     color: colors.primary,
+    opacity: 0.5,
     textAlign: 'center',
-    marginTop: 48,
-    opacity: 0.6,
   },
   separator: {
     height: 12,
@@ -181,8 +258,16 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: fontWeight.bold,
   },
-  loadMore: {
+  loadMoreBtn: {
     marginTop: 16,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  loadMoreText: {
+    fontSize: fontSize.body,
+    color: colors.primary,
+    fontWeight: fontWeight.bold,
+    textDecorationLine: 'underline',
   },
   error: {
     fontSize: fontSize.body,
@@ -190,8 +275,24 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 24,
   },
-  footer: {
-    gap: 12,
+  linkCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
     marginTop: 16,
+    paddingVertical: 14,
+    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: colors.primary,
+    borderStyle: 'dashed',
+  },
+  linkCardPressed: {
+    opacity: 0.6,
+  },
+  linkCardText: {
+    fontSize: fontSize.body,
+    fontWeight: fontWeight.bold,
+    color: colors.primary,
   },
 });

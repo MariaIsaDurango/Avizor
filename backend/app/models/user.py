@@ -43,6 +43,9 @@ class User(Base):
     verification_code_hash: Mapped[str | None] = mapped_column(Text)
     verification_code_expires_at: Mapped[datetime | None] = mapped_column(TZ)
     verification_attempts: Mapped[int] = mapped_column(Integer, server_default="0")
+    # ES: Solo Sénior (migración 0005). Ver schemas/accessibility.py.
+    # EN: Senior only (migration 0005). See schemas/accessibility.py.
+    accessibility_profile: Mapped[dict | None] = mapped_column(JSONB)
 
 
 class Device(Base):
@@ -71,6 +74,9 @@ class Pairing(Base):
     # ES: Nombre que escribe el Tutor; se copia al usuario Sénior al canjear.
     # EN: Name typed by the guardian; copied to the senior user on redeem.
     senior_display_name: Mapped[str] = mapped_column(Text)
+    # ES: Perfil que indica el Tutor; se copia al Sénior al canjear (0005).
+    # EN: Profile set by the guardian; copied to the senior on redeem (0005).
+    senior_accessibility_profile: Mapped[dict | None] = mapped_column(JSONB)
     expires_at: Mapped[datetime] = mapped_column(TZ)
     redeemed_at: Mapped[datetime | None] = mapped_column(TZ)
     active: Mapped[bool] = mapped_column(Boolean, server_default="true")
