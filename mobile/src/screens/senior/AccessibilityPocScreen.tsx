@@ -30,13 +30,14 @@ export default function AccessibilityPocScreen({ navigation }: Props) {
 
     // Refresca al volver desde ajustes de accesibilidad
     const sub = AppState.addEventListener('change', (next) => {
-      if (appState.current.match(/inactive|background/) && next === 'active') {
+      if (appState.current?.match(/inactive|background/) && next === 'active') {
         AvizorAccessibility.isServiceEnabled().then(setEnabled);
       }
       appState.current = next;
     });
 
-    const eventSub = emitter.addListener('AvizorTextEvent', (e: Omit<TextEvent, 'ts'>) => {
+    const eventSub = emitter.addListener('AvizorTextEvent', (...args: unknown[]) => {
+      const e = args[0] as Omit<TextEvent, 'ts'>;
       setEvents((prev) => [{ ...e, ts: Date.now() }, ...prev].slice(0, 50));
     });
 
