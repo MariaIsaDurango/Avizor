@@ -103,26 +103,6 @@ function formatDate(isoString) {
   });
 }
 
-// ── MOCK — eliminar cuando Laura (ML) y María (RAG) entreguen ────
-const MOCK_INDICATORS = { items: [
-  { type: 'domain',              public_value: 'seguro-banco-alerta.com',       report_count: 87,  last_seen_at: '2026-11-16T14:23:00Z' },
-  { type: 'phone',               public_value: '+34 612 345 678',               report_count: 64,  last_seen_at: '2026-11-17T08:11:00Z' },
-  { type: 'domain',              public_value: 'premios-hacienda.es',            report_count: 52,  last_seen_at: '2026-11-15T19:40:00Z' },
-  { type: 'url',                 public_value: 'http://t.co/verifica-cuenta-ya', report_count: 48,  last_seen_at: '2026-11-14T10:05:00Z' },
-  { type: 'alphanumeric_sender', public_value: 'BBVA-Alert',                     report_count: 41,  last_seen_at: '2026-11-17T06:30:00Z' },
-  { type: 'phone',               public_value: '+34 900 123 456',               report_count: 38,  last_seen_at: '2026-11-13T22:18:00Z' },
-  { type: 'domain',              public_value: 'caja-rural-online.net',          report_count: 33,  last_seen_at: '2026-11-12T17:55:00Z' },
-  { type: 'alphanumeric_sender', public_value: 'Correos-Track',                  report_count: 29,  last_seen_at: '2026-11-11T11:42:00Z' },
-  { type: 'url',                 public_value: 'http://entrega-paquete.click',   report_count: 24,  last_seen_at: '2026-11-16T20:00:00Z' },
-  { type: 'phone',               public_value: '+34 666 999 111',               report_count: 18,  last_seen_at: '2026-11-10T09:27:00Z' },
-  { type: 'domain',              public_value: 'sorteo-mercadona.info',          report_count: 14,  last_seen_at: '2026-11-09T15:03:00Z' },
-  { type: 'alphanumeric_sender', public_value: 'SantanderSMS',                   report_count: 11,  last_seen_at: '2026-11-08T13:50:00Z' },
-  { type: 'phone',               public_value: '+34 910 876 543',               report_count: 9,   last_seen_at: '2026-11-07T07:15:00Z' },
-  { type: 'url',                 public_value: 'http://dgt-multa-ref.com',       report_count: 7,   last_seen_at: '2026-11-06T18:30:00Z' },
-  { type: 'domain',              public_value: 'amazon-devolucion.co',           report_count: 6,   last_seen_at: '2026-11-05T12:00:00Z' },
-]};
-// ── FIN MOCK ──────────────────────────────────────────────────────
-
 async function loadIndicators() {
   const loading    = document.getElementById('loading');
   const tableWrap  = document.getElementById('table-wrap');
@@ -130,10 +110,6 @@ async function loadIndicators() {
   const emptyState = document.getElementById('empty-state');
   const fetchError = document.getElementById('fetch-error');
 
-  // TODO: eliminar bloque MOCK y descomentar fetch cuando lleguen datos reales
-  const data = MOCK_INDICATORS;
-
-  /* FETCH REAL — descomentar y borrar el mock de arriba
   let data;
   try {
     const res = await fetch('/api/v1/stats/indicators');
@@ -148,7 +124,6 @@ async function loadIndicators() {
     fetchError.style.display = 'block';
     return;
   }
-  */
 
   loading.style.display = 'none';
   tableWrap.style.display = 'block';

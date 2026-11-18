@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}Panel del Tutor{% endblock %}
-{% block meta_description %}Panel de control del Tutor — Avizor{% endblock %}
+{% block meta_description %}Panel de control del Tutor - Avizor{% endblock %}
 
 {% block extra_head %}
 <style>
@@ -165,7 +165,7 @@
       <div class="senior-card__header">
         <div class="senior-avatar" id="senior-avatar">?</div>
         <div>
-          <p class="senior-name" id="senior-name">—</p>
+          <p class="senior-name" id="senior-name">-</p>
           <span class="senior-status" id="senior-status">Activo</span>
         </div>
       </div>
@@ -198,7 +198,7 @@
       <!-- Paso 2: código activo -->
       <div id="pairing-step-code" style="display:none;" class="pairing-box">
         <p style="font-size:var(--font-size-sm); font-weight:600; color:var(--color-primary);">Código de vinculación</p>
-        <p class="pairing-code-display" id="pairing-code-display" aria-live="polite">— — —</p>
+        <p class="pairing-code-display" id="pairing-code-display" aria-live="polite">- - -</p>
         <p class="pairing-countdown" id="pairing-countdown" aria-live="polite"></p>
         <p class="pairing-expired" id="pairing-expired-msg" style="display:none;">El código ha expirado.</p>
         <p class="pairing-hint">El Sénior debe ingresar este código en su app Avizor.</p>
@@ -211,7 +211,7 @@
     <!-- Resumen de ataques -->
     <div class="card summary-stat" id="summary-card" style="display:none;">
       <p class="card__title">Ataques detectados</p>
-      <p class="summary-stat__value" id="summary-total" aria-live="polite" aria-atomic="true">—</p>
+      <p class="summary-stat__value" id="summary-total" aria-live="polite" aria-atomic="true">-</p>
       <p class="summary-stat__label">en los últimos 7 días</p>
       <a href="/analytics" class="summary-stat__link">Ver analítica completa →</a>
     </div>
@@ -245,27 +245,8 @@
 
 {% block extra_scripts %}
 <script>
-// ── MOCK — eliminar cuando Laura (ML) y María (RAG) entreguen ────
-const MOCK_PANEL = {
-  senior: {
-    display_name: 'Carmen',
-    platform: 'Android',
-    app_version: '1.0.0',
-    last_seen_at: '2026-11-17T06:30:00Z',
-  },
-  summary: { total: 7 },
-  alerts: [
-    { created_at: '2026-11-17T08:11:00Z', channel: 'sms',          threat_type: 'smishing',   risk_level: 'red',   status: 'new' },
-    { created_at: '2026-11-16T20:00:00Z', channel: 'notification', threat_type: 'phishing',   risk_level: 'amber', status: 'seen' },
-    { created_at: '2026-11-16T14:23:00Z', channel: 'sms',          threat_type: 'spam',       risk_level: 'amber', status: 'false_positive' },
-    { created_at: '2026-11-15T19:40:00Z', channel: 'call',         threat_type: 'vishing',    risk_level: 'red',   status: 'confirmed_fraud' },
-    { created_at: '2026-11-14T10:05:00Z', channel: 'sms',          threat_type: 'bank_fraud', risk_level: 'red',   status: 'new' },
-  ],
-};
-// ── FIN MOCK ──────────────────────────────────────────────────────
-
 const CHANNEL_LABELS  = { sms:'SMS', call:'Llamada', notification:'Notificación', screen:'Pantalla', manual:'Manual' };
-const THREAT_LABELS   = { phishing:'Phishing', smishing:'Smishing', vishing:'Vishing', spam:'Spam', identity_theft:'Robo de identidad', bank_fraud:'Fraude bancario', other:'Otro', none:'—' };
+const THREAT_LABELS   = { phishing:'Phishing', smishing:'Smishing', vishing:'Vishing', spam:'Spam', identity_theft:'Robo de identidad', bank_fraud:'Fraude bancario', other:'Otro', none:'-' };
 const STATUS_LABELS   = { new:'Nueva', seen:'Vista', confirmed_fraud:'Fraude confirmado', false_positive:'Falso positivo' };
 const RISK_BADGE      = { red:'badge--red', amber:'badge--amber', green:'badge--green' };
 const RISK_LABEL      = { red:'Peligro', amber:'Sospechoso', green:'Seguro' };
@@ -393,68 +374,52 @@ async function loadPanel() {
     me = await res.json();
   } catch { window.location.replace('/login'); return; }
 
-  // TODO: eliminar MOCK y descomentar fetch cuando lleguen datos reales
-  const panel = MOCK_PANEL;
-
-  /* FETCH REAL — descomentar y borrar el mock de arriba
-  let panel = { senior: null, summary: null, alerts: [] };
+  // Senior card hidden: GET /api/v1/senior endpoint pending (Isa)
+  let summary = null;
+  let alerts  = [];
   try {
-    const [resSenior, resSummary, resAlerts] = await Promise.all([
-      fetch('/api/v1/senior',               { headers: { Authorization: `Bearer ${token}` } }),
-      fetch('/api/v1/stats/summary?period=7',{ headers: { Authorization: `Bearer ${token}` } }),
-      fetch('/api/v1/alerts?limit=5',        { headers: { Authorization: `Bearer ${token}` } }),
+    const [resSummary, resAlerts] = await Promise.all([
+      fetch('/api/v1/stats/summary?period=7', { headers: { Authorization: `Bearer ${token}` } }),
+      fetch('/api/v1/alerts?limit=5',          { headers: { Authorization: `Bearer ${token}` } }),
     ]);
-    if (resSenior.ok)  panel.senior  = await resSenior.json();
-    if (resSummary.ok) panel.summary = await resSummary.json();
-    if (resAlerts.ok)  panel.alerts  = (await resAlerts.json()).items ?? [];
+    if (resSummary.ok) summary = await resSummary.json();
+    if (resAlerts.ok)  alerts  = (await resAlerts.json()).items ?? [];
   } catch {}
-  */
 
   document.getElementById('panel-loading').style.display = 'none';
   document.getElementById('panel-content').style.display = 'block';
 
   document.getElementById('greeting-name').textContent = me.display_name;
 
-  if (panel.senior) {
-    // ── Sénior vinculado ──────────────────────────────────
-    document.getElementById('senior-card').style.display = 'flex';
-    document.getElementById('senior-avatar').textContent = panel.senior.display_name[0].toUpperCase();
-    document.getElementById('senior-name').textContent   = panel.senior.display_name;
-    document.getElementById('senior-meta').innerHTML = `
-      <span><strong>Dispositivo:</strong> ${panel.senior.platform} ${panel.senior.app_version}</span>
-      <span><strong>Última actividad:</strong> ${formatRelative(panel.senior.last_seen_at)}</span>
-    `;
+  // ── Pairing flow ─────────────────────────────────────────
+  document.getElementById('pairing-card').style.display = 'flex';
+  document.getElementById('btn-generate').addEventListener('click', generateCode);
+  document.getElementById('btn-new-code').addEventListener('click', resetPairing);
+  lucide.createIcons();
 
-    // Resumen de ataques
-    if (panel.summary) {
-      document.getElementById('summary-card').style.display = 'flex';
-      document.getElementById('summary-total').textContent =
-        panel.summary.total.toLocaleString('es-ES');
-    }
-
-    // Alertas
-    document.getElementById('alerts-card').style.display = 'block';
-    const tbody = document.getElementById('alerts-body');
-    if (!panel.alerts.length) {
-      document.getElementById('alerts-empty').style.display = 'block';
-    } else {
-      tbody.innerHTML = panel.alerts.map(a => `
-        <tr>
-          <td class="text-muted">${formatDate(a.created_at)}</td>
-          <td>${CHANNEL_LABELS[a.channel]  ?? a.channel}</td>
-          <td>${THREAT_LABELS[a.threat_type] ?? a.threat_type}</td>
-          <td><span class="badge ${RISK_BADGE[a.risk_level]}">${RISK_LABEL[a.risk_level]}</span></td>
-          <td class="text-muted">${STATUS_LABELS[a.status] ?? a.status}</td>
-        </tr>`).join('');
-    }
-
-  } else {
-    // ── Sin Sénior: mostrar flujo de vinculación ──────────
-    document.getElementById('pairing-card').style.display = 'flex';
-    document.getElementById('btn-generate').addEventListener('click', generateCode);
-    document.getElementById('btn-new-code').addEventListener('click', resetPairing);
-    lucide.createIcons();
+  // ── Resumen de ataques ────────────────────────────────────
+  if (summary) {
+    document.getElementById('summary-card').style.display = 'flex';
+    document.getElementById('summary-total').textContent =
+      summary.total.toLocaleString('es-ES');
   }
+
+  // ── Alertas recientes ─────────────────────────────────────
+  document.getElementById('alerts-card').style.display = 'block';
+  const tbody = document.getElementById('alerts-body');
+  if (!alerts.length) {
+    document.getElementById('alerts-empty').style.display = 'block';
+  } else {
+    tbody.innerHTML = alerts.map(a => `
+      <tr>
+        <td class="text-muted">${formatDate(a.created_at)}</td>
+        <td>${CHANNEL_LABELS[a.channel]   ?? a.channel}</td>
+        <td>${THREAT_LABELS[a.threat_type] ?? a.threat_type}</td>
+        <td><span class="badge ${RISK_BADGE[a.risk_level]}">${RISK_LABEL[a.risk_level]}</span></td>
+        <td class="text-muted">${STATUS_LABELS[a.status] ?? a.status}</td>
+      </tr>`).join('');
+  }
+
 }
 
 loadPanel();
