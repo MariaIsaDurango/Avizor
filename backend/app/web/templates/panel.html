@@ -141,6 +141,15 @@
   .empty-state { text-align: center; padding: 2.5rem 1rem; color: var(--color-text-muted); font-size: var(--font-size-sm); }
   .fetch-error { color: var(--color-alert); font-size: var(--font-size-sm); margin-top: 0.5rem; }
 
+  /* ── QR code ───────────────────────────────────────────── */
+  .pairing-qr {
+    display: flex; justify-content: center; margin: 0.875rem 0 0.5rem;
+  }
+  .pairing-qr canvas, .pairing-qr img {
+    border-radius: var(--radius-sm);
+    border: 2px solid var(--color-border);
+  }
+
   /* ── Loading ───────────────────────────────────────────── */
   #panel-loading { padding: 4rem 1rem; text-align: center; color: var(--color-text-muted); }
   #panel-content { display: none; }
@@ -201,7 +210,8 @@
         <p class="pairing-code-display" id="pairing-code-display" aria-live="polite">- - -</p>
         <p class="pairing-countdown" id="pairing-countdown" aria-live="polite"></p>
         <p class="pairing-expired" id="pairing-expired-msg" style="display:none;">El código ha expirado.</p>
-        <p class="pairing-hint">El Sénior debe ingresar este código en su app Avizor.</p>
+        <div class="pairing-qr" id="pairing-qr" aria-label="Código QR de vinculación"></div>
+        <p class="pairing-hint">El Sénior puede ingresar el código o escanear el QR en su app Avizor.</p>
         <button class="btn btn--outline" id="btn-new-code" style="display:none; margin-top:0.75rem;">
           Generar nuevo código
         </button>
@@ -244,6 +254,7 @@
 {% endblock %}
 
 {% block extra_scripts %}
+<script src="{{ url_for('web_static', path='js/qrcode.min.js') }}"></script>
 <script>
 const CHANNEL_LABELS  = { sms:'SMS', call:'Llamada', notification:'Notificación', screen:'Pantalla', manual:'Manual' };
 const THREAT_LABELS   = { phishing:'Phishing', smishing:'Smishing', vishing:'Vishing', spam:'Spam', identity_theft:'Robo de identidad', bank_fraud:'Fraude bancario', other:'Otro', none:'-' };
@@ -341,6 +352,15 @@ async function generateCode() {
     document.getElementById('btn-new-code').style.display = 'none';
     startCountdown(new Date(data.expires_at).getTime());
 
+    const qrEl = document.getElementById('pairing-qr');
+    qrEl.innerHTML = '';
+    new QRCode(qrEl, {
+      text: `avizor://pair?code=${data.code}`,
+      width: 160, height: 160,
+      colorDark: '#164E55', colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M,
+    });
+
   } catch {
     apiError.style.display = 'block';
     btn.disabled = false;
@@ -353,6 +373,7 @@ function resetPairing() {
   if (_countdownTimer) clearInterval(_countdownTimer);
   document.getElementById('pairing-step-name').style.display = 'block';
   document.getElementById('pairing-step-code').style.display = 'none';
+  document.getElementById('pairing-qr').innerHTML = '';
   document.getElementById('pairing-name-input').value = '';
   const btn = document.getElementById('btn-generate');
   btn.disabled = false;
