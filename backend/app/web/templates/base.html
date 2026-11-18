@@ -4,51 +4,108 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="{% block meta_description %}Panel de control Avizor{% endblock %}" />
-  <title>{% block title %}Avizor{% endblock %} — Portal</title>
+  <title>{% block title %}Avizor{% endblock %} - Portal</title>
 
+  <link rel="preconnect" href="https://unpkg.com" />
   <link rel="stylesheet" href="{{ url_for('web_static', path='css/main.css') }}" />
   {% block extra_head %}{% endblock %}
 </head>
 <body>
 
   <nav class="navbar" aria-label="Navegación principal">
-    <a href="{{ url_for('dashboard') }}" class="navbar__brand">Avizor</a>
+    <a href="{{ url_for('dashboard') }}" class="navbar__brand">
+      <img
+        src="{{ url_for('web_static', path='img/logo-web.png') }}"
+        alt=""
+        class="navbar__logo"
+      >
+      <span class="navbar__brand-name">Avizor</span>
+    </a>
     <ul class="navbar__nav">
       <li>
         <a href="{{ url_for('dashboard') }}"
-           class="navbar__link {% if active_page == 'dashboard' %}navbar__link--active{% endif %}">
-          Inicio
-        </a>
-      </li>
-      <li>
-        <a href="{{ url_for('analytics') }}"
-           class="navbar__link {% if active_page == 'analytics' %}navbar__link--active{% endif %}">
-          Analítica
+           id="nav-home-link"
+           class="navbar__link {% if active_page == 'dashboard' or active_page == 'panel' %}navbar__link--active{% endif %}">
+          <i data-lucide="home" aria-hidden="true"></i>
+          <span class="nav-label">Inicio</span>
         </a>
       </li>
       <li>
         <a href="{{ url_for('indicators') }}"
            class="navbar__link {% if active_page == 'indicators' %}navbar__link--active{% endif %}">
-          Indicadores
+          <i data-lucide="trending-up" aria-hidden="true"></i>
+          <span class="nav-label">Indicadores</span>
         </a>
       </li>
       <li>
         <a href="{{ url_for('support') }}"
            class="navbar__link {% if active_page == 'support' %}navbar__link--active{% endif %}">
-          Soporte
+          <i data-lucide="life-buoy" aria-hidden="true"></i>
+          <span class="nav-label">Soporte</span>
         </a>
       </li>
     </ul>
+    <div id="nav-auth">
+      <a href="/register" class="navbar__register" id="nav-register">
+        <i data-lucide="user-plus" aria-hidden="true"></i>
+        <span class="nav-label">Registrarse / Iniciar sesión</span>
+      </a>
+      <div class="navbar__user" id="nav-user" style="display:none;" aria-label="Menú de usuario">
+        <span class="navbar__user-name" id="nav-username"></span>
+        <button class="navbar__logout" id="nav-logout" aria-label="Cerrar sesión">
+          <i data-lucide="log-out" aria-hidden="true"></i>
+          <span class="nav-label">Salir</span>
+        </button>
+      </div>
+    </div>
   </nav>
 
   <main class="main-content" id="main-content">
     {% block content %}{% endblock %}
   </main>
 
+  <a href="/download" class="download-fab" id="download-fab" aria-label="Descarga la app Avizor">
+    <img src="{{ url_for('web_static', path='img/logo-web.png') }}" alt="">
+    Descarga la app
+  </a>
+
   <footer class="footer">
-    <p>&copy; {{ year }} Avizor — Protegemos a quienes más quieres</p>
+    <p>
+      &copy; {{ year }} Avizor - Protegemos a quienes más quieres
+    </p>
   </footer>
 
   {% block extra_scripts %}{% endblock %}
+  <script src="{{ url_for('web_static', path='js/lucide.min.js') }}"></script>
+  <script>
+    lucide.createIcons();
+
+    (async () => {
+      const token = localStorage.getItem('avizor_token');
+      if (!token) return;
+
+      try {
+        const res = await fetch('/api/v1/auth/me', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) { localStorage.removeItem('avizor_token'); return; }
+
+        const user = await res.json();
+        document.getElementById('nav-register').style.display = 'none';
+        document.getElementById('nav-username').textContent = user.display_name;
+        document.getElementById('nav-user').style.display = 'flex';
+        document.getElementById('nav-home-link').href = '/panel';
+        document.querySelector('.navbar__nav').style.display = 'none';
+        document.getElementById('nav-auth').style.marginLeft = 'auto';
+        document.getElementById('download-fab').style.display = 'none';
+        lucide.createIcons();
+      } catch {}
+    })();
+
+    document.getElementById('nav-logout').addEventListener('click', () => {
+      localStorage.removeItem('avizor_token');
+      window.location.href = '/';
+    });
+  </script>
 </body>
 </html>
