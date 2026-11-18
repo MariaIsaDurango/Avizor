@@ -374,14 +374,16 @@ async function loadPanel() {
     me = await res.json();
   } catch { window.location.replace('/login'); return; }
 
-  // Senior card hidden: GET /api/v1/senior endpoint pending (Isa)
+  let senior  = null;
   let summary = null;
   let alerts  = [];
   try {
-    const [resSummary, resAlerts] = await Promise.all([
-      fetch('/api/v1/stats/summary?period=7', { headers: { Authorization: `Bearer ${token}` } }),
+    const [resSenior, resSummary, resAlerts] = await Promise.all([
+      fetch('/api/v1/senior',                  { headers: { Authorization: `Bearer ${token}` } }),
+      fetch('/api/v1/stats/summary?period=7',  { headers: { Authorization: `Bearer ${token}` } }),
       fetch('/api/v1/alerts?limit=5',          { headers: { Authorization: `Bearer ${token}` } }),
     ]);
+    if (resSenior.ok)  senior  = await resSenior.json();
     if (resSummary.ok) summary = await resSummary.json();
     if (resAlerts.ok)  alerts  = (await resAlerts.json()).items ?? [];
   } catch {}
@@ -391,35 +393,47 @@ async function loadPanel() {
 
   document.getElementById('greeting-name').textContent = me.display_name;
 
-  // ── Pairing flow ─────────────────────────────────────────
-  document.getElementById('pairing-card').style.display = 'flex';
-  document.getElementById('btn-generate').addEventListener('click', generateCode);
-  document.getElementById('btn-new-code').addEventListener('click', resetPairing);
-  lucide.createIcons();
+  if (senior) {
+    // ── Sénior vinculado ────────────────────────────────────
+    const initial = senior.senior_display_name.trim().charAt(0).toUpperCase();
+    document.getElementById('senior-avatar').textContent = initial;
+    document.getElementById('senior-name').textContent   = senior.senior_display_name;
+    if (senior.last_seen_at) {
+      document.getElementById('senior-meta').innerHTML =
+        `<span>Plataforma: ${senior.platform ?? '–'}</span>` +
+        `<span>Última actividad: ${formatRelative(senior.last_seen_at)}</span>`;
+    }
+    document.getElementById('senior-card').style.display = 'flex';
 
-  // ── Resumen de ataques ────────────────────────────────────
+    // ── Alertas recientes ─────────────────────────────────
+    document.getElementById('alerts-card').style.display = 'block';
+    const tbody = document.getElementById('alerts-body');
+    if (!alerts.length) {
+      document.getElementById('alerts-empty').style.display = 'block';
+    } else {
+      tbody.innerHTML = alerts.map(a => `
+        <tr>
+          <td class="text-muted">${formatDate(a.created_at)}</td>
+          <td>${CHANNEL_LABELS[a.channel]    ?? a.channel}</td>
+          <td>${THREAT_LABELS[a.threat_type] ?? a.threat_type}</td>
+          <td><span class="badge ${RISK_BADGE[a.risk_level]}">${RISK_LABEL[a.risk_level]}</span></td>
+          <td class="text-muted">${STATUS_LABELS[a.status] ?? a.status}</td>
+        </tr>`).join('');
+    }
+  } else {
+    // ── Vincular Sénior ─────────────────────────────────────
+    document.getElementById('pairing-card').style.display = 'flex';
+    document.getElementById('btn-generate').addEventListener('click', generateCode);
+    document.getElementById('btn-new-code').addEventListener('click', resetPairing);
+    lucide.createIcons();
+  }
+
+  // ── Resumen de ataques (siempre visible si hay datos) ────
   if (summary) {
     document.getElementById('summary-card').style.display = 'flex';
     document.getElementById('summary-total').textContent =
       summary.total.toLocaleString('es-ES');
   }
-
-  // ── Alertas recientes ─────────────────────────────────────
-  document.getElementById('alerts-card').style.display = 'block';
-  const tbody = document.getElementById('alerts-body');
-  if (!alerts.length) {
-    document.getElementById('alerts-empty').style.display = 'block';
-  } else {
-    tbody.innerHTML = alerts.map(a => `
-      <tr>
-        <td class="text-muted">${formatDate(a.created_at)}</td>
-        <td>${CHANNEL_LABELS[a.channel]   ?? a.channel}</td>
-        <td>${THREAT_LABELS[a.threat_type] ?? a.threat_type}</td>
-        <td><span class="badge ${RISK_BADGE[a.risk_level]}">${RISK_LABEL[a.risk_level]}</span></td>
-        <td class="text-muted">${STATUS_LABELS[a.status] ?? a.status}</td>
-      </tr>`).join('');
-  }
-
 }
 
 loadPanel();
