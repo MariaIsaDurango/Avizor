@@ -19,6 +19,12 @@ interface TokenResponse {
   token_type: string;
 }
 
+export class EmailNotVerifiedError extends Error {
+  constructor(public readonly email: string) {
+    super('EMAIL_NOT_VERIFIED');
+  }
+}
+
 export async function register(data: RegisterData): Promise<void> {
   const response = await apiFetch('/api/v1/auth/register', {
     method: 'POST',
@@ -29,9 +35,6 @@ export async function register(data: RegisterData): Promise<void> {
     const error = await response.json();
     throw new Error(error.detail ?? 'Error al registrarse.');
   }
-
-  // Backend devuelve UserRead sin token; hacemos login para obtener el JWT
-  await login({ email: data.email, password: data.password });
 }
 
 export async function login(data: LoginData): Promise<void> {
@@ -40,6 +43,10 @@ export async function login(data: LoginData): Promise<void> {
     body: JSON.stringify(data),
   });
 
+  if (response.status === 403) {
+    throw new EmailNotVerifiedError(data.email);
+  }
+
   if (!response.ok) {
     throw new Error('Credenciales incorrectas. Verifica tu email y contraseña.');
   }
@@ -47,6 +54,24 @@ export async function login(data: LoginData): Promise<void> {
   const result: TokenResponse = await response.json();
   await saveToken(result.access_token);
   await SecureStore.setItemAsync(STORAGE_KEYS.USER_MODE, 'tutor');
+}
+
+export async function verifyEmail(email: string, code: string): Promise<void> {
+  const response = await apiFetch('/api/v1/auth/verify-email', {
+    method: 'POST',
+    body: JSON.stringify({ email, code }),
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail ?? 'Código incorrecto. Inténtalo de nuevo.');
+  }
+}
+
+export async function resendVerification(email: string): Promise<void> {
+  await apiFetch('/api/v1/auth/resend-verification', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+  });
 }
 
 export async function logout(): Promise<void> {

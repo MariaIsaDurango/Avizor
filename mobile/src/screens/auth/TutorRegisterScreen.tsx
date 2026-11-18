@@ -7,7 +7,6 @@ import Button from '../../components/Button';
 import { colors } from '../../constants/colors';
 import { fontSize, fontWeight } from '../../constants/typography';
 import { register } from '../../services/auth';
-import { registerDevice } from '../../services/devices';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TutorRegister'>;
 
@@ -36,10 +35,7 @@ export default function TutorRegisterScreen({ navigation }: Props) {
     setError(null);
     try {
       await register({ display_name: name, email, password });
-      registerDevice().catch((e) => {
-        if (__DEV__) console.warn('[devices] registerDevice failed:', e);
-      });
-      navigation.reset({ index: 0, routes: [{ name: 'TutorDashboard' }] });
+      navigation.navigate('VerifyEmail', { email });
     } catch (e) {
       const message = e instanceof Error ? e.message : 'Error al registrarse.';
       setError(message);

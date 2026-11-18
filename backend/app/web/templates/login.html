@@ -217,6 +217,9 @@
 
       </form>
 
+      <p class="auth-footer" style="margin-top:1rem;">
+        <a href="/forgot-password">¿Olvidaste tu contraseña?</a>
+      </p>
       <p class="auth-footer">
         ¿No tienes cuenta? <a href="/register">Regístrate</a>
       </p>
@@ -294,6 +297,12 @@
           const data = await res.json();
           localStorage.setItem('avizor_token', data.access_token);
           window.location.href = '/panel';
+        } else if (res.status === 403) {
+          const alertEl = document.getElementById('alert-error');
+          alertEl.innerHTML = 'Debes verificar tu email antes de iniciar sesión. Revisa tu bandeja de entrada.';
+          alertEl.classList.add('alert--visible');
+          btn.disabled = false;
+          btn.textContent = 'Iniciar sesión';
         } else {
           const data = await res.json().catch(() => ({}));
           const alertEl = document.getElementById('alert-error');

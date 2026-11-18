@@ -6,13 +6,13 @@ import Screen from '../../components/Screen';
 import Button from '../../components/Button';
 import { colors } from '../../constants/colors';
 import { fontSize, fontWeight } from '../../constants/typography';
-import { login } from '../../services/auth';
+import { login, EmailNotVerifiedError } from '../../services/auth';
 import { registerDevice } from '../../services/devices';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TutorLogin'>;
 
-export default function TutorLoginScreen({ navigation }: Props) {
-  const [email, setEmail] = useState('');
+export default function TutorLoginScreen({ navigation, route }: Props) {
+  const [email, setEmail] = useState(route.params?.email ?? '');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,8 +30,12 @@ export default function TutorLoginScreen({ navigation }: Props) {
         if (__DEV__) console.warn('[devices] registerDevice failed:', e);
       });
       navigation.reset({ index: 0, routes: [{ name: 'TutorDashboard' }] });
-    } catch {
-      setError('Credenciales incorrectas. Verifica tu email y contraseña.');
+    } catch (e) {
+      if (e instanceof EmailNotVerifiedError) {
+        navigation.navigate('VerifyEmail', { email: e.email });
+      } else {
+        setError('Credenciales incorrectas. Verifica tu email y contraseña.');
+      }
     } finally {
       setLoading(false);
     }

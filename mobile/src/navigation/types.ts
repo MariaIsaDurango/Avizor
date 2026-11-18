@@ -5,7 +5,7 @@ export type RootStackParamList = {
   Welcome: undefined;
   ModeSelection: undefined;
   SeniorConsent: undefined;
-  TutorLogin: undefined;
+  TutorLogin: { email?: string } | undefined;
   TutorRegister: undefined;
   TutorPairing: undefined;
   TutorDashboard: undefined;
@@ -15,4 +15,5 @@ export type RootStackParamList = {
   SeniorHome: undefined;
   SeniorBlock: { template: BlockTemplate };
   AccessibilityPoc: undefined;
+  VerifyEmail: { email: string };
 };

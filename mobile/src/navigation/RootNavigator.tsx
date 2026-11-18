@@ -13,6 +13,7 @@ import SeniorPairingScreen from '../screens/senior/PairingScreen';
 import SeniorHomeScreen from '../screens/senior/HomeScreen';
 import SeniorBlockScreen from '../screens/senior/BlockScreen';
 import AccessibilityPocScreen from '../screens/senior/AccessibilityPocScreen';
+import VerifyEmailScreen from '../screens/auth/VerifyEmailScreen';
 
 type SavedMode = 'senior' | 'tutor' | null;
 
@@ -51,6 +52,11 @@ export default function RootNavigator({ initialMode, hasDeviceId }: RootNavigato
       <Stack.Screen
         name="AccessibilityPoc"
         component={AccessibilityPocScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="VerifyEmail"
+        component={VerifyEmailScreen}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>

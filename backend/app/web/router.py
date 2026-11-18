@@ -86,3 +86,21 @@ async def download(request: Request):
         "download.html",
         {**_COMMON},
     )
+
+
+@web_router.get("/forgot-password", response_class=HTMLResponse, name="forgot_password")
+async def forgot_password_page(request: Request):
+    return templates.TemplateResponse(
+        request,
+        "forgot-password.html",
+        {**_COMMON},
+    )
+
+
+@web_router.get("/reset-password", response_class=HTMLResponse, name="reset_password")
+async def reset_password_page(request: Request):
+    return templates.TemplateResponse(
+        request,
+        "reset-password.html",
+        {**_COMMON},
+    )
