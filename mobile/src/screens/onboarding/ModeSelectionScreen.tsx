@@ -1,4 +1,4 @@
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Image, Pressable, StyleSheet, useWindowDimensions } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MaterialIcons } from '@expo/vector-icons';
 import { RootStackParamList } from '../../navigation/types';
@@ -9,30 +9,39 @@ import { fontSize, fontWeight } from '../../constants/typography';
 type Props = NativeStackScreenProps<RootStackParamList, 'ModeSelection'>;
 
 export default function ModeSelectionScreen({ navigation }: Props) {
+  const { height } = useWindowDimensions();
+  const logoSize = height < 700 ? 72 : 100;
+
   return (
-    <Screen style={styles.screen}>
-      <Text style={styles.title}>¿Para quién es esta app?</Text>
+    <Screen scrollable style={styles.screen}>
+      <Text style={styles.title}>Bienvenido a Avizor</Text>
+      <Image
+        source={require('../../../assets/logo-web.png')}
+        style={[styles.logo, { width: logoSize, height: logoSize }]}
+        resizeMode="contain"
+        accessibilityLabel=""
+      />
       <View style={styles.options}>
         <Pressable
           style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
           onPress={() => navigation.navigate('SeniorConsent')}
           accessibilityRole="button"
-          accessibilityLabel="Proteger mi móvil, modo Sénior"
+          accessibilityLabel="Vincular con PIN, modo Sénior"
         >
           <MaterialIcons name="shield" size={44} color={colors.primary} />
-          <Text style={styles.cardTitle}>Proteger mi móvil</Text>
-          <Text style={styles.cardSubtitle}>Quiero que cuiden mi dispositivo</Text>
+          <Text style={styles.cardTitle}>Vincular con PIN</Text>
+          <Text style={styles.cardSubtitle}>Voy a introducir el código que me dio mi familiar</Text>
         </Pressable>
 
         <Pressable
           style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
           onPress={() => navigation.navigate('TutorLogin')}
           accessibilityRole="button"
-          accessibilityLabel="Proteger a mi familiar, modo Tutor"
+          accessibilityLabel="Iniciar sesión o registrarse, modo Tutor"
         >
           <MaterialIcons name="favorite" size={44} color={colors.primary} />
-          <Text style={styles.cardTitle}>Proteger a mi familiar</Text>
-          <Text style={styles.cardSubtitle}>Quiero cuidar el dispositivo de alguien</Text>
+          <Text style={styles.cardTitle}>Iniciar sesión / Registro</Text>
+          <Text style={styles.cardSubtitle}>Quiero proteger el dispositivo de un familiar</Text>
         </Pressable>
       </View>
     </Screen>
@@ -47,8 +56,12 @@ const styles = StyleSheet.create({
     fontSize: fontSize.heading,
     fontWeight: fontWeight.bold,
     color: colors.primary,
-    marginBottom: 32,
+    marginBottom: 16,
     textAlign: 'center',
+  },
+  logo: {
+    alignSelf: 'center',
+    marginBottom: 20,
   },
   options: {
     gap: 20,
