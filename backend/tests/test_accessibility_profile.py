@@ -111,3 +111,50 @@ def test_redeem_without_profile_returns_null(api_client, db_session, guardian_he
     assert response.json()["accessibility_profile"] is None
     senior = db_session.get(User, uuid.UUID(response.json()["senior_id"]))
     assert senior.accessibility_profile is None
+
+
+# ---------- Recuperar el perfil / fetch the profile ----------
+
+SENIOR = "/api/v1/senior"
+SENIOR_ME = "/api/v1/senior/me"
+
+
+def test_guardian_sees_senior_profile(
+    api_client, db_session, guardian_headers, paired_senior
+):
+    paired_senior.user.accessibility_profile = PROFILE
+    db_session.flush()
+    response = api_client.get(SENIOR, headers=guardian_headers)
+    assert response.status_code == 200
+    assert response.json()["accessibility_profile"] == PROFILE
+
+
+def test_senior_fetches_own_profile(api_client, db_session, paired_senior):
+    paired_senior.user.accessibility_profile = PROFILE
+    db_session.flush()
+    response = api_client.get(SENIOR_ME, headers=paired_senior.headers)
+    assert response.status_code == 200
+    assert response.json() == {
+        "display_name": "Carmen",
+        "accessibility_profile": PROFILE,
+    }
+
+
+def test_senior_without_profile_gets_null(api_client, paired_senior):
+    response = api_client.get(SENIOR_ME, headers=paired_senior.headers)
+    assert response.status_code == 200
+    assert response.json()["accessibility_profile"] is None
+
+
+def test_senior_me_requires_senior_token(api_client, guardian_headers):
+    assert api_client.get(SENIOR_ME).status_code == 401
+    assert api_client.get(SENIOR_ME, headers=guardian_headers).status_code == 403
+
+
+def test_profile_survives_after_redeem(api_client, guardian_headers):
+    # ES: Flujo completo: crear, canjear y recuperar más tarde.
+    # EN: Full flow: create, redeem and fetch later.
+    code = create(api_client, guardian_headers, PROFILE).json()["code"]
+    token = redeem(api_client, code).json()["access_token"]
+    response = api_client.get(SENIOR_ME, headers={"Authorization": f"Bearer {token}"})
+    assert response.json()["accessibility_profile"] == PROFILE
