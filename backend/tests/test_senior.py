@@ -2,8 +2,6 @@
 Tests for GET /api/v1/senior endpoint (need PostgreSQL).
 """
 
-import uuid
-
 from app.core.security import create_access_token
 from app.schemas.enums import UserRole
 
