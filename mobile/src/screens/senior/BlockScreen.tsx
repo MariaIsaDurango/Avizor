@@ -1,11 +1,15 @@
-import { View, Text, Pressable, StyleSheet, Linking } from 'react-native';
+import { useEffect, useState } from 'react';
+import { View, Text, Pressable, StyleSheet, Linking, Animated } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MaterialIcons } from '@expo/vector-icons';
+import * as SecureStore from 'expo-secure-store';
+import * as Haptics from 'expo-haptics';
 import Screen from '../../components/Screen';
 import { RootStackParamList } from '../../navigation/types';
 import { BlockTemplate } from '../../services/analyses';
 import { colors } from '../../constants/colors';
 import { fontWeight } from '../../constants/typography';
+import { STORAGE_KEYS } from '../../constants/storage';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SeniorBlock'>;
 
@@ -57,17 +61,45 @@ const CONFIGS: Record<BlockTemplate, Config> = {
 
 export default function SeniorBlockScreen({ navigation, route }: Props) {
   const config = CONFIGS[route.params.template];
+  const [hardOfHearing, setHardOfHearing] = useState(false);
+  const [pulseAnim] = useState(() => new Animated.Value(1));
+
+  useEffect(() => {
+    SecureStore.getItemAsync(STORAGE_KEYS.ACCESSIBILITY_PROFILE)
+      .then((raw) => {
+        const profile = raw ? JSON.parse(raw) : null;
+        setHardOfHearing(!!profile?.hearing_impairment);
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!hardOfHearing) return;
+
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch(() => {});
+
+    const pulse = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, { toValue: 1.25, duration: 350, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1, duration: 350, useNativeDriver: true }),
+      ]),
+    );
+    pulse.start();
+    return () => pulse.stop();
+  }, [hardOfHearing, pulseAnim]);
 
   return (
     <Screen style={{ backgroundColor: config.background }}>
       <View style={styles.content}>
-        <MaterialIcons
-          name={config.icon}
-          size={96}
-          color={colors.white}
-          importantForAccessibility="no-hide-descendants"
-          accessibilityElementsHidden
-        />
+        <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
+          <MaterialIcons
+            name={config.icon}
+            size={96}
+            color={colors.white}
+            importantForAccessibility="no-hide-descendants"
+            accessibilityElementsHidden
+          />
+        </Animated.View>
         <Text style={styles.message}>{config.message}</Text>
         <Text style={styles.empathy}>{config.empathy}</Text>
       </View>
@@ -87,7 +119,7 @@ export default function SeniorBlockScreen({ navigation, route }: Props) {
           style={styles.dismissButton}
           onPress={() => navigation.goBack()}
           accessibilityRole="button"
-          accessibilityLabel="Estoy protegida, gracias"
+          accessibilityLabel="Estoy protegido/a, gracias"
         >
           <Text style={styles.dismissLabel}>Estoy protegido/a, gracias</Text>
         </Pressable>

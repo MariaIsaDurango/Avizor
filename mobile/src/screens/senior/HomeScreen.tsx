@@ -10,6 +10,7 @@ import {
   Keyboard,
 } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
+import * as Haptics from 'expo-haptics';
 import { MaterialIcons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Screen from '../../components/Screen';
@@ -64,11 +65,15 @@ export default function SeniorHomeScreen({ navigation }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [verdict, setVerdict] = useState<Verdict | null>(null);
   const [deviceId, setDeviceId] = useState<string | null>(null);
+  const [hardOfHearing, setHardOfHearing] = useState(false);
 
   useEffect(() => {
     SecureStore.getItemAsync(STORAGE_KEYS.DEVICE_ID)
       .then(setDeviceId)
       .catch(() => setDeviceId(null));
+    SecureStore.getItemAsync(STORAGE_KEYS.ACCESSIBILITY_PROFILE)
+      .then((raw) => { if (raw) setHardOfHearing(!!JSON.parse(raw)?.hearing_impairment); })
+      .catch(() => {});
   }, []);
 
   function handleTabChange(tab: InputType) {
@@ -93,9 +98,20 @@ export default function SeniorHomeScreen({ navigation }: Props) {
     try {
       const result = await submitAnalysis(deviceId, inputType, value.trim());
       if (result.block_template) {
+        if (hardOfHearing) {
+          await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch(() => {});
+        }
         handleReset();
         navigation.navigate('SeniorBlock', { template: result.block_template });
       } else {
+        if (hardOfHearing) {
+          const feedbackType = result.risk_level === 'green'
+            ? Haptics.NotificationFeedbackType.Success
+            : result.risk_level === 'red'
+            ? Haptics.NotificationFeedbackType.Error
+            : Haptics.NotificationFeedbackType.Warning;
+          await Haptics.notificationAsync(feedbackType).catch(() => {});
+        }
         setVerdict(result);
       }
     } catch (e: unknown) {
