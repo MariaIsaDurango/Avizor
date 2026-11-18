@@ -18,10 +18,8 @@
     "android": {
       "package": "com.avizor.app",
       "adaptiveIcon": {
-        "backgroundColor": "#164E55",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#164E55"
       },
       "predictiveBackGestureEnabled": false
     },

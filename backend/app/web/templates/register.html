@@ -347,10 +347,7 @@
         });
 
         if (res.status === 201) {
-          document.getElementById('register-form').style.display = 'none';
-          const success = document.getElementById('alert-success');
-          success.innerHTML = '¡Cuenta creada! <a href="/login" style="color:inherit;font-weight:700;">Inicia sesión</a> para continuar.';
-          success.classList.add('alert--visible');
+          window.location.href = '/verify-email?email=' + encodeURIComponent(email);
         } else {
           const data = await res.json().catch(() => ({}));
           const msg = res.status === 409

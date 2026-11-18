@@ -88,6 +88,15 @@ async def download(request: Request):
     )
 
 
+@web_router.get("/verify-email", response_class=HTMLResponse, name="verify_email")
+async def verify_email_page(request: Request):
+    return templates.TemplateResponse(
+        request,
+        "verify-email.html",
+        {**_COMMON},
+    )
+
+
 @web_router.get("/forgot-password", response_class=HTMLResponse, name="forgot_password")
 async def forgot_password_page(request: Request):
     return templates.TemplateResponse(

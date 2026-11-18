@@ -22,6 +22,8 @@ class MainApplication : Application(), ReactApplication {
       packageList =
         PackageList(this).packages.apply {
           add(AccessibilityPackage())
+          add(CallScreeningPackage())
+          add(NotificationPackage())
         }
     )
   }
