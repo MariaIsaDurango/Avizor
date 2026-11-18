@@ -11,6 +11,7 @@ from fastapi.testclient import TestClient
 from app.api.deps import GuardianToken
 from app.core.errors import register_error_handlers
 from app.core.security import create_access_token
+from app.models.user import User
 from app.schemas.enums import UserRole
 
 REGISTER = "/api/v1/auth/register"
@@ -26,9 +27,17 @@ GUARDIAN = {
 
 
 @pytest.fixture
-def registered(api_client):
+def registered(api_client, db_session):
+    """ES: Cuenta ya verificada; la verificación se prueba en
+    test_email_verification.py.
+    EN: Already verified account; verification is tested in
+    test_email_verification.py.
+    """
     response = api_client.post(REGISTER, json=GUARDIAN)
     assert response.status_code == 201
+    user = db_session.get(User, uuid.UUID(response.json()["id"]))
+    user.is_verified = True
+    db_session.flush()
     return response.json()
 
 

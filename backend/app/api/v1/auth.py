@@ -2,17 +2,27 @@
 Guardian sign-up and login endpoints.
 """
 
-from fastapi import APIRouter, status
+from fastapi import APIRouter, BackgroundTasks, Response, status
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
 from app.api.deps import CurrentToken, DbSession
 from app.core.config import settings
+from app.core.email import send_verification_email
 from app.core.errors import ApiError
 from app.core.security import create_access_token, hash_password, verify_password
 from app.models.user import User
-from app.schemas.auth import GuardianRegister, LoginRequest, TokenResponse, UserRead
+from app.schemas.auth import (
+    GuardianRegister,
+    LoginRequest,
+    MessageResponse,
+    ResendVerificationRequest,
+    TokenResponse,
+    UserRead,
+    VerifyEmailRequest,
+)
 from app.schemas.enums import ErrorCode, UserRole
+from app.services import email_verification
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -26,7 +36,9 @@ LOGIN_ROLES = {UserRole.GUARDIAN, UserRole.ADMIN}
 
 
 @router.post("/register", status_code=status.HTTP_201_CREATED)
-def register_guardian(body: GuardianRegister, db: DbSession) -> UserRead:
+def register_guardian(
+    body: GuardianRegister, db: DbSession, background_tasks: BackgroundTasks
+) -> UserRead:
     # ES: Mensaje genérico: no confirma si el email ya existe.
     # EN: Generic message: does not confirm whether the email exists.
     duplicated = ApiError(
@@ -42,12 +54,43 @@ def register_guardian(body: GuardianRegister, db: DbSession) -> UserRead:
     )
     db.add(user)
     try:
+        db.flush()
+        # ES: El código va por correo; aquí solo se guarda su HMAC.
+        # EN: The code goes by email; only its HMAC is stored here.
+        code = email_verification.issue_code(user)
         db.commit()
     except IntegrityError:
         # ES: Dos registros a la vez con el mismo email. EN: Two concurrent sign-ups.
         db.rollback()
         raise duplicated from None
+    # ES: El correo sale después de responder (no hace esperar a la app).
+    # EN: The email goes out after replying (the app does not wait for it).
+    background_tasks.add_task(send_verification_email, user.email, code)
     return UserRead.model_validate(user, from_attributes=True)
+
+
+@router.post("/verify-email", status_code=status.HTTP_204_NO_CONTENT)
+def verify_email(body: VerifyEmailRequest, db: DbSession):
+    """ES: Marca el email como verificado si el código es correcto.
+    EN: Marks the email as verified if the code is correct.
+    """
+    email_verification.verify_code(db, body.email, body.code)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post("/resend-verification", status_code=status.HTTP_202_ACCEPTED)
+def resend_verification(
+    body: ResendVerificationRequest, db: DbSession, background_tasks: BackgroundTasks
+) -> MessageResponse:
+    """ES: Siempre responde lo mismo, exista o no la cuenta.
+    EN: Always answers the same, whether the account exists or not.
+    """
+    code = email_verification.reissue_code(db, body.email)
+    if code:
+        background_tasks.add_task(send_verification_email, body.email, code)
+    return MessageResponse(
+        message="Si la cuenta existe y no está verificada, recibirás un código nuevo."
+    )
 
 
 @router.post("/login")
@@ -63,6 +106,14 @@ def login(body: LoginRequest, db: DbSession) -> TokenResponse:
     if not user or not password_ok or user.role not in LOGIN_ROLES:
         raise ApiError(
             401, ErrorCode.UNAUTHENTICATED, "Email o contraseña incorrectos."
+        )
+    # ES: Solo se dice tras comprobar la contraseña (no revela cuentas a terceros).
+    # EN: Only said after checking the password (reveals no accounts to others).
+    if not user.is_verified:
+        raise ApiError(
+            403,
+            ErrorCode.FORBIDDEN,
+            "Verifica tu email con el código que te enviamos antes de iniciar sesión.",
         )
 
     token = create_access_token(user.id, user.role)
