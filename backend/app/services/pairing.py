@@ -60,6 +60,11 @@ def create_pairing(
         guardian_id=guardian_id,
         code=code,
         senior_display_name=body.senior_display_name,
+        senior_accessibility_profile=(
+            body.senior_accessibility_profile.model_dump()
+            if body.senior_accessibility_profile
+            else None
+        ),
         expires_at=now + timedelta(minutes=settings.PAIRING_CODE_EXPIRE_MINUTES),
     )
     db.add(pairing)
@@ -88,7 +93,11 @@ def redeem_pairing(db: Session, body: PairingRedeem) -> PairingRedeemResponse:
             410, ErrorCode.PAIRING_EXPIRED, "Pide a tu familiar un código nuevo."
         )
 
-    senior = User(role=UserRole.SENIOR, display_name=pairing.senior_display_name)
+    senior = User(
+        role=UserRole.SENIOR,
+        display_name=pairing.senior_display_name,
+        accessibility_profile=pairing.senior_accessibility_profile,
+    )
     db.add(senior)
     db.flush()  # ES: genera senior.id / EN: generates senior.id
 
@@ -114,5 +123,8 @@ def redeem_pairing(db: Session, body: PairingRedeem) -> PairingRedeemResponse:
         expires_minutes=settings.DEVICE_TOKEN_EXPIRE_DAYS * 24 * 60,
     )
     return PairingRedeemResponse(
-        access_token=token, device_id=device.id, senior_id=senior.id
+        access_token=token,
+        device_id=device.id,
+        senior_id=senior.id,
+        accessibility_profile=senior.accessibility_profile,
     )
