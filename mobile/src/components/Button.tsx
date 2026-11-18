@@ -11,6 +11,7 @@ interface ButtonProps {
   variant?: ButtonVariant;
   icon?: keyof typeof MaterialIcons.glyphMap;
   disabled?: boolean;
+  large?: boolean;
   style?: ViewStyle;
 }
 
@@ -31,6 +32,7 @@ export default function Button({
   variant = 'primary',
   icon,
   disabled = false,
+  large = false,
   style,
 }: ButtonProps) {
   const resolvedIcon = icon ?? DEFAULT_ICONS[variant];
@@ -45,6 +47,7 @@ export default function Button({
       accessibilityState={{ disabled }}
       style={({ pressed }) => [
         styles.base,
+        large && styles.baseLarge,
         variant === 'primary' && styles.primary,
         variant === 'alert' && styles.alert,
         variant === 'action' && styles.action,
@@ -56,12 +59,12 @@ export default function Button({
       {showIcon && resolvedIcon && (
         <MaterialIcons
           name={resolvedIcon}
-          size={28}
+          size={large ? 36 : 28}
           color={LABEL_COLOR[variant]}
           style={styles.icon}
         />
       )}
-      <Text style={[styles.label, { color: LABEL_COLOR[variant] }]}>
+      <Text style={[styles.label, large && styles.labelLarge, { color: LABEL_COLOR[variant] }]}>
         {label}
       </Text>
     </Pressable>
@@ -77,6 +80,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     borderRadius: 8,
     minHeight: 56,
+  },
+  baseLarge: {
+    paddingVertical: 20,
+    minHeight: 72,
   },
   primary: {
     backgroundColor: colors.action,
@@ -101,5 +108,8 @@ const styles = StyleSheet.create({
   label: {
     fontSize: fontSize.button,
     fontWeight: fontWeight.bold,
+  },
+  labelLarge: {
+    fontSize: 30,
   },
 });

@@ -9,6 +9,7 @@ import { navigationRef } from './src/navigation/navigationRef';
 import { STORAGE_KEYS } from './src/constants/storage';
 import { getAlert } from './src/services/alerts';
 import { registerDevice } from './src/services/devices';
+import { AccessibilityProvider } from './src/contexts/AccessibilityContext';
 
 type SavedMode = 'senior' | 'tutor' | null;
 
@@ -78,18 +79,20 @@ export default function App() {
   if (initialMode === undefined || hasDeviceId === undefined) return null;
 
   return (
-    <NavigationContainer
-      ref={navigationRef}
-      onReady={() => {
-        // ES: Notificación pendiente si la app estaba cerrada al llegar el push.
-        // EN: Pending notification if the app was closed when the push arrived.
-        Notifications.getLastNotificationResponseAsync().then((response) => {
-          if (response) handleNotificationResponse(response);
-        });
-      }}
-    >
-      <StatusBar style="auto" />
-      <RootNavigator initialMode={initialMode} hasDeviceId={hasDeviceId} />
-    </NavigationContainer>
+    <AccessibilityProvider>
+      <NavigationContainer
+        ref={navigationRef}
+        onReady={() => {
+          // ES: Notificación pendiente si la app estaba cerrada al llegar el push.
+          // EN: Pending notification if the app was closed when the push arrived.
+          Notifications.getLastNotificationResponseAsync().then((response) => {
+            if (response) handleNotificationResponse(response);
+          });
+        }}
+      >
+        <StatusBar style="auto" />
+        <RootNavigator initialMode={initialMode} hasDeviceId={hasDeviceId} />
+      </NavigationContainer>
+    </AccessibilityProvider>
   );
 }

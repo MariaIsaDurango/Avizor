@@ -1,36 +1,29 @@
 import { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator, Pressable } from 'react-native';
+import { View, Text, Image, TextInput, Pressable, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../../navigation/types';
 import Screen from '../../components/Screen';
-import Button from '../../components/Button';
-import { colors } from '../../constants/colors';
-import { fontSize, fontWeight } from '../../constants/typography';
+import { authStyles as a } from '../../styles/auth';
 import { login, EmailNotVerifiedError } from '../../services/auth';
 import { registerDevice } from '../../services/devices';
+import { RootStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TutorLogin'>;
 
 export default function TutorLoginScreen({ navigation, route }: Props) {
-  const [email, setEmail] = useState(route.params?.email ?? '');
-  const [password, setPassword] = useState('');
+  const [email, setEmail]           = useState(route.params?.email ?? '');
+  const [password, setPassword]     = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading]       = useState(false);
+  const [error, setError]           = useState<string | null>(null);
 
   async function handleLogin() {
-    if (!email || !password) {
-      setError('Completa todos los campos.');
-      return;
-    }
+    if (!email || !password) { setError('Completa todos los campos.'); return; }
     setLoading(true);
     setError(null);
     try {
       await login({ email, password });
-      registerDevice().catch((e) => {
-        if (__DEV__) console.warn('[devices] registerDevice failed:', e);
-      });
+      registerDevice().catch((e) => { if (__DEV__) console.warn('[devices] registerDevice failed:', e); });
       navigation.reset({ index: 0, routes: [{ name: 'TutorDashboard' }] });
     } catch (e) {
       if (e instanceof EmailNotVerifiedError) {
@@ -46,100 +39,77 @@ export default function TutorLoginScreen({ navigation, route }: Props) {
   return (
     <Screen scrollable>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <Pressable onPress={() => navigation.navigate('ModeSelection')} style={styles.back}>
-          <Text style={styles.backText}>‹ Volver</Text>
+
+        <Pressable onPress={() => navigation.navigate('ModeSelection')} style={a.back} accessibilityRole="button" accessibilityLabel="Volver">
+          <Ionicons name="arrow-back-outline" size={18} color="#6b7280" />
+          <Text style={a.backText}>Volver</Text>
         </Pressable>
 
-        <Text style={styles.title}>Iniciar sesión</Text>
+        <View style={a.brand}>
+          <Image source={require('../../../assets/logo-web.png')} style={a.logo} resizeMode="contain" accessibilityLabel="" />
+          <Text style={a.brandName}>Avizor</Text>
+        </View>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          placeholderTextColor={colors.primary}
-          value={email}
-          onChangeText={(v) => { setEmail(v); setError(null); }}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          autoComplete="email"
-        />
+        <Text style={a.heading}>Bienvenido de nuevo</Text>
+        <Text style={a.subtitle}>Inicia sesión para acceder al panel de Tutor.</Text>
 
-        <View style={styles.inputWrapper}>
+        {error && (
+          <View style={a.alertError}>
+            <Text style={a.alertErrorText}>{error}</Text>
+          </View>
+        )}
+
+        <View style={a.formGroup}>
+          <Text style={a.label}>Email</Text>
           <TextInput
-            style={[styles.input, styles.inputFlex]}
-            placeholder="Contraseña"
-            placeholderTextColor={colors.primary}
-            value={password}
-            onChangeText={(v) => { setPassword(v); setError(null); }}
-            secureTextEntry={!showPassword}
-            autoComplete="current-password"
+            style={a.input}
+            placeholder="correo@ejemplo.com"
+            placeholderTextColor="#aaa"
+            value={email}
+            onChangeText={(v) => { setEmail(v); setError(null); }}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoComplete="email"
           />
-          <Pressable
-            onPress={() => setShowPassword((v) => !v)}
-            style={styles.eyeBtn}
-            accessibilityLabel={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-          >
-            <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={22} color={colors.primary} />
-          </Pressable>
         </View>
 
-        {error && <Text style={styles.error}>{error}</Text>}
-
-        <View style={styles.buttonWrapper}>
-          {loading
-            ? <ActivityIndicator color={colors.primary} size="large" />
-            : <Button label="Iniciar sesión" onPress={handleLogin} />
-          }
+        <View style={a.formGroup}>
+          <Text style={a.label}>Contraseña</Text>
+          <View style={a.inputWrap}>
+            <TextInput
+              style={[a.input, a.inputWithEye]}
+              placeholder="Tu contraseña"
+              placeholderTextColor="#aaa"
+              value={password}
+              onChangeText={(v) => { setPassword(v); setError(null); }}
+              secureTextEntry={!showPassword}
+              autoComplete="current-password"
+            />
+            <Pressable onPress={() => setShowPassword(v => !v)} style={a.eyeBtn} accessibilityLabel={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}>
+              <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color="#888" />
+            </Pressable>
+          </View>
         </View>
 
-        <Pressable
-          onPress={() => navigation.navigate('TutorRegister')}
-          accessibilityRole="link"
-          style={styles.link}
-        >
-          <Text style={styles.linkText}>¿No tienes cuenta? Regístrate</Text>
+        {loading
+          ? <ActivityIndicator color="#164E55" size="large" style={{ marginVertical: 8 }} />
+          : (
+            <Pressable
+              style={({ pressed }) => [a.submitBtn, pressed && a.submitBtnDisabled]}
+              onPress={handleLogin}
+              accessibilityRole="button"
+              accessibilityLabel="Iniciar sesión"
+            >
+              <Text style={a.submitText}>Iniciar sesión</Text>
+            </Pressable>
+          )
+        }
+
+        <Pressable onPress={() => navigation.navigate('TutorRegister')} style={a.footerLink} accessibilityRole="link">
+          <Text style={a.footerText}>¿No tienes cuenta? <Text style={a.footerTextBold}>Regístrate</Text></Text>
         </Pressable>
+
       </KeyboardAvoidingView>
     </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  title: {
-    fontSize: fontSize.heading,
-    fontWeight: fontWeight.bold,
-    color: colors.primary,
-    marginBottom: 32,
-    textAlign: 'center',
-  },
-  input: {
-    borderWidth: 1.5,
-    borderColor: colors.primary,
-    borderRadius: 8,
-    padding: 14,
-    fontSize: fontSize.body,
-    color: colors.primary,
-    backgroundColor: colors.white,
-    marginBottom: 16,
-  },
-  error: {
-    color: colors.alert,
-    fontSize: fontSize.body,
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  buttonWrapper: {
-    marginTop: 8,
-    marginBottom: 16,
-  },
-  link: { alignItems: 'center', marginTop: 8 },
-  linkText: {
-    fontSize: fontSize.body,
-    color: colors.primary,
-    textDecorationLine: 'underline',
-  },
-  back: { marginBottom: 24 },
-  backText: { fontSize: fontSize.body, color: colors.primary },
-  inputWrapper: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
-  inputFlex: { flex: 1, marginBottom: 0 },
-  eyeBtn: { paddingHorizontal: 12, paddingVertical: 14 },
-});
