@@ -1,6 +1,9 @@
 """Integration test for the tutor-to-senior MVP flow."""
 
+from app.api.v1 import auth as auth_routes
+
 REGISTER = "/api/v1/auth/register"
+VERIFY = "/api/v1/auth/verify-email"
 LOGIN = "/api/v1/auth/login"
 PAIRINGS = "/api/v1/pairings"
 REDEEM = "/api/v1/pairings/redeem"
@@ -10,7 +13,16 @@ ALERTS = "/api/v1/alerts"
 UNLOCKS = "/api/v1/unlocks"
 
 
-def test_registration_pairing_analysis_alert_and_unlock(api_client):
+def test_registration_pairing_analysis_alert_and_unlock(api_client, monkeypatch):
+    # ES: Captura el código de verificación en lugar de enviar el correo (#94).
+    # EN: Captures the verification code instead of sending the email (#94).
+    outbox: list[tuple[str, str]] = []
+    monkeypatch.setattr(
+        auth_routes,
+        "send_verification_email",
+        lambda to, code: outbox.append((to, code)),
+    )
+
     guardian = {
         "email": "flujo.qa@example.com",
         "password": "contraseña-larga-1",
@@ -18,6 +30,11 @@ def test_registration_pairing_analysis_alert_and_unlock(api_client):
     }
     registered = api_client.post(REGISTER, json=guardian)
     assert registered.status_code == 201
+
+    verified = api_client.post(
+        VERIFY, json={"email": guardian["email"], "code": outbox[0][1]}
+    )
+    assert verified.status_code == 204
 
     login = api_client.post(
         LOGIN,
