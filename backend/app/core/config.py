@@ -52,6 +52,10 @@ class Settings(BaseSettings):
     MAIL_FROM: str | None = None
     EMAIL_CODE_EXPIRE_MINUTES: int = 15
     EMAIL_CODE_MAX_ATTEMPTS: int = 5
+    # ES: Dirección donde se abre el enlace para cambiar la contraseña.
+    # EN: Address where the password reset link opens.
+    FRONTEND_URL: str = "http://localhost:8000"
+    PASSWORD_RESET_EXPIRE_MINUTES: int = 15
 
 
 settings = Settings()
