@@ -2,7 +2,7 @@
 
 import json
 import sys
-from datetime import UTC, date, datetime
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -16,6 +16,7 @@ def test_manifest_draft_and_team_decision(tmp_path, monkeypatch):
     raw_path.parent.mkdir(parents=True)
     text = "Texto ficticio de prueba, no constituye un aviso oficial real."
     url = "https://www.incibe.es/ciudadania/avisos/fixture"
+    scraped = datetime.now(UTC) - timedelta(days=1)
     raw = [
         {
             "source": "incibe",
@@ -23,8 +24,8 @@ def test_manifest_draft_and_team_decision(tmp_path, monkeypatch):
             "title": "Fixture",
             "text": text,
             "content_hash": content_hash(text),
-            "published_at": date.today().isoformat(),
-            "scraped_at": datetime.now(UTC).isoformat(),
+            "published_at": scraped.date().isoformat(),
+            "scraped_at": scraped.isoformat(),
             "reuse_reference": "Fixture only",
         }
     ]

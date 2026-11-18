@@ -6,6 +6,8 @@ from datetime import date
 
 from rag.src.ingestion.models import THREATS, cutoff, official_url
 
+from .reranking import rerank
+
 
 @dataclass(frozen=True)
 class RetrievedNotice:
@@ -17,6 +19,7 @@ class RetrievedNotice:
     published_at: date
     distance: float
     synthetic: bool
+    impersonated_entities: str = ""
 
 
 def build_filter(threat_type: str, today: date) -> dict:
@@ -33,7 +36,15 @@ def build_filter(threat_type: str, today: date) -> dict:
 
 
 class Retriever:
-    def __init__(self, store, embedder, *, max_distance: float = 0.35, demo=False):
+    def __init__(
+        self,
+        store,
+        embedder,
+        *,
+        max_distance: float = 0.35,
+        demo=False,
+        contextual=True,
+    ):
         if store.synthetic != demo:
             raise ValueError("Corpus mode mismatch")
         if not 0 <= max_distance <= 2:
@@ -44,6 +55,7 @@ class Retriever:
         self.embedder = embedder
         self.max_distance = max_distance
         self.demo = demo
+        self.contextual = contextual
 
     def retrieve(self, text: str, threat_type: str, *, today: date | None = None):
         today = today or date.today()
@@ -88,6 +100,9 @@ class Retriever:
                     published,
                     distance,
                     self.demo,
+                    str(meta.get("impersonated_entities") or ""),
                 )
             )
+        if self.contextual:
+            return rerank(text, notices)
         return sorted(notices, key=lambda item: item.distance)[:5]
