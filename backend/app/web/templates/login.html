@@ -293,7 +293,7 @@
         if (res.ok) {
           const data = await res.json();
           localStorage.setItem('avizor_token', data.access_token);
-          window.location.href = '/';
+          window.location.href = '/panel';
         } else {
           const data = await res.json().catch(() => ({}));
           const alertEl = document.getElementById('alert-error');

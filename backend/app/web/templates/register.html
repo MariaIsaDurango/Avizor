@@ -349,7 +349,7 @@
         if (res.status === 201) {
           document.getElementById('register-form').style.display = 'none';
           const success = document.getElementById('alert-success');
-          success.textContent = '¡Cuenta creada! Ya puedes iniciar sesión.';
+          success.innerHTML = '¡Cuenta creada! <a href="/login" style="color:inherit;font-weight:700;">Inicia sesión</a> para continuar.';
           success.classList.add('alert--visible');
         } else {
           const data = await res.json().catch(() => ({}));

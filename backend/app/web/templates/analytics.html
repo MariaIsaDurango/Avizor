@@ -9,7 +9,7 @@
   crossorigin="anonymous"
 ></script>
 <style>
-  .period-selector { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
+  .period-selector { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.5rem; }
   .period-btn {
     padding: 0.4rem 1rem;
     border: 1.5px solid var(--color-primary);
@@ -32,6 +32,8 @@
   }
   @media (max-width: 768px) { .charts-grid { grid-template-columns: 1fr; } }
   .chart-wrap { position: relative; min-height: 300px; }
+  @media (max-width: 768px) { .chart-wrap { min-height: 240px; } }
+  @media (max-width: 480px) { .chart-wrap { min-height: 200px; } }
   .stat-total {
     font-size: var(--font-size-2xl);
     font-weight: 700;
@@ -43,6 +45,16 @@
 {% endblock %}
 
 {% block content %}
+<a href="/panel" class="back-link" id="back-to-panel" style="display:none;">
+  <i data-lucide="arrow-left" aria-hidden="true"></i>
+  Volver al panel
+</a>
+<script>
+  if (localStorage.getItem('avizor_token')) {
+    document.getElementById('back-to-panel').style.display = 'inline-flex';
+  }
+</script>
+
 <h1 class="page-heading">
   <i data-lucide="bar-chart-2" aria-hidden="true"></i>
   Panel de analítica
@@ -118,10 +130,55 @@ function showError(show) {
   document.getElementById('fetch-error').style.display = show ? 'block' : 'none';
 }
 
+// ── MOCK — eliminar cuando Laura (ML) y María (RAG) entreguen ────
+const MOCK_DATA = {
+  7: {
+    daily: { period_days: 7, rows: [
+      { date: '2026-11-11', amber: 3, red: 1 },
+      { date: '2026-11-12', amber: 5, red: 2 },
+      { date: '2026-11-13', amber: 2, red: 0 },
+      { date: '2026-11-14', amber: 7, red: 3 },
+      { date: '2026-11-15', amber: 4, red: 1 },
+      { date: '2026-11-16', amber: 6, red: 4 },
+      { date: '2026-11-17', amber: 3, red: 2 },
+    ]},
+    summary: { period_days: 7, total: 43,
+      by_threat_type: { smishing: 18, phishing: 12, spam: 6, vishing: 5, bank_fraud: 2 },
+      by_channel: { sms: 24, call: 10, notification: 9 },
+    },
+  },
+  30: {
+    daily: { period_days: 30, rows: Array.from({ length: 30 }, (_, i) => {
+      const d = new Date('2026-10-18'); d.setDate(d.getDate() + i);
+      return { date: d.toISOString().slice(0, 10), amber: Math.floor(Math.random() * 8), red: Math.floor(Math.random() * 4) };
+    })},
+    summary: { period_days: 30, total: 178,
+      by_threat_type: { smishing: 72, phishing: 51, spam: 28, vishing: 18, bank_fraud: 9 },
+      by_channel: { sms: 99, call: 42, notification: 37 },
+    },
+  },
+  90: {
+    daily: { period_days: 90, rows: Array.from({ length: 90 }, (_, i) => {
+      const d = new Date('2026-08-19'); d.setDate(d.getDate() + i);
+      return { date: d.toISOString().slice(0, 10), amber: Math.floor(Math.random() * 10), red: Math.floor(Math.random() * 5) };
+    })},
+    summary: { period_days: 90, total: 534,
+      by_threat_type: { smishing: 210, phishing: 155, spam: 84, vishing: 54, bank_fraud: 31 },
+      by_channel: { sms: 298, call: 130, notification: 106 },
+    },
+  },
+};
+// ── FIN MOCK ──────────────────────────────────────────────────────
+
 async function loadStats(period) {
   showError(false);
 
   let daily, summary;
+
+  // TODO: eliminar bloque MOCK y descomentar fetch cuando lleguen datos reales
+  ({ daily, summary } = MOCK_DATA[period] ?? MOCK_DATA[7]);
+
+  /* FETCH REAL — descomentar y borrar el mock de arriba
   try {
     const [resDaily, resSummary] = await Promise.all([
       fetch(`/api/v1/stats/daily?period=${period}`),
@@ -138,6 +195,7 @@ async function loadStats(period) {
     showError(true);
     return;
   }
+  */
 
   destroyCharts();
 

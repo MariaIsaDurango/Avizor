@@ -24,6 +24,9 @@
     transition: background 0.15s, color 0.15s;
     font-family: var(--font-family);
   }
+  @media (max-width: 480px) {
+    .section-nav__btn { font-size: 0.75rem; padding: 0.3rem 0.625rem; }
+  }
   .section-nav__btn:hover,
   .section-nav__btn--active {
     background: var(--color-primary);
@@ -119,13 +122,16 @@
   .steps { counter-reset: step; padding: 0; list-style: none; }
   .steps li {
     counter-increment: step;
-    display: flex;
-    gap: 1rem;
+    position: relative;
+    padding-left: 2.75rem;
     margin-bottom: 1rem;
-    align-items: flex-start;
+    min-height: 1.75rem;
   }
   .steps li::before {
     content: counter(step);
+    position: absolute;
+    left: 0;
+    top: 0.15rem;
     background: var(--color-primary);
     color: var(--color-white);
     border-radius: 50%;
@@ -136,8 +142,6 @@
     justify-content: center;
     font-weight: 700;
     font-size: var(--font-size-sm);
-    flex-shrink: 0;
-    margin-top: 0.1rem;
   }
 </style>
 {% endblock %}

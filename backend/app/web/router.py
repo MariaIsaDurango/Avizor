@@ -52,6 +52,15 @@ async def support(request: Request):
     )
 
 
+@web_router.get("/panel", response_class=HTMLResponse, name="panel")
+async def panel(request: Request):
+    return templates.TemplateResponse(
+        request,
+        "panel.html",
+        {"active_page": "panel", **_COMMON},
+    )
+
+
 @web_router.get("/register", response_class=HTMLResponse, name="register")
 async def register(request: Request):
     return templates.TemplateResponse(
@@ -66,5 +75,14 @@ async def login_page(request: Request):
     return templates.TemplateResponse(
         request,
         "login.html",
+        {**_COMMON},
+    )
+
+
+@web_router.get("/download", response_class=HTMLResponse, name="download")
+async def download(request: Request):
+    return templates.TemplateResponse(
+        request,
+        "download.html",
         {**_COMMON},
     )

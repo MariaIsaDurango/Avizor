@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+
+{% block title %}Descarga Avizor{% endblock %}
+{% block meta_description %}Descarga la app Avizor para Android e iOS. Requisitos, permisos y guía de instalación.{% endblock %}
+
+{% block extra_head %}
+<style>
+  .download-hero {
+    text-align: center;
+    padding: 2.5rem 1rem 2rem;
+  }
+  .download-hero__logo {
+    height: 64px;
+    width: auto;
+    margin-bottom: 1rem;
+  }
+  .download-hero__title {
+    font-family: var(--font-display);
+    font-size: var(--font-size-2xl);
+    font-weight: 400;
+    font-style: italic;
+    color: var(--color-primary);
+    margin-bottom: 0.5rem;
+  }
+  .download-hero__sub {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-base);
+    max-width: 480px;
+    margin: 0 auto;
+    line-height: 1.65;
+  }
+
+  /* ── Mode cards ─────────────────────────────────────────── */
+  .mode-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+  }
+  @media (max-width: 600px) {
+    .mode-grid { grid-template-columns: 1fr; }
+  }
+
+  .mode-card {
+    border: 1.5px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    background: var(--color-white);
+  }
+  .mode-card__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    background: rgba(22, 78, 85, 0.08);
+    margin-bottom: 0.875rem;
+  }
+  .mode-card__icon svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    color: var(--color-primary);
+  }
+  .mode-card__title {
+    font-size: var(--font-size-base);
+    font-weight: 700;
+    color: var(--color-primary);
+    margin-bottom: 0.4rem;
+  }
+  .mode-card__platform {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    margin-bottom: 0.75rem;
+  }
+  .mode-card__platform--android {
+    background: #e8f5e9;
+    color: #2e7d32;
+  }
+  .mode-card__platform--both {
+    background: #e3f2fd;
+    color: #1565c0;
+  }
+  .mode-card p {
+    font-size: var(--font-size-sm);
+    color: var(--color-text);
+    line-height: 1.65;
+  }
+
+  /* ── Requirements list ──────────────────────────────────── */
+  .req-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .req-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.625rem;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid var(--color-border);
+    font-size: var(--font-size-sm);
+    color: var(--color-text);
+    line-height: 1.55;
+  }
+  .req-list li:last-child { border-bottom: none; }
+  .req-list li svg {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+    color: var(--color-primary);
+  }
+
+  /* ── Download button ─────────────────────────────────────── */
+  .download-cta {
+    text-align: center;
+    padding: 2rem 0 1rem;
+  }
+  .btn-download {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.875rem 2.25rem;
+    background: var(--color-primary);
+    color: var(--color-white);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-base);
+    font-weight: 700;
+    text-decoration: none;
+    cursor: not-allowed;
+    opacity: 0.6;
+    pointer-events: none;
+  }
+  .btn-download svg { width: 1.1rem; height: 1.1rem; flex-shrink: 0; }
+  .coming-soon-note {
+    margin-top: 0.75rem;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="download-hero">
+  <img
+    src="{{ url_for('web_static', path='img/logo-web.png') }}"
+    alt="Logo Avizor"
+    class="download-hero__logo"
+  >
+  <h1 class="download-hero__title">Descarga Avizor</h1>
+  <p class="download-hero__sub">
+    Avizor protege a las personas mayores de fraudes digitales. Descarga la app y empieza a cuidar de quienes más quieres.
+  </p>
+</div>
+
+<!-- ── Dos modos de uso ──────────────────────────────────── -->
+<section class="card" style="margin-bottom: 1.5rem;">
+  <h2 class="card__title">Dos modos de uso</h2>
+  <div class="mode-grid">
+    <div class="mode-card">
+      <div class="mode-card__icon">
+        <i data-lucide="shield" aria-hidden="true"></i>
+      </div>
+      <div class="mode-card__title">Modo Sénior</div>
+      <span class="mode-card__platform mode-card__platform--android">Solo Android</span>
+      <p>
+        Para la persona mayor. Avizor analiza automáticamente los mensajes entrantes antes de que los vea,
+        y bloquea los que detecta como fraude. Requiere activar el servicio de accesibilidad de Android.
+      </p>
+    </div>
+    <div class="mode-card">
+      <div class="mode-card__icon">
+        <i data-lucide="user-check" aria-hidden="true"></i>
+      </div>
+      <div class="mode-card__title">Modo Tutor</div>
+      <span class="mode-card__platform mode-card__platform--android">Solo Android</span>
+      <p>
+        Para el familiar o cuidador. Recibe alertas en tiempo real cuando se detecta una amenaza,
+        gestiona los dispositivos vinculados y revisa el historial de fraudes.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ── Requisitos ────────────────────────────────────────── -->
+<section class="card" style="margin-bottom: 1.5rem;">
+  <h2 class="card__title">Requisitos</h2>
+  <ul class="req-list" aria-label="Requisitos del sistema">
+    <li>
+      <i data-lucide="smartphone" aria-hidden="true"></i>
+      <span><strong>Android 8.0 o superior</strong> tanto para el modo Sénior como para el modo Tutor.</span>
+    </li>
+    <li>
+      <i data-lucide="hard-drive" aria-hidden="true"></i>
+      <span>Al menos <strong>50 MB</strong> de espacio libre en el dispositivo.</span>
+    </li>
+    <li>
+      <i data-lucide="wifi" aria-hidden="true"></i>
+      <span><strong>Conexión a internet</strong> para el análisis de mensajes y la sincronización de alertas.</span>
+    </li>
+    <li>
+      <i data-lucide="accessibility" aria-hidden="true"></i>
+      <span>
+        <strong>Servicio de accesibilidad de Android</strong> (solo modo Sénior) —
+        permite a Avizor leer los mensajes entrantes. Se activa una sola vez desde los ajustes del móvil.
+      </span>
+    </li>
+    <li>
+      <i data-lucide="bell" aria-hidden="true"></i>
+      <span><strong>Notificaciones push</strong> para recibir alertas en tiempo real en el modo Tutor.</span>
+    </li>
+  </ul>
+</section>
+
+<!-- ── Qué implica la descarga ───────────────────────────── -->
+<section class="card" style="margin-bottom: 2rem;">
+  <h2 class="card__title">Qué implica la descarga</h2>
+  <ul class="req-list">
+    <li>
+      <i data-lucide="lock" aria-hidden="true"></i>
+      <span>Los mensajes se <strong>anonimizan en el propio dispositivo</strong> antes de enviarse a nuestros servidores. Los datos personales nunca salen del móvil en texto claro.</span>
+    </li>
+    <li>
+      <i data-lucide="eye-off" aria-hidden="true"></i>
+      <span>Avizor <strong>no almacena el contenido de los mensajes seguros</strong>. Los mensajes clasificados como sin riesgo se descartan de inmediato.</span>
+    </li>
+    <li>
+      <i data-lucide="link-2" aria-hidden="true"></i>
+      <span>El dispositivo Sénior debe <strong>vincularse con la cuenta Tutor</strong> mediante un código de 6 dígitos. La persona mayor debe aceptar el aviso de accesibilidad.</span>
+    </li>
+    <li>
+      <i data-lucide="file-text" aria-hidden="true"></i>
+      <span>Al instalar la app aceptas nuestra <a href="/support#privacidad">política de privacidad</a> y el tratamiento de datos conforme al RGPD.</span>
+    </li>
+  </ul>
+</section>
+
+<!-- ── Descarga ───────────────────────────────────────────── -->
+<div class="download-cta">
+  <a
+    href="#"
+    class="btn-download"
+    aria-disabled="true"
+    aria-label="Descarga de la APK próximamente disponible"
+  >
+    <i data-lucide="download" aria-hidden="true"></i>
+    Descargar APK (Android)
+  </a>
+  <p class="coming-soon-note">La descarga estará disponible próximamente.</p>
+</div>
+{% endblock %}
