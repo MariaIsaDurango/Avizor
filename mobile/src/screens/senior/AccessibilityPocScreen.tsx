@@ -25,17 +25,14 @@ export default function AccessibilityPocScreen({ navigation }: Props) {
   const [events, setEvents] = useState<TextEvent[]>([]);
   const appState = useRef(AppState.currentState);
 
-  async function refresh() {
-    const ok: boolean = await AvizorAccessibility.isServiceEnabled();
-    setEnabled(ok);
-  }
-
   useEffect(() => {
-    refresh();
+    AvizorAccessibility.isServiceEnabled().then(setEnabled);
 
     // Refresca al volver desde ajustes de accesibilidad
     const sub = AppState.addEventListener('change', (next) => {
-      if (appState.current.match(/inactive|background/) && next === 'active') refresh();
+      if (appState.current.match(/inactive|background/) && next === 'active') {
+        AvizorAccessibility.isServiceEnabled().then(setEnabled);
+      }
       appState.current = next;
     });
 
