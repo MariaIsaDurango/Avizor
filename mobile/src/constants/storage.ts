@@ -3,6 +3,7 @@ export const STORAGE_KEYS = {
   DEVICE_ID: 'device_id',
   GUARDIAN_DEVICE_ID: 'guardian_device_id',
   SENIOR_ID: 'senior_id',
+  ACCESSIBILITY_PROFILE: 'accessibility_profile',
 } as const;
 
 export const CONSENT_TEXT_VERSION = 'accessibility-notice-2026-11';
