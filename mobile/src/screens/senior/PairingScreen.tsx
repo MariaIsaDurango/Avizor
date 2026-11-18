@@ -5,20 +5,17 @@ import {
   TextInput,
   StyleSheet,
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   TouchableWithoutFeedback,
   Keyboard,
   Platform,
 } from 'react-native';
-import * as SecureStore from 'expo-secure-store';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Screen from '../../components/Screen';
 import Button from '../../components/Button';
 import BigText from '../../components/BigText';
 import { colors } from '../../constants/colors';
 import { fontSize, fontWeight } from '../../constants/typography';
-import { STORAGE_KEYS } from '../../constants/storage';
 import { redeemPairing } from '../../services/pairing';
 import { createSelfConsent } from '../../services/consents';
 import { RootStackParamList } from '../../navigation/types';
@@ -29,6 +26,7 @@ export default function SeniorPairingScreen({ navigation }: Props) {
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
 
   async function handleRedeem() {
     if (code.length !== 6) {
@@ -48,23 +46,6 @@ export default function SeniorPairingScreen({ navigation }: Props) {
     }
   }
 
-  function handleDevReset() {
-    Alert.alert('[DEV] Borrar datos', 'Elimina token, device_id, senior_id y modo de usuario.', [
-      { text: 'Cancelar', style: 'cancel' },
-      {
-        text: 'Borrar',
-        style: 'destructive',
-        onPress: () =>
-          Promise.all([
-            SecureStore.deleteItemAsync(STORAGE_KEYS.USER_MODE),
-            SecureStore.deleteItemAsync(STORAGE_KEYS.DEVICE_ID),
-            SecureStore.deleteItemAsync(STORAGE_KEYS.SENIOR_ID),
-            SecureStore.deleteItemAsync('auth_token'),
-          ]).then(() => navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] })),
-      },
-    ]);
-  }
-
   return (
     <Screen style={styles.screen}>
       <KeyboardAvoidingView
@@ -75,6 +56,10 @@ export default function SeniorPairingScreen({ navigation }: Props) {
         <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
           <View style={styles.inner}>
             <View style={styles.top}>
+              <Button
+                label="‹ Volver"
+                onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate('ModeSelection')}
+              />
               <BigText style={styles.title}>Vincula tu móvil</BigText>
               <Text style={styles.instructions}>
                 Pide a tu familiar el código de 6 dígitos que aparece en su pantalla e introdúcelo aquí.
@@ -105,7 +90,6 @@ export default function SeniorPairingScreen({ navigation }: Props) {
                   />
                 )
               }
-              {__DEV__ && <Button label="[DEV] Borrar datos guardados" onPress={handleDevReset} />}
             </View>
           </View>
         </TouchableWithoutFeedback>

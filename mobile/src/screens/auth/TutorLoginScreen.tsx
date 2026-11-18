@@ -40,6 +40,10 @@ export default function TutorLoginScreen({ navigation }: Props) {
   return (
     <Screen scrollable>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <Pressable onPress={() => navigation.navigate('ModeSelection')} style={styles.back}>
+          <Text style={styles.backText}>‹ Volver</Text>
+        </Pressable>
+
         <Text style={styles.title}>Iniciar sesión</Text>
 
         <TextInput
@@ -118,4 +122,6 @@ const styles = StyleSheet.create({
     color: colors.primary,
     textDecorationLine: 'underline',
   },
+  back: { marginBottom: 24 },
+  backText: { fontSize: fontSize.body, color: colors.primary },
 });

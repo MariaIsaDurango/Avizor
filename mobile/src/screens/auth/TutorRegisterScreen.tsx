@@ -51,6 +51,10 @@ export default function TutorRegisterScreen({ navigation }: Props) {
   return (
     <Screen scrollable>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <Pressable onPress={() => navigation.goBack()} style={styles.back}>
+          <Text style={styles.backText}>‹ Volver</Text>
+        </Pressable>
+
         <Text style={styles.title}>Crear cuenta</Text>
 
         <TextInput
@@ -148,4 +152,6 @@ const styles = StyleSheet.create({
     color: colors.primary,
     textDecorationLine: 'underline',
   },
+  back: { marginBottom: 24 },
+  backText: { fontSize: fontSize.body, color: colors.primary },
 });
