@@ -154,6 +154,8 @@ def cli(monkeypatch, tmp_path):
     monkeypatch.setattr(pipeline, "ChromaStore", mocks.store)
     monkeypatch.setattr(pipeline, "ingest", mocks.ingest)
     monkeypatch.setattr(pipeline, "TokenChunker", mocks.chunker)
+    monkeypatch.delenv("CHROMA_PATH", raising=False)
+    monkeypatch.setattr(pipeline, "ROOT", tmp_path)
     monkeypatch.setattr(pipeline, "DEMO_PATH", tmp_path / "demo")
     monkeypatch.setattr(pipeline, "OFFICIAL_PATH", tmp_path / "official")
     return mocks

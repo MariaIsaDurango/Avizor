@@ -19,7 +19,7 @@ flowchart TD
     H --> F
 ```
 
-La ingestión no realiza scraping ni visita enlaces. Los snapshots #40 son el contrato de entrada; el paso scrape se integrará y probará después de que #40 llegue a dev. El lector acepta `text`, `content_hash`, `source`, `url`, `title`, `published_at`, `scraped_at` y `reuse_reference`. La limpieza preserva texto plano y ofrece HTML explícito para entradas de prueba. Los hashes se comparan antes de vectorizar. Las entradas sin texto, fuera de los últimos 24 meses, con hashes erróneos o sin permiso documentado se rechazan.
+La ingestión no realiza scraping ni visita enlaces. Los snapshots #40 son el contrato de entrada. #40 ya está integrada en dev; la ingestión del corpus real y la validación de extremo a extremo con sus snapshots siguen pendientes de revisión de fidelidad y permisos. El lector acepta `text`, `content_hash`, `source`, `url`, `title`, `published_at`, `scraped_at` y `reuse_reference`. La limpieza preserva texto plano y ofrece HTML explícito para entradas de prueba. Los hashes se comparan antes de vectorizar. Las entradas sin texto, fuera de los últimos 24 meses, con hashes erróneos o sin permiso documentado se rechazan.
 
 ## Metadatos e IDs
 
@@ -34,9 +34,31 @@ Los límites se calculan con offsets del texto original; el solape son 80 posici
 ## Separación de datos y permisos
 
 - Demo: `rag/data/processed/issue41_demo_chroma`, colección `official_notices`, tres ejemplos inequívocamente sintéticos con URLs `example.invalid`. Las fechas ficticias se generan en el momento de la demo para que no caduquen. Nunca son evidencias oficiales.
-- Corpus real: `rag/chroma_db`, modo separado y validación de cada URL, hash exacto y manifiesto revisado. No indexar los 30 textos de #40 hasta verificar fidelidad y permisos de RAG. Un manifiesto no constituye autorización legal; registra una decisión humana documentada.
+- Corpus real: ruta configurable mediante `CHROMA_PATH` (por defecto `rag/chroma_db`), modo separado y validación de cada URL, hash exacto y manifiesto revisado. No indexar los 30 textos de #40 hasta verificar fidelidad y permisos de RAG. Un manifiesto no constituye autorización legal; registra una decisión humana documentada.
 - La clasificación de los ejemplos sintéticos es manual y conocida. Para entrada real la etiqueta contractual y las entidades deben venir de la revisión/clasificador en el manifiesto; automatizar con el clasificador de Laura queda pendiente de integración. No se altera el contrato de backend.
 - No subir corpus real, manifiestos de permisos ni bases Chroma a Git. No ingerir mensajes de usuarios.
+
+## Configuración de ChromaDB / ChromaDB configuration
+
+La ingestión oficial resuelve `CHROMA_PATH` al ejecutar la CLI. Prioridad: variable de entorno del proceso, valor del archivo `.env` de la raíz del repositorio y, si no existe ninguno, `rag/chroma_db`. `.env.example` es solo una plantilla. La lectura de `.env` no modifica las variables de entorno ni expande referencias a otras variables.
+
+- Las rutas relativas se resuelven desde la raíz de Avizor, no desde el directorio de trabajo; las absolutas se respetan. Se admite `~`.
+- Un valor vacío o una ruta oficial que coincida con la demo (o sea ancestro o descendiente de ella) se rechaza antes de abrir ChromaDB. Se resuelven también los enlaces simbólicos.
+- El modo `--synthetic` mantiene su propia ruta fija e ignora `CHROMA_PATH`. La colección sigue comprobando la coherencia de `corpus_mode` y revisión E5.
+- Si se cambia la ruta, no se mueve ni se elimina la base anterior. El backend y la recuperación futura (#43) deberán resolver la misma ruta.
+- Si se elige una ruta personalizada dentro del repositorio, excluirla de Git localmente o usar una ubicación ya ignorada; nunca versionar la base. No se modifica el `.gitignore` compartido.
+
+Ejemplo de configuración local en `.env` (no subirlo a Git):
+
+```dotenv
+CHROMA_PATH=./rag/chroma_db
+```
+
+La configuración se puede comprobar sin abrir ni crear una base, desde la raíz:
+
+```bash
+CHROMA_PATH=./rag/chroma_db/alternate python -c "from rag.src.ingestion.pipeline import resolve_official_path; print(resolve_official_path())"
+```
 
 ## Ejecución
 
@@ -58,4 +80,30 @@ La CLI exige `--input` (repetible) y `--approvals`. El archivo de aprobaciones e
 
 ## Estado de validación de esta entrega
 
-24 pruebas aisladas aprobadas en el entorno de preparación; dos omitidas por ausencia de ChromaDB/transformers (pruebas reales de persistencia y tokenizer). La ejecución con E5, prueba de persistencia real, Ruff y regresión del backend están pendientes en el entorno del proyecto. No equivale a cierre de #41.
+Validación local realizada el 18/11/2026:
+
+- 61 tests específicos de la issue #41 superados.
+- 15 tests de configuración CHROMA_PATH superados
+  (incluidos en los 61 anteriores).
+- Cobertura de la issue #41: 92 %.
+- Cobertura del pipeline: 99 %.
+- 278 tests de regresión backend superados.
+- Ruff: sin errores.
+- Sin tests omitidos en las pruebas específicas.
+
+La rama está sincronizada con dev e incorpora la
+issue #40.
+
+La configuración de ChromaDB permite utilizar rutas
+relativas y absolutas mediante CHROMA_PATH y mantiene
+la separación entre corpus oficial y sintético.
+
+Los checks de CI actuales no ejecutan la suite RAG.
+Las validaciones indicadas se han realizado localmente.
+
+La ingestión definitiva del corpus oficial queda
+pendiente de la validación de fidelidad y permisos
+de reutilización.
+
+Consultar rag_ingestion_validation.md para el detalle
+de las pruebas.

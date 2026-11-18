@@ -2,8 +2,11 @@
 
 import argparse
 import json
+import os
 from datetime import UTC, date, datetime, time
 from pathlib import Path
+
+from dotenv import dotenv_values
 
 from rag.src.vector_store.chroma_store import ChromaStore
 from rag.src.vector_store.embeddings import E5Embedder
@@ -15,6 +18,24 @@ ROOT = Path(__file__).resolve().parents[3]
 DEMO_PATH = ROOT / "rag/data/processed/issue41_demo_chroma"
 OFFICIAL_PATH = ROOT / "rag/chroma_db"
 SAMPLE = ROOT / "rag/data/samples/issue41_synthetic.json"
+
+
+def resolve_official_path() -> Path:
+    """Resolve CHROMA_PATH from the environment or root .env, never the demo."""
+    configured = os.environ.get("CHROMA_PATH")
+    if configured is None:
+        configured = dotenv_values(ROOT / ".env", interpolate=False).get("CHROMA_PATH")
+    if configured is None:
+        path = OFFICIAL_PATH
+    else:
+        if not configured.strip():
+            raise ValueError("CHROMA_PATH must not be empty")
+        path = ROOT / Path(configured).expanduser()
+    path = path.resolve()
+    demo = DEMO_PATH.resolve()
+    if path.is_relative_to(demo) or demo.is_relative_to(path):
+        raise ValueError("CHROMA_PATH must be separate from the synthetic database")
+    return path
 
 
 def read_json(path: Path):
@@ -105,7 +126,10 @@ def main():
             )
         paths = args.input
         approvals = read_json(args.approvals)
-        db_path = OFFICIAL_PATH
+        try:
+            db_path = resolve_official_path()
+        except ValueError as exc:
+            parser.error(str(exc))
     notices = load_notices(
         paths, synthetic=args.synthetic, approvals=approvals, today=date.today()
     )

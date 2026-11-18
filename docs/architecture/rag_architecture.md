@@ -58,7 +58,29 @@ Colección contractual `official_notices`; ruta `CHROMA_PATH=./rag/chroma_db` re
 | content_hash | `sha256:...` |
 | embedding_model | `multilingual-e5-base` |
 
-### Discrepancia que requiere aprobación
+### Decisión técnica consensuada — Issue #41
+
+El equipo acuerda modificar el criterio inicial de
+500–800 tokens debido al límite de entrada del modelo
+multilingual-e5-base.
+
+Configuración definitiva:
+
+- Tamaño objetivo: 450–480 tokens.
+- Tamaño máximo: 480 tokens.
+- Solapamiento: 80 tokens.
+- Dimensiones de embeddings: 768.
+- Máximo de entrada E5: 512 tokens, incluyendo prefijos
+  y tokens especiales.
+- Se permiten documentos cortos y fragmentos finales
+  inferiores a 450 tokens.
+- No se permite truncamiento silencioso.
+- Tokenización mediante el tokenizer real del modelo.
+
+La decisión está implementada y validada en la issue #41.
+
+La ingestión oficial utiliza CHROMA_PATH, manteniendo
+separadas las bases de datos oficial y sintética.
 
 Issue #39 y contrato: chunks de 500–800 tokens, solape 80. El [modelo E5](https://huggingface.co/intfloat/multilingual-e5-base) trunca a 512 tokens, incluyendo prefijo y tokens especiales. Propuesta: 450–480 tokens de contenido (objetivo 480), solape de 80, contando con el tokenizer real y verificando que la entrada completa no supera 512. Fragmentos finales pueden ser más cortos. No truncar silenciosamente. Alternativa si el equipo exige 500–800: mantener fragmentos padre de ese tamaño y crear subfragmentos de embedding dentro del límite; exige revisar esquema e IDs. La propuesta preferida queda pendiente de aprobación y actualización del contrato en #41; no se modifica el contrato en esta PR.
 
