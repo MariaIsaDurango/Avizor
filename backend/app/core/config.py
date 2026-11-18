@@ -40,5 +40,18 @@ class Settings(BaseSettings):
     # EN: Optional: only if the Expo project requires an access token.
     EXPO_ACCESS_TOKEN: str | None = None
 
+    # ES: "log" solo escribe el correo en el log (desarrollo); "smtp" lo envía.
+    # EN: "log" only writes the email to the log (development); "smtp" sends it.
+    MAIL_PROVIDER: Literal["log", "smtp"] = "log"
+    MAIL_SERVER: str = "smtp.gmail.com"
+    MAIL_PORT: int = 587
+    MAIL_USERNAME: str | None = None
+    # ES: Gmail: contraseña de aplicación, nunca la normal. Solo en el .env.
+    # EN: Gmail: app password, never the normal one. Only in the .env.
+    MAIL_PASSWORD: str | None = None
+    MAIL_FROM: str | None = None
+    EMAIL_CODE_EXPIRE_MINUTES: int = 15
+    EMAIL_CODE_MAX_ATTEMPTS: int = 5
+
 
 settings = Settings()

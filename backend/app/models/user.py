@@ -9,6 +9,7 @@ from sqlalchemy import (
     Boolean,
     CheckConstraint,
     ForeignKey,
+    Integer,
     String,
     Text,
     UniqueConstraint,
@@ -34,6 +35,14 @@ class User(Base):
     created_at: Mapped[datetime] = created_at()
     # ES: Borrado lógico, purga a los 30 días. EN: Soft delete, purged after 30 days.
     deleted_at: Mapped[datetime | None] = mapped_column(TZ)
+    # ES: Verificación del email del Tutor (migración 0004). El código se guarda
+    #     con HMAC, nunca en claro.
+    # EN: Guardian email verification (migration 0004). The code is stored as
+    #     an HMAC, never in plain text.
+    is_verified: Mapped[bool] = mapped_column(Boolean, server_default="false")
+    verification_code_hash: Mapped[str | None] = mapped_column(Text)
+    verification_code_expires_at: Mapped[datetime | None] = mapped_column(TZ)
+    verification_attempts: Mapped[int] = mapped_column(Integer, server_default="0")
 
 
 class Device(Base):

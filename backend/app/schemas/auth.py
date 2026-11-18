@@ -38,6 +38,29 @@ class LoginRequest(ContractModel):
         return value.strip().lower()
 
 
+class VerifyEmailRequest(ContractModel):
+    email: str = Field(max_length=254)
+    code: str = Field(pattern=r"^\d{6}$")
+
+    @field_validator("email")
+    @classmethod
+    def normalize_email(cls, value: str) -> str:
+        return value.strip().lower()
+
+
+class ResendVerificationRequest(ContractModel):
+    email: str = Field(max_length=254)
+
+    @field_validator("email")
+    @classmethod
+    def normalize_email(cls, value: str) -> str:
+        return value.strip().lower()
+
+
+class MessageResponse(ContractModel):
+    message: str
+
+
 class TokenResponse(ContractModel):
     access_token: str
     token_type: Literal["bearer"] = "bearer"

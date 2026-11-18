@@ -76,6 +76,7 @@ def guardian(db_session):
         display_name="Lucía",
         email="lucia.tutora@example.com",
         password_hash=hash_password("contraseña-larga-1"),
+        is_verified=True,
     )
     db_session.add(user)
     db_session.flush()
