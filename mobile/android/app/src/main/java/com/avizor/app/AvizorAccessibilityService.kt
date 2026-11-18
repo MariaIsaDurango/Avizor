@@ -28,6 +28,9 @@ class AvizorAccessibilityService : AccessibilityService() {
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
+        if (event.isPassword) return
+        if (event.packageName?.toString() == packageName) return
+
         val text = extractText(event)
         if (text.isNullOrBlank()) return
 
@@ -45,7 +48,12 @@ class AvizorAccessibilityService : AccessibilityService() {
     private fun extractText(event: AccessibilityEvent): String? {
         val direct = event.text
         if (direct.isNotEmpty()) return direct.joinToString(" ") { it.toString() }
-        return event.source?.let { extractNodeText(it) }
+        val source = event.source ?: return null
+        return try {
+            extractNodeText(source)
+        } finally {
+            source.recycle()
+        }
     }
 
     private fun extractNodeText(node: AccessibilityNodeInfo): String {
@@ -53,12 +61,15 @@ class AvizorAccessibilityService : AccessibilityService() {
         if (!node.text.isNullOrBlank()) sb.append(node.text)
         for (i in 0 until node.childCount) {
             val child = node.getChild(i) ?: continue
-            val childText = extractNodeText(child)
-            if (childText.isNotBlank()) {
-                if (sb.isNotEmpty()) sb.append(" ")
-                sb.append(childText)
+            try {
+                val childText = extractNodeText(child)
+                if (childText.isNotBlank()) {
+                    if (sb.isNotEmpty()) sb.append(" ")
+                    sb.append(childText)
+                }
+            } finally {
+                child.recycle()
             }
-            child.recycle()
         }
         return sb.toString()
     }

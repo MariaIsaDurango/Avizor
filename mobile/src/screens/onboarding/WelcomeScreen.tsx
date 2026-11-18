@@ -1,8 +1,7 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, Image, StyleSheet } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/types';
 import Screen from '../../components/Screen';
-import BigText from '../../components/BigText';
 import Button from '../../components/Button';
 import { colors } from '../../constants/colors';
 import { fontSize, fontWeight } from '../../constants/typography';
@@ -13,7 +12,13 @@ export default function WelcomeScreen({ navigation }: Props) {
   return (
     <Screen style={styles.screen}>
       <View style={styles.hero}>
-        <BigText style={styles.logo}>Avizor</BigText>
+        <Image
+          source={require('../../../assets/logo-web.png')}
+          style={styles.heroImage}
+          resizeMode="contain"
+          accessibilityLabel="Avizor"
+        />
+        <Text style={styles.logoText}>Avizor</Text>
         <Text style={styles.tagline}>Protección digital para quien quieres</Text>
       </View>
       <Button
@@ -35,9 +40,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 16,
   },
-  logo: {
-    fontSize: 56,
+  heroImage: {
+    width: 220,
+    height: 220,
+  },
+  logoText: {
+    fontSize: 42,
+    fontWeight: fontWeight.bold,
     color: colors.primary,
+    letterSpacing: 1,
   },
   tagline: {
     fontSize: fontSize.body,
