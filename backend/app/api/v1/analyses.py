@@ -113,7 +113,13 @@ async def create_analysis(
             [{**e, "loc": ("body", *e["loc"])} for e in exc.errors()]
         ) from None
 
-    result = await run_in_threadpool(analysis_service.analyze_fast, db, token, body)
+    result = await run_in_threadpool(
+        analysis_service.analyze_fast,
+        db,
+        token,
+        body,
+        getattr(request.app.state, "reputation", None),
+    )
     if result.alert_ids:
         # ES: El push sale después de responder: no suma latencia (< 800 ms).
         # EN: The push goes out after replying: adds no latency (< 800 ms).

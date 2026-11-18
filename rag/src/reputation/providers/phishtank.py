@@ -38,6 +38,8 @@ class PhishTank:
                 entries.add(url(entry["url"]))
             except (ValueError, TypeError, KeyError):
                 continue
+        if not entries:
+            raise ValueError("No usable verified entries")
         return cls(entries, path.stat().st_mtime)
 
     async def check(self, kind, value):

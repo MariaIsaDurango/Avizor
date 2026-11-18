@@ -38,6 +38,8 @@ class FastDecision:
     confidence: float
     reasons: list[str] = field(default_factory=list)
     url_findings: list[UrlFinding] = field(default_factory=list)
+    reputation_findings: list[UrlFinding] = field(default_factory=list)
+    reputation_only: bool = False
 
 
 def _level(score: float) -> RiskLevel:
@@ -183,3 +185,47 @@ def decide(
     if origin == Origin.MANUAL and decision.block_template is None:
         return replace(decision, block_template=BlockTemplate.UNSURE_CALL_FAMILY)
     return decision
+
+
+def apply_url_reputation(
+    baseline: FastDecision, channel: Channel, findings: list[UrlFinding]
+) -> FastDecision:
+    """Positive evidence can raise risk, never downgrade the baseline.
+
+    Scores are policy weights, not calibrated probabilities. Keep external
+    evidence separate from local reports: an exact URL is not a bad domain.
+    """
+    findings = [f for f in findings if f.score >= AMBER_THRESHOLD]
+    if not findings:
+        return baseline
+    score = max(f.score for f in findings)
+    level = _level(score)
+    order = {RiskLevel.GREEN: 0, RiskLevel.AMBER: 1, RiskLevel.RED: 2}
+    reasons = list(dict.fromkeys(r for f in findings for r in f.reasons))
+    if order[level] <= order[baseline.risk_level]:
+        return replace(
+            baseline,
+            reasons=baseline.reasons + reasons,
+            reputation_findings=findings,
+        )
+    threat = baseline.threat_type
+    if threat in (ThreatType.NONE, ThreatType.SPAM):
+        threat = ThreatType.SMISHING if channel == Channel.SMS else ThreatType.PHISHING
+    template = (
+        baseline.block_template
+        if baseline.block_template == BlockTemplate.ASKS_BANK_DETAILS
+        else BlockTemplate.DANGEROUS_LINK
+    )
+    return replace(
+        baseline,
+        risk_level=level,
+        threat_type=threat,
+        action=(
+            Action.BLOCK_AND_ALERT if level == RiskLevel.RED else Action.SILENT_BLOCK
+        ),
+        block_template=template,
+        confidence=round(score, 3),
+        reasons=reasons + baseline.reasons,
+        reputation_findings=findings,
+        reputation_only=baseline.risk_level == RiskLevel.GREEN,
+    )

@@ -243,6 +243,17 @@ def test_local_feed(tmp_path):
     assert asyncio.run(check_url(service, "https://ignored.example/")).score is None
 
 
+@pytest.mark.parametrize(
+    "entries",
+    [[], [{"url": "file:///bad", "verified": "yes", "online": "yes"}]],
+)
+def test_empty_or_unusable_feed_is_rejected(tmp_path, entries):
+    path = tmp_path / "feed.json"
+    path.write_text(json.dumps(entries))
+    with pytest.raises(ValueError, match="No usable verified entries"):
+        PhishTank.from_file(path)
+
+
 def test_stale_feed():
     provider = PhishTank([URL], loaded_at=0, clock=lambda: 90000)
     assert asyncio.run(provider.check("url", URL)).status == "unavailable"

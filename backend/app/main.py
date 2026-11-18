@@ -10,20 +10,32 @@ from app.api.v1.router import api_router
 from app.core.config import settings
 from app.core.errors import register_error_handlers
 from app.jobs.purge import purge_loop
+from app.services.detection.reputation import (
+    create_runtime,
+    install_private_request_filters,
+    new_client,
+)
 from app.web.router import web_router
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """ES: Arranca la limpieza periódica (RGPD) al iniciar la API.
-    EN: Starts the periodic purge (GDPR) when the API starts.
-    """
+    """Start periodic retention purge and the reputation runtime."""
     task = None
     if settings.RETENTION_PURGE_MINUTES > 0:
         task = asyncio.create_task(purge_loop(settings.RETENTION_PURGE_MINUTES))
-    yield
-    if task:
-        task.cancel()
+    remove_filters = install_private_request_filters()
+    try:
+        async with new_client() as client:
+            app.state.reputation = await asyncio.to_thread(
+                create_runtime, client, settings
+            )
+            yield
+    finally:
+        app.state.reputation = None
+        remove_filters()
+        if task:
+            task.cancel()
 
 
 app = FastAPI(
