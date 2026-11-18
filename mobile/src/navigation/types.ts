@@ -14,4 +14,5 @@ export type RootStackParamList = {
   SeniorPairing: undefined;
   SeniorHome: undefined;
   SeniorBlock: { template: BlockTemplate };
+  AccessibilityPoc: undefined;
 };

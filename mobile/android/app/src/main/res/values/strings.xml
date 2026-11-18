@@ -1,0 +1,4 @@
+<resources>
+  <string name="app_name">Avizor</string>
+  <string name="accessibility_service_description">Avizor analiza el contenido de la pantalla para detectar mensajes fraudulentos y proteger al Sénior.</string>
+</resources>
