@@ -16,7 +16,10 @@ def web_client():
         yield client
 
 
-@pytest.mark.parametrize("path", ["/", "/analytics", "/indicators", "/support"])
+@pytest.mark.parametrize(
+    "path",
+    ["/", "/analytics", "/indicators", "/support", "/panel", "/download"],
+)
 def test_web_page_returns_200(web_client, path):
     response = web_client.get(path)
     assert response.status_code == 200

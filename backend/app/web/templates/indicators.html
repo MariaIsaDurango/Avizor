@@ -42,7 +42,8 @@
 {% endblock %}
 
 {% block content %}
-<h1 style="font-size: var(--font-size-xl); color: var(--color-primary); margin-bottom: 0.5rem;">
+<h1 class="page-heading" style="margin-bottom: 0.5rem;">
+  <i data-lucide="trending-up" aria-hidden="true"></i>
   Panel de indicadores
 </h1>
 <p class="text-muted text-sm" style="margin-bottom: 1.5rem;">
@@ -50,10 +51,10 @@
 </p>
 
 <div class="card">
-  <p class="fetch-error" id="fetch-error" style="display:none;">
+  <p class="fetch-error" id="fetch-error" aria-live="polite" aria-atomic="true" style="display:none;">
     Error al cargar los indicadores. Inténtalo de nuevo.
   </p>
-  <p class="loading" id="loading">Cargando indicadores…</p>
+  <p class="loading" id="loading" aria-live="polite">Cargando indicadores…</p>
 
   <div class="table-wrap" id="table-wrap" style="display:none;">
     <table class="indicators-table" aria-label="Ranking de indicadores maliciosos">
@@ -109,6 +110,7 @@ async function loadIndicators() {
   const emptyState = document.getElementById('empty-state');
   const fetchError = document.getElementById('fetch-error');
 
+  let data;
   try {
     const res = await fetch('/api/v1/stats/indicators');
     if (!res.ok) {
@@ -116,32 +118,32 @@ async function loadIndicators() {
       fetchError.style.display = 'block';
       return;
     }
-    const data = await res.json();
-
-    loading.style.display = 'none';
-    tableWrap.style.display = 'block';
-
-    if (!data.items.length) {
-      emptyState.style.display = 'block';
-      return;
-    }
-
-    tableBody.innerHTML = data.items.map(item => {
-      const badgeClass = TYPE_BADGE[item.type] ?? '';
-      const typeLabel  = TYPE_LABELS[item.type] ?? escapeHtml(item.type);
-      return `
-        <tr>
-          <td><span class="badge ${badgeClass}">${typeLabel}</span></td>
-          <td class="value-cell">${escapeHtml(item.public_value)}</td>
-          <td class="report-count">${item.report_count.toLocaleString('es-ES')}</td>
-          <td class="text-muted">${formatDate(item.last_seen_at)}</td>
-        </tr>`;
-    }).join('');
-
+    data = await res.json();
   } catch {
     loading.style.display = 'none';
     fetchError.style.display = 'block';
+    return;
   }
+
+  loading.style.display = 'none';
+  tableWrap.style.display = 'block';
+
+  if (!data.items.length) {
+    emptyState.style.display = 'block';
+    return;
+  }
+
+  tableBody.innerHTML = data.items.map(item => {
+    const badgeClass = TYPE_BADGE[item.type] ?? '';
+    const typeLabel  = TYPE_LABELS[item.type] ?? escapeHtml(item.type);
+    return `
+      <tr>
+        <td><span class="badge ${badgeClass}">${typeLabel}</span></td>
+        <td class="value-cell">${escapeHtml(item.public_value)}</td>
+        <td class="report-count">${item.report_count.toLocaleString('es-ES')}</td>
+        <td class="text-muted">${formatDate(item.last_seen_at)}</td>
+      </tr>`;
+  }).join('');
 }
 
 loadIndicators();
