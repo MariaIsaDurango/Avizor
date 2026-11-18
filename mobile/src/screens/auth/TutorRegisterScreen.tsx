@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator, Pressable } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/types';
 import Screen from '../../components/Screen';
@@ -16,6 +17,8 @@ export default function TutorRegisterScreen({ navigation }: Props) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -77,25 +80,43 @@ export default function TutorRegisterScreen({ navigation }: Props) {
           autoComplete="email"
         />
 
-        <TextInput
-          style={styles.input}
-          placeholder="Contraseña"
-          placeholderTextColor={colors.primary}
-          value={password}
-          onChangeText={(v) => { setPassword(v); setError(null); }}
-          secureTextEntry
-          autoComplete="new-password"
-        />
+        <View style={styles.inputWrapper}>
+          <TextInput
+            style={[styles.input, styles.inputFlex]}
+            placeholder="Contraseña"
+            placeholderTextColor={colors.primary}
+            value={password}
+            onChangeText={(v) => { setPassword(v); setError(null); }}
+            secureTextEntry={!showPassword}
+            autoComplete="new-password"
+          />
+          <Pressable
+            onPress={() => setShowPassword((v) => !v)}
+            style={styles.eyeBtn}
+            accessibilityLabel={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+          >
+            <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={22} color={colors.primary} />
+          </Pressable>
+        </View>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Confirmar contraseña"
-          placeholderTextColor={colors.primary}
-          value={confirmPassword}
-          onChangeText={(v) => { setConfirmPassword(v); setError(null); }}
-          secureTextEntry
-          autoComplete="new-password"
-        />
+        <View style={styles.inputWrapper}>
+          <TextInput
+            style={[styles.input, styles.inputFlex]}
+            placeholder="Confirmar contraseña"
+            placeholderTextColor={colors.primary}
+            value={confirmPassword}
+            onChangeText={(v) => { setConfirmPassword(v); setError(null); }}
+            secureTextEntry={!showConfirm}
+            autoComplete="new-password"
+          />
+          <Pressable
+            onPress={() => setShowConfirm((v) => !v)}
+            style={styles.eyeBtn}
+            accessibilityLabel={showConfirm ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+          >
+            <Ionicons name={showConfirm ? 'eye-off-outline' : 'eye-outline'} size={22} color={colors.primary} />
+          </Pressable>
+        </View>
 
         {error && <Text style={styles.error}>{error}</Text>}
 
@@ -154,4 +175,7 @@ const styles = StyleSheet.create({
   },
   back: { marginBottom: 24 },
   backText: { fontSize: fontSize.body, color: colors.primary },
+  inputWrapper: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
+  inputFlex: { flex: 1, marginBottom: 0 },
+  eyeBtn: { paddingHorizontal: 12, paddingVertical: 14 },
 });

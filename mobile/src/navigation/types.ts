@@ -15,4 +15,6 @@ export type RootStackParamList = {
   SeniorHome: undefined;
   SeniorBlock: { template: BlockTemplate };
   AccessibilityPoc: undefined;
+  CallScreeningPoc: undefined;
+  NotificationPoc: undefined;
 };

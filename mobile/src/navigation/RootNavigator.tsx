@@ -13,6 +13,8 @@ import SeniorPairingScreen from '../screens/senior/PairingScreen';
 import SeniorHomeScreen from '../screens/senior/HomeScreen';
 import SeniorBlockScreen from '../screens/senior/BlockScreen';
 import AccessibilityPocScreen from '../screens/senior/AccessibilityPocScreen';
+import CallScreeningPocScreen from '../screens/senior/CallScreeningPocScreen';
+import NotificationPocScreen from '../screens/senior/NotificationPocScreen';
 
 type SavedMode = 'senior' | 'tutor' | null;
 
@@ -51,6 +53,16 @@ export default function RootNavigator({ initialMode, hasDeviceId }: RootNavigato
       <Stack.Screen
         name="AccessibilityPoc"
         component={AccessibilityPocScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="CallScreeningPoc"
+        component={CallScreeningPocScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="NotificationPoc"
+        component={NotificationPocScreen}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>
