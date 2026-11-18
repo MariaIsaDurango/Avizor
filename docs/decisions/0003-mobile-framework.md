@@ -8,7 +8,7 @@
 
 ## Contexto
 
-Avizor necesita una app móvil cross-platform (iOS y Android) con dos modos diferenciados: Tutor y Sénior. El modo Sénior requiere acceso a servicios nativos de accesibilidad de Android (`AccessibilityService` para interceptar llamadas y notificaciones). El equipo tiene experiencia previa en TypeScript/JavaScript y el panel web ya está desarrollado en ese stack.
+Avizor necesita una app móvil cross-platform (iOS y Android) con dos modos diferenciados: Tutor y Sénior. El modo Sénior con protección automática requiere acceso a servicios nativos de Android: `CallScreeningService` para interceptar llamadas entrantes y `NotificationListenerService` para leer notificaciones. Este modo es exclusivo de Android; iOS no expone APIs equivalentes para apps de terceros. El equipo tiene experiencia previa en TypeScript/JavaScript y el panel web ya está desarrollado en ese stack.
 
 Las opciones evaluadas fueron React Native con Expo y Flutter.
 
@@ -19,15 +19,13 @@ Las opciones evaluadas fueron React Native con Expo y Flutter.
 ### React Native con Expo (development build)
 - Mismo lenguaje que el resto del proyecto (TypeScript)
 - Expo Go permite probar en dispositivo sin compilar durante el desarrollo
-- El desarrollo build permite añadir módulos nativos cuando Expo SDK no es suficiente
-- Compartición de tipos y contratos con el backend sin fricción
+- El development build permite añadir módulos nativos cuando Expo SDK no es suficiente
 - Ecosistema maduro con librerías para todo lo que necesita el proyecto (`expo-notifications`, `expo-secure-store`, `expo-haptics`, `@react-navigation`)
 
 ### Flutter
 - Rendimiento de renderizado superior (motor Skia/Impeller propio)
 - Consistencia visual perfecta entre plataformas
 - Requiere aprender Dart — lenguaje que nadie del equipo conocía
-- Mayor fricción para compartir tipos con el backend TypeScript
 - Ecosistema de librerías de accesibilidad nativa menos maduro en el momento de la decisión
 
 ---
@@ -36,7 +34,7 @@ Las opciones evaluadas fueron React Native con Expo y Flutter.
 
 **React Native con Expo (development build).**
 
-El factor determinante fue la velocidad de desarrollo: el equipo domina TypeScript, el panel web y la app móvil comparten los mismos contratos de API, y Expo proporciona prácticamente todas las librerías necesarias sin configuración nativa adicional. El módulo nativo de `AccessibilityService` (PoC #31 y #32) se implementó como un bridge Java/Kotlin encapsulado, sin necesidad de abandonar el stack Expo.
+El factor determinante fue la velocidad de desarrollo: el equipo domina TypeScript y Expo proporciona prácticamente todas las librerías necesarias sin configuración nativa adicional. Los módulos nativos de `CallScreeningService` y `NotificationListenerService` (PoC #31 y #32) se implementaron como bridges en Kotlin encapsulados en un módulo nativo propio.
 
 ---
 
@@ -44,16 +42,16 @@ El factor determinante fue la velocidad de desarrollo: el equipo domina TypeScri
 
 **Positivas:**
 - Curva de aprendizaje mínima — el equipo arrancó productivo desde el primer sprint
-- Expo Go acelera el ciclo de feedback durante el desarrollo (sin compilar)
-- Tipos compartidos con el backend eliminan errores de integración
+- Expo Go acelera el ciclo de feedback durante el desarrollo (sin compilar) para las partes que no dependen de módulos nativos
 
 **Negativas / limitaciones:**
+- La carpeta `android/` está commiteada en el repositorio (a partir del issue #106), lo que significa que `expo prebuild` ya no puede regenerarla y los servicios nativos no funcionan en Expo Go. Cualquier cambio en la configuración nativa requiere editar directamente los ficheros de Gradle y el `AndroidManifest.xml`.
+- El modo Sénior con protección automática (interceptación de llamadas y notificaciones) es exclusivo de Android. En iOS, el sistema operativo no permite a apps de terceros acceder a llamadas entrantes ni leer notificaciones de otras apps.
 - El JavaScript bridge introduce latencia en operaciones de alto rendimiento (no relevante para este caso de uso)
-- El production build requiere EAS Build o entorno nativo configurado — no es suficiente con Expo Go
-- Los módulos nativos (`AccessibilityService`, `CallScreeningService`) necesitan mantenimiento separado cuando Android actualiza sus APIs de accesibilidad
+- Los módulos nativos (`CallScreeningService`, `NotificationListenerService`) necesitan mantenimiento separado cuando Android actualiza sus APIs de accesibilidad
 
 ---
 
 ## Estado de implementación
 
-La decisión está en producción. La app móvil está construida íntegramente en React Native con Expo SDK 58. Los módulos nativos de accesibilidad están implementados como PoC en las issues #31 y #32.
+La decisión está implementada en el MVP. La app móvil está construida íntegramente en React Native con Expo SDK 52. Los módulos nativos de accesibilidad están implementados como PoC en las issues #31 y #32.
