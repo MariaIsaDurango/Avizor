@@ -3,6 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import * as SecureStore from 'expo-secure-store';
 import * as Notifications from 'expo-notifications';
+import * as Haptics from 'expo-haptics';
 import RootNavigator from './src/navigation/RootNavigator';
 import { navigationRef } from './src/navigation/navigationRef';
 import { STORAGE_KEYS } from './src/constants/storage';
@@ -13,13 +14,22 @@ import { AccessibilityProvider } from './src/contexts/AccessibilityContext';
 type SavedMode = 'senior' | 'tutor' | null;
 
 Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-  }),
+  handleNotification: async () => {
+    try {
+      const raw = await SecureStore.getItemAsync(STORAGE_KEYS.ACCESSIBILITY_PROFILE);
+      const profile = raw ? JSON.parse(raw) : null;
+      if (profile?.hearing_impairment) {
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      }
+    } catch {}
+    return {
+      shouldShowAlert: true,
+      shouldShowBanner: true,
+      shouldShowList: true,
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+    };
+  },
 });
 
 async function handleNotificationResponse(

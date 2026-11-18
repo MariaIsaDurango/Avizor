@@ -1,6 +1,8 @@
-import { View, Text, Pressable, StyleSheet, Linking } from 'react-native';
+import { useEffect, useState } from 'react';
+import { View, Text, Pressable, StyleSheet, Linking, Animated } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MaterialIcons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import Screen from '../../components/Screen';
 import { RootStackParamList } from '../../navigation/types';
 import { BlockTemplate } from '../../services/analyses';
@@ -65,18 +67,36 @@ const CONFIGS: Record<BlockTemplate, Config> = {
 
 export default function SeniorBlockScreen({ navigation, route }: Props) {
   const config = CONFIGS[route.params.template];
-  const { largeText, colorBlind } = useAccessibility();
+  const { largeText, colorBlind, hardOfHearing } = useAccessibility();
+  const [pulseAnim] = useState(() => new Animated.Value(1));
+
+  useEffect(() => {
+    if (!hardOfHearing) return;
+
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch(() => {});
+
+    const pulse = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, { toValue: 1.25, duration: 350, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1, duration: 350, useNativeDriver: true }),
+      ]),
+    );
+    pulse.start();
+    return () => pulse.stop();
+  }, [hardOfHearing, pulseAnim]);
 
   return (
     <Screen style={{ backgroundColor: config.background }}>
       <View style={styles.content}>
-        <MaterialIcons
-          name={config.icon}
-          size={96}
-          color={colors.white}
-          importantForAccessibility="no-hide-descendants"
-          accessibilityElementsHidden
-        />
+        <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
+          <MaterialIcons
+            name={config.icon}
+            size={96}
+            color={colors.white}
+            importantForAccessibility="no-hide-descendants"
+            accessibilityElementsHidden
+          />
+        </Animated.View>
         {colorBlind && (
           <Text style={[styles.riskLabel, largeText && styles.riskLabelLarge]}>
             {config.riskLabel}
