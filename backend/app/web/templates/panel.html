@@ -186,7 +186,7 @@
       <p class="card__title">Vincular dispositivo Sénior</p>
       <p class="text-muted text-sm">Genera un código y compártelo con el Sénior para vincularlo a tu cuenta.</p>
 
-      <!-- Paso 1: nombre -->
+      <!-- Paso 1: nombre + perfil de accesibilidad -->
       <div id="pairing-step-name">
         <div class="field-group">
           <label class="field-label" for="pairing-name-input">Nombre del Sénior</label>
@@ -195,6 +195,28 @@
             autocomplete="off" autocapitalize="words">
           <span class="field-error" id="pairing-name-error"></span>
         </div>
+
+        <div class="field-group">
+          <p class="field-label">Perfil de accesibilidad <span style="font-weight:400;color:var(--color-text-muted);">(opcional)</span></p>
+          <p style="font-size:var(--font-size-sm);color:var(--color-text-muted);margin-bottom:0.5rem;">
+            La app del Sénior adaptará su interfaz según estas necesidades.
+          </p>
+          <div style="display:flex;flex-direction:column;gap:0.5rem;">
+            <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:var(--font-size-sm);">
+              <input type="checkbox" id="acc-color-blindness" name="acc" value="color_blindness"> Daltonismo
+            </label>
+            <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:var(--font-size-sm);">
+              <input type="checkbox" id="acc-low-vision" name="acc" value="low_vision"> Baja visión
+            </label>
+            <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:var(--font-size-sm);">
+              <input type="checkbox" id="acc-blindness" name="acc" value="blindness"> Ceguera
+            </label>
+            <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:var(--font-size-sm);">
+              <input type="checkbox" id="acc-hearing" name="acc" value="hearing_impairment"> Dificultad auditiva
+            </label>
+          </div>
+        </div>
+
         <button class="btn btn--primary" id="btn-generate">
           <i data-lucide="link" aria-hidden="true"></i>
           Generar código
@@ -256,6 +278,20 @@
 {% block extra_scripts %}
 <script src="{{ url_for('web_static', path='js/qrcode.min.js') }}"></script>
 <script>
+// Pre-rellenar checkboxes de accesibilidad si vienen del registro
+(function () {
+  const raw = sessionStorage.getItem('accessibility_profile_draft');
+  if (!raw) return;
+  try {
+    const p = JSON.parse(raw);
+    if (p.color_blindness)    document.getElementById('acc-color-blindness').checked = true;
+    if (p.low_vision)         document.getElementById('acc-low-vision').checked = true;
+    if (p.blindness)          document.getElementById('acc-blindness').checked = true;
+    if (p.hearing_impairment) document.getElementById('acc-hearing').checked = true;
+    sessionStorage.removeItem('accessibility_profile_draft');
+  } catch {}
+})();
+
 const CHANNEL_LABELS  = { sms:'SMS', call:'Llamada', notification:'Notificación', screen:'Pantalla', manual:'Manual' };
 const THREAT_LABELS   = { phishing:'Phishing', smishing:'Smishing', vishing:'Vishing', spam:'Spam', identity_theft:'Robo de identidad', bank_fraud:'Fraude bancario', other:'Otro', none:'-' };
 const STATUS_LABELS   = { new:'Nueva', seen:'Vista', confirmed_fraud:'Fraude confirmado', false_positive:'Falso positivo' };
@@ -327,12 +363,22 @@ async function generateCode() {
   btn.disabled = true;
   btn.textContent = 'Generando…';
 
+  const accProfile = {
+    color_blindness:    document.getElementById('acc-color-blindness').checked,
+    low_vision:         document.getElementById('acc-low-vision').checked,
+    blindness:          document.getElementById('acc-blindness').checked,
+    hearing_impairment: document.getElementById('acc-hearing').checked,
+  };
+  const hasProfile = Object.values(accProfile).some(Boolean);
+
   const token = localStorage.getItem('avizor_token');
   try {
+    const body = { senior_display_name: name };
+    if (hasProfile) body.senior_accessibility_profile = accProfile;
     const res = await fetch('/api/v1/pairings', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ senior_display_name: name }),
+      body: JSON.stringify(body),
     });
 
     if (!res.ok) {

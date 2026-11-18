@@ -1,37 +1,35 @@
 import { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator, Pressable } from 'react-native';
+import { View, Text, Image, TextInput, Pressable, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../../navigation/types';
 import Screen from '../../components/Screen';
-import Button from '../../components/Button';
-import { colors } from '../../constants/colors';
-import { fontSize, fontWeight } from '../../constants/typography';
+import { authStyles as a } from '../../styles/auth';
 import { register } from '../../services/auth';
+import { RootStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TutorRegister'>;
 
 export default function TutorRegisterScreen({ navigation }: Props) {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [name, setName]                     = useState('');
+  const [email, setEmail]                   = useState('');
+  const [password, setPassword]             = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword]     = useState(false);
+  const [showConfirm, setShowConfirm]       = useState(false);
+  const [loading, setLoading]               = useState(false);
+  const [error, setError]                   = useState<string | null>(null);
 
   async function handleRegister() {
     if (!name || !email || !password || !confirmPassword) {
       setError('Completa todos los campos.');
       return;
     }
-    if (password !== confirmPassword) {
-      setError('Las contraseñas no coinciden.');
-      return;
-    }
     if (password.length < 10) {
       setError('La contraseña debe tener al menos 10 caracteres.');
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError('Las contraseñas no coinciden.');
       return;
     }
     setLoading(true);
@@ -40,8 +38,7 @@ export default function TutorRegisterScreen({ navigation }: Props) {
       await register({ display_name: name, email, password });
       navigation.navigate('VerifyEmail', { email });
     } catch (e) {
-      const message = e instanceof Error ? e.message : 'Error al registrarse.';
-      setError(message);
+      setError(e instanceof Error ? e.message : 'Error al registrarse.');
     } finally {
       setLoading(false);
     }
@@ -50,128 +47,109 @@ export default function TutorRegisterScreen({ navigation }: Props) {
   return (
     <Screen scrollable>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <Pressable onPress={() => navigation.goBack()} style={styles.back}>
-          <Text style={styles.backText}>‹ Volver</Text>
+
+        <Pressable onPress={() => navigation.goBack()} style={a.back} accessibilityRole="button" accessibilityLabel="Volver">
+          <Ionicons name="arrow-back-outline" size={18} color="#6b7280" />
+          <Text style={a.backText}>Volver</Text>
         </Pressable>
 
-        <Text style={styles.title}>Crear cuenta</Text>
+        <View style={a.brand}>
+          <Image source={require('../../../assets/logo-web.png')} style={a.logo} resizeMode="contain" accessibilityLabel="" />
+          <Text style={a.brandName}>Avizor</Text>
+        </View>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Nombre"
-          placeholderTextColor={colors.primary}
-          value={name}
-          onChangeText={(v) => { setName(v); setError(null); }}
-          autoComplete="name"
-        />
+        <Text style={a.heading}>Crear cuenta de Tutor</Text>
+        <Text style={a.subtitle}>Protege a quienes más quieres desde la app.</Text>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          placeholderTextColor={colors.primary}
-          value={email}
-          onChangeText={(v) => { setEmail(v); setError(null); }}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          autoComplete="email"
-        />
+        {error && (
+          <View style={a.alertError}>
+            <Text style={a.alertErrorText}>{error}</Text>
+          </View>
+        )}
 
-        <View style={styles.inputWrapper}>
+        <View style={a.formGroup}>
+          <Text style={a.label}>Nombre</Text>
           <TextInput
-            style={[styles.input, styles.inputFlex]}
-            placeholder="Contraseña"
-            placeholderTextColor={colors.primary}
-            value={password}
-            onChangeText={(v) => { setPassword(v); setError(null); }}
-            secureTextEntry={!showPassword}
-            autoComplete="new-password"
+            style={a.input}
+            placeholder="Tu nombre"
+            placeholderTextColor="#aaa"
+            value={name}
+            onChangeText={(v) => { setName(v); setError(null); }}
+            autoComplete="name"
+            autoCapitalize="words"
           />
-          <Pressable
-            onPress={() => setShowPassword((v) => !v)}
-            style={styles.eyeBtn}
-            accessibilityLabel={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-          >
-            <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={22} color={colors.primary} />
-          </Pressable>
         </View>
 
-        <View style={styles.inputWrapper}>
+        <View style={a.formGroup}>
+          <Text style={a.label}>Email</Text>
           <TextInput
-            style={[styles.input, styles.inputFlex]}
-            placeholder="Confirmar contraseña"
-            placeholderTextColor={colors.primary}
-            value={confirmPassword}
-            onChangeText={(v) => { setConfirmPassword(v); setError(null); }}
-            secureTextEntry={!showConfirm}
-            autoComplete="new-password"
+            style={a.input}
+            placeholder="correo@ejemplo.com"
+            placeholderTextColor="#aaa"
+            value={email}
+            onChangeText={(v) => { setEmail(v); setError(null); }}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoComplete="email"
           />
-          <Pressable
-            onPress={() => setShowConfirm((v) => !v)}
-            style={styles.eyeBtn}
-            accessibilityLabel={showConfirm ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-          >
-            <Ionicons name={showConfirm ? 'eye-off-outline' : 'eye-outline'} size={22} color={colors.primary} />
-          </Pressable>
         </View>
 
-        {error && <Text style={styles.error}>{error}</Text>}
-
-        <View style={styles.buttonWrapper}>
-          {loading
-            ? <ActivityIndicator color={colors.primary} size="large" />
-            : <Button label="Crear cuenta" onPress={handleRegister} />
-          }
+        <View style={a.formGroup}>
+          <Text style={a.label}>Contraseña</Text>
+          <View style={a.inputWrap}>
+            <TextInput
+              style={[a.input, a.inputWithEye]}
+              placeholder="Mínimo 10 caracteres"
+              placeholderTextColor="#aaa"
+              value={password}
+              onChangeText={(v) => { setPassword(v); setError(null); }}
+              secureTextEntry={!showPassword}
+              autoComplete="new-password"
+            />
+            <Pressable onPress={() => setShowPassword(v => !v)} style={a.eyeBtn} accessibilityLabel={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}>
+              <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color="#888" />
+            </Pressable>
+          </View>
+          <Text style={a.hint}>Al menos 10 caracteres.</Text>
         </View>
 
-        <Pressable
-          onPress={() => navigation.navigate('TutorLogin')}
-          accessibilityRole="link"
-          style={styles.link}
-        >
-          <Text style={styles.linkText}>¿Ya tienes cuenta? Inicia sesión</Text>
+        <View style={a.formGroup}>
+          <Text style={a.label}>Confirmar contraseña</Text>
+          <View style={a.inputWrap}>
+            <TextInput
+              style={[a.input, a.inputWithEye]}
+              placeholder="Repite la contraseña"
+              placeholderTextColor="#aaa"
+              value={confirmPassword}
+              onChangeText={(v) => { setConfirmPassword(v); setError(null); }}
+              secureTextEntry={!showConfirm}
+              autoComplete="new-password"
+            />
+            <Pressable onPress={() => setShowConfirm(v => !v)} style={a.eyeBtn} accessibilityLabel={showConfirm ? 'Ocultar contraseña' : 'Mostrar contraseña'}>
+              <Ionicons name={showConfirm ? 'eye-off-outline' : 'eye-outline'} size={20} color="#888" />
+            </Pressable>
+          </View>
+        </View>
+
+        {loading
+          ? <ActivityIndicator color="#164E55" size="large" style={{ marginVertical: 8 }} />
+          : (
+            <Pressable
+              style={({ pressed }) => [a.submitBtn, pressed && a.submitBtnDisabled]}
+              onPress={handleRegister}
+              accessibilityRole="button"
+              accessibilityLabel="Crear cuenta"
+            >
+              <Text style={a.submitText}>Crear cuenta</Text>
+            </Pressable>
+          )
+        }
+
+        <Pressable onPress={() => navigation.navigate('TutorLogin')} style={a.footerLink} accessibilityRole="link">
+          <Text style={a.footerText}>¿Ya tienes cuenta? <Text style={a.footerTextBold}>Inicia sesión</Text></Text>
         </Pressable>
+
       </KeyboardAvoidingView>
     </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  title: {
-    fontSize: fontSize.heading,
-    fontWeight: fontWeight.bold,
-    color: colors.primary,
-    marginBottom: 32,
-    textAlign: 'center',
-  },
-  input: {
-    borderWidth: 1.5,
-    borderColor: colors.primary,
-    borderRadius: 8,
-    padding: 14,
-    fontSize: fontSize.body,
-    color: colors.primary,
-    backgroundColor: colors.white,
-    marginBottom: 16,
-  },
-  error: {
-    color: colors.alert,
-    fontSize: fontSize.body,
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  buttonWrapper: {
-    marginTop: 8,
-    marginBottom: 16,
-  },
-  link: { alignItems: 'center', marginTop: 8 },
-  linkText: {
-    fontSize: fontSize.body,
-    color: colors.primary,
-    textDecorationLine: 'underline',
-  },
-  back: { marginBottom: 24 },
-  backText: { fontSize: fontSize.body, color: colors.primary },
-  inputWrapper: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
-  inputFlex: { flex: 1, marginBottom: 0 },
-  eyeBtn: { paddingHorizontal: 12, paddingVertical: 14 },
-});
