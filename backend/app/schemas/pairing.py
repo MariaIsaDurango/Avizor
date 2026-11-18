@@ -10,6 +10,7 @@ from uuid import UUID
 
 from pydantic import AwareDatetime, Field
 
+from app.schemas.accessibility import AccessibilityProfile
 from app.schemas.common import ContractModel
 
 
@@ -19,6 +20,9 @@ class PairingCreate(ContractModel):
     """
 
     senior_display_name: str = Field(min_length=1, max_length=50)
+    # ES: Opcional; sin perfil la app usa la interfaz por defecto.
+    # EN: Optional; without a profile the app uses the default interface.
+    senior_accessibility_profile: AccessibilityProfile | None = None
 
 
 class PairingRead(ContractModel):
@@ -55,3 +59,6 @@ class PairingRedeemResponse(ContractModel):
     token_type: Literal["bearer"] = "bearer"
     device_id: UUID
     senior_id: UUID
+    # ES: La app lo usa nada más vincularse para adaptar la interfaz.
+    # EN: The app uses it right after pairing to adapt the interface.
+    accessibility_profile: AccessibilityProfile | None = None
