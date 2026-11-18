@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import { STORAGE_KEYS } from '../constants/storage';
-import { AccessibilityProfile } from '../services/pairing';
+import { AccessibilityProfile, getSeniorProfile } from '../services/pairing';
 
 interface AccessibilityContextValue {
   largeText: boolean;
@@ -24,6 +24,22 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
     SecureStore.getItemAsync(STORAGE_KEYS.ACCESSIBILITY_PROFILE)
       .then((raw) => setProfile(raw ? (JSON.parse(raw) as AccessibilityProfile) : null))
       .catch(() => setProfile(null));
+
+    SecureStore.getItemAsync(STORAGE_KEYS.USER_MODE)
+      .then((mode) => {
+        if (mode !== 'senior') return;
+        return getSeniorProfile().then((seniorProfile) => {
+          const serverProfile = seniorProfile.accessibility_profile;
+          if (serverProfile) {
+            SecureStore.setItemAsync(STORAGE_KEYS.ACCESSIBILITY_PROFILE, JSON.stringify(serverProfile)).catch(() => {});
+            setProfile(serverProfile);
+          } else {
+            SecureStore.deleteItemAsync(STORAGE_KEYS.ACCESSIBILITY_PROFILE).catch(() => {});
+            setProfile(null);
+          }
+        });
+      })
+      .catch(() => {});
   }
 
   useEffect(() => { load(); }, []);

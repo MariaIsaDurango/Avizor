@@ -420,6 +420,10 @@
         btn.textContent = 'Crear cuenta';
       }
     });
+
+    window.addEventListener('pagehide', () => {
+      sessionStorage.removeItem('accessibility_profile_draft');
+    });
   </script>
 </body>
 </html>

@@ -57,6 +57,8 @@ export async function redeemPairing(code: string): Promise<void> {
       STORAGE_KEYS.ACCESSIBILITY_PROFILE,
       JSON.stringify(data.accessibility_profile),
     );
+  } else {
+    await SecureStore.deleteItemAsync(STORAGE_KEYS.ACCESSIBILITY_PROFILE).catch(() => {});
   }
 }
 
