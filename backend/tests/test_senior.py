@@ -33,7 +33,9 @@ def test_tutor_sin_vinculo_devuelve_404(api_client, guardian_headers):
 # ---------- Con vinculación / With pairing ----------
 
 
-def test_tutor_vinculado_devuelve_datos_senior(api_client, guardian_headers, paired_senior):
+def test_tutor_vinculado_devuelve_datos_senior(
+    api_client, guardian_headers, paired_senior
+):
     response = api_client.get(SENIOR, headers=guardian_headers)
     assert response.status_code == 200
     body = response.json()
