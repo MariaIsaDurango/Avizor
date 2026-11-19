@@ -24,6 +24,15 @@ class SeniorRead(ContractModel):
     last_seen_at: AwareDatetime | None = None
     paired_since: AwareDatetime
     accessibility_profile: AccessibilityProfile | None = None
+    guardian_phone: str | None = None
+
+
+class PhoneUpdate(ContractModel):
+    """ES: Teléfono del Tutor, editable desde ajustes de cuenta.
+    EN: Guardian phone, editable from account settings.
+    """
+
+    guardian_phone: str | None = None
 
 
 class SeniorProfileRead(ContractModel):
