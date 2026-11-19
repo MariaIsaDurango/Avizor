@@ -11,6 +11,7 @@ EN: The push has NO message content (contract): only a fixed notice and the
 
 import logging
 import uuid
+from datetime import UTC, datetime
 from typing import NamedTuple, Protocol
 
 import httpx
@@ -21,20 +22,22 @@ from app.core.config import settings
 from app.db.session import SessionLocal
 from app.models.alert import Alert
 from app.models.analysis import Analysis
-from app.models.user import Device, User
-from app.schemas.alert import PushNotification
+from app.models.user import Device, Pairing, User
+from app.schemas.alert import LogoutNotification, PushNotification
 
 logger = logging.getLogger(__name__)
 
 EXPO_PUSH_URL = "https://exp.host/--/api/v2/push/send"
 # ES: Expo acepta hasta 100 mensajes por petición. EN: Expo accepts up to 100.
+LOGOUT_PUSH_COOLDOWN_SECONDS = 300  # 5 minutos entre avisos de logout por sénior
+_logout_push_last_sent: dict[uuid.UUID, datetime] = {}
 EXPO_BATCH_SIZE = 100
 PUSH_TITLE = "Estafa bloqueada"
 
 
 class PushMessage(NamedTuple):
     token: str
-    notification: PushNotification
+    notification: PushNotification | LogoutNotification
 
 
 class PushSender(Protocol):
@@ -52,7 +55,9 @@ class LogPushSender:
 
     def send(self, messages: list[PushMessage]) -> set[str]:
         for message in messages:
-            logger.info("Push (log only) for alert %s", message.notification.alert_id)
+            logger.info(
+                "Push (log only) — type: %s", type(message.notification).__name__
+            )
         return set()
 
 
@@ -139,6 +144,43 @@ def send_alert_pushes(
     if invalid:
         # ES: App desinstalada: se borra el token para no reintentar.
         # EN: App uninstalled: the token is removed so it is not retried.
+        db.execute(
+            update(Device).where(Device.push_token.in_(invalid)).values(push_token=None)
+        )
+        db.commit()
+    return len(messages)
+
+
+def send_logout_push(
+    db: Session, senior_id: uuid.UUID, senior_name: str, sender: PushSender
+) -> int:
+    """ES: Push a todos los dispositivos del Tutor cuando el Sénior cierra sesión.
+    EN: Push to all guardian devices when the senior logs out.
+    """
+    now = datetime.now(UTC)
+    last = _logout_push_last_sent.get(senior_id)
+    if last is not None and (now - last).total_seconds() < LOGOUT_PUSH_COOLDOWN_SECONDS:
+        return 0
+
+    tokens = db.scalars(
+        select(Device.push_token)
+        .join(Pairing, Pairing.guardian_id == Device.user_id)
+        .where(
+            Pairing.senior_id == senior_id,
+            Pairing.active.is_(True),
+            Device.push_token.is_not(None),
+        )
+        .distinct()
+    ).all()
+    if not tokens:
+        return 0
+    notification = LogoutNotification(
+        body=f"{senior_name} ha cerrado sesión en Avizor."
+    )
+    messages = [PushMessage(token, notification) for token in tokens]
+    _logout_push_last_sent[senior_id] = now
+    invalid = sender.send(messages)
+    if invalid:
         db.execute(
             update(Device).where(Device.push_token.in_(invalid)).values(push_token=None)
         )
