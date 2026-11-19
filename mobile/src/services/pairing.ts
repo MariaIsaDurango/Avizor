@@ -71,10 +71,14 @@ export async function redeemPairing(code: string): Promise<void> {
 export async function createPairing(
   seniorDisplayName: string,
   accessibilityProfile?: AccessibilityProfile,
+  guardianPhone?: string,
 ): Promise<Pairing> {
   const body: Record<string, unknown> = { senior_display_name: seniorDisplayName };
   if (accessibilityProfile) {
     body.senior_accessibility_profile = accessibilityProfile;
+  }
+  if (guardianPhone) {
+    body.guardian_phone = guardianPhone;
   }
   const response = await apiFetch('/api/v1/pairings', {
     method: 'POST',
