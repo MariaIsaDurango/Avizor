@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Literal
 
-from pydantic import Field
+from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # ES: Lee primero el .env de la raíz del repo y luego el de backend/ (si existe).
@@ -56,6 +56,13 @@ class Settings(BaseSettings):
     # EN: Address where the password reset link opens.
     FRONTEND_URL: str = "http://localhost:8000"
     PASSWORD_RESET_EXPIRE_MINUTES: int = 15
+
+    # Issue #42: remote egress is limited to an explicit reviewed URL list.
+    AVIZOR_PHISHTANK_LOCAL: bool = True
+    AVIZOR_EXTERNAL_URLS: bool = False
+    AVIZOR_REPUTATION_PUBLIC_URLS: list[str] = Field(default_factory=list)
+    AVIZOR_VT_KEY: SecretStr = SecretStr("")
+    AVIZOR_GSB_KEY: SecretStr = SecretStr("")
 
 
 settings = Settings()
