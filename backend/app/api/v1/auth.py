@@ -2,17 +2,20 @@
 Guardian sign-up and login endpoints.
 """
 
+import uuid
+
 from fastapi import APIRouter, BackgroundTasks, Response, status
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
-from app.api.deps import CurrentToken, DbSession
+from app.api.deps import CurrentToken, DbSession, GuardianToken
 from app.core.config import settings
 from app.core.email import send_password_reset_email, send_verification_email
 from app.core.errors import ApiError
 from app.core.security import create_access_token, hash_password, verify_password
 from app.models.user import User
 from app.schemas.auth import (
+    ChangePasswordRequest,
     ForgotPasswordRequest,
     GuardianRegister,
     LoginRequest,
@@ -20,6 +23,7 @@ from app.schemas.auth import (
     ResendVerificationRequest,
     ResetPasswordRequest,
     TokenResponse,
+    UpdateMeRequest,
     UserRead,
     VerifyEmailRequest,
 )
@@ -142,7 +146,7 @@ def login(body: LoginRequest, db: DbSession) -> TokenResponse:
             "Verifica tu email con el código que te enviamos antes de iniciar sesión.",
         )
 
-    token = create_access_token(user.id, user.role)
+    token = create_access_token(user.id, user.role, token_version=user.token_version)
     return TokenResponse(
         access_token=token, expires_in=settings.JWT_EXPIRE_MINUTES * 60
     )
@@ -154,3 +158,49 @@ def read_me(token: CurrentToken, db: DbSession) -> UserRead:
     if user is None or user.deleted_at is not None:
         raise ApiError(401, ErrorCode.UNAUTHENTICATED, "Usuario no encontrado.")
     return UserRead.model_validate(user, from_attributes=True)
+
+
+def _active_guardian(db: DbSession, guardian_id: uuid.UUID) -> User:
+    user = db.get(User, guardian_id)
+    if user is None or user.deleted_at is not None:
+        raise ApiError(401, ErrorCode.UNAUTHENTICATED, "Usuario no encontrado.")
+    return user
+
+
+@router.patch("/me")
+def update_me(body: UpdateMeRequest, token: GuardianToken, db: DbSession) -> UserRead:
+    """ES: El Tutor cambia su nombre. EN: The guardian changes their name."""
+    user = _active_guardian(db, token.sub)
+    user.display_name = body.display_name
+    db.commit()
+    return UserRead.model_validate(user, from_attributes=True)
+
+
+@router.post("/change-password", status_code=status.HTTP_204_NO_CONTENT)
+def change_password(body: ChangePasswordRequest, token: GuardianToken, db: DbSession):
+    """ES: Cambia la contraseña comprobando antes la actual. Al cambiarla se
+    cierran todas las sesiones (token_version) y los enlaces de recuperación
+    pendientes dejan de valer (ver password_reset).
+    EN: Changes the password after checking the current one. Once changed,
+    every session is closed (token_version) and pending reset links stop
+    working (see password_reset).
+    """
+    user = _active_guardian(db, token.sub)
+    if not user.password_hash or not verify_password(
+        body.current_password, user.password_hash
+    ):
+        raise ApiError(
+            400, ErrorCode.VALIDATION_ERROR, "La contraseña actual no es correcta."
+        )
+    if body.new_password == body.current_password:
+        raise ApiError(
+            400,
+            ErrorCode.VALIDATION_ERROR,
+            "La nueva contraseña debe ser distinta de la actual.",
+        )
+    user.password_hash = hash_password(body.new_password)
+    # ES: Cierra todas las sesiones, también la actual: la app vuelve al login.
+    # EN: Closes every session, including this one: the app returns to login.
+    user.token_version += 1
+    db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
