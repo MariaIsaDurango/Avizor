@@ -170,9 +170,7 @@ def test_update_phone_no_senior_is_404(api_client, guardian_headers):
     assert response.status_code == 404
 
 
-def test_update_phone_other_guardian_is_404(
-    api_client, db_session, paired_senior
-):
+def test_update_phone_other_guardian_is_404(api_client, db_session, paired_senior):
     from app.core.security import create_access_token, hash_password
     from app.models.user import User
     from app.schemas.enums import UserRole
