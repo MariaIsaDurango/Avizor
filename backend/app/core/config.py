@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Literal
 
-from pydantic import Field, SecretStr
+from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # ES: Lee primero el .env de la raíz del repo y luego el de backend/ (si existe).
@@ -21,6 +21,20 @@ class Settings(BaseSettings):
     CONTRACT_VERSION: str = "1.0.0"
 
     DATABASE_URL: str
+
+    @field_validator("DATABASE_URL")
+    @classmethod
+    def use_psycopg_driver(cls, value: str) -> str:
+        """ES: Railway y otros servicios dan "postgresql://" o "postgres://".
+        SQLAlchemy usaría psycopg2 (no instalado); forzamos psycopg 3.
+        EN: Railway and other hosts give "postgresql://" or "postgres://".
+        SQLAlchemy would pick psycopg2 (not installed); we force psycopg 3.
+        """
+        for prefix in ("postgres://", "postgresql://"):
+            if value.startswith(prefix):
+                return "postgresql+psycopg://" + value[len(prefix) :]
+        return value
+
     # ES: Mínimo 32 caracteres (openssl rand -hex 32 genera 64).
     # EN: At least 32 characters (openssl rand -hex 32 generates 64).
     JWT_SECRET: str = Field(min_length=32)
