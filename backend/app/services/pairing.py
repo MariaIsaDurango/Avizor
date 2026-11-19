@@ -65,6 +65,7 @@ def create_pairing(
             if body.senior_accessibility_profile
             else None
         ),
+        guardian_phone=body.guardian_phone,
         expires_at=now + timedelta(minutes=settings.PAIRING_CODE_EXPIRE_MINUTES),
     )
     db.add(pairing)
@@ -127,4 +128,5 @@ def redeem_pairing(db: Session, body: PairingRedeem) -> PairingRedeemResponse:
         device_id=device.id,
         senior_id=senior.id,
         accessibility_profile=senior.accessibility_profile,
+        guardian_phone=pairing.guardian_phone,
     )
