@@ -5,8 +5,10 @@ GET    /api/v1/senior                (guardian) → SeniorRead | 404
 PATCH  /api/v1/senior/accessibility  (guardian) → AccessibilityProfile | 404
 DELETE /api/v1/senior                (guardian) → 204 | 404
 GET    /api/v1/senior/me             (senior)   → SeniorProfileRead | 404
+POST   /api/v1/senior/logout         (senior)   → 200
 """
 
+import logging
 import uuid
 from datetime import UTC, datetime
 
@@ -20,6 +22,9 @@ from app.models.user import Device, Pairing, User
 from app.schemas.accessibility import AccessibilityProfile
 from app.schemas.enums import ErrorCode
 from app.schemas.senior import PhoneUpdate, SeniorProfileRead, SeniorRead
+from app.services import push as push_service
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["senior"])
 NO_SENIOR = "No tienes un Sénior vinculado."
@@ -172,4 +177,27 @@ def unlink_senior(db: DbSession, token: GuardianToken):
             .values(push_token=None)
         )
     db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post("/senior/logout", status_code=status.HTTP_204_NO_CONTENT)
+def notify_senior_logout(db: DbSession, token: SeniorToken):
+    """ES: El Sénior avisa al Tutor de que ha cerrado sesión. No bloquea el logout
+    aunque el push falle — el dispositivo limpia su token independientemente.
+    EN: The senior notifies the guardian that they have logged out. Does not block
+    logout if the push fails — the device clears its token regardless.
+    """
+    senior = db.scalar(
+        select(User)
+        .join(Device, Device.user_id == User.id)
+        .where(Device.id == token.sub, User.deleted_at.is_(None))
+    )
+    if senior is None:
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+    try:
+        push_service.send_logout_push(
+            db, senior.id, senior.display_name, push_service.get_sender()
+        )
+    except Exception:
+        logger.exception("Logout push failed for senior %s", senior.id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
