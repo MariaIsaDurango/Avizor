@@ -1,20 +1,49 @@
 """Endpoints de datos del Sénior (Contrato v1.0.0 — MINOR).
 Senior data endpoints (Contract v1.0.0 — MINOR).
 
-GET /api/v1/senior     (guardian) → SeniorRead | 404
-GET /api/v1/senior/me  (senior)   → SeniorProfileRead | 404
+GET    /api/v1/senior                (guardian) → SeniorRead | 404
+PATCH  /api/v1/senior/accessibility  (guardian) → AccessibilityProfile | 404
+DELETE /api/v1/senior                (guardian) → 204 | 404
+GET    /api/v1/senior/me             (senior)   → SeniorProfileRead | 404
 """
 
-from fastapi import APIRouter
-from sqlalchemy import select
+import uuid
+from datetime import UTC, datetime
+
+from fastapi import APIRouter, Response, status
+from sqlalchemy import select, update
+from sqlalchemy.orm import Session
 
 from app.api.deps import DbSession, GuardianToken, SeniorToken
 from app.core.errors import ApiError
 from app.models.user import Device, Pairing, User
+from app.schemas.accessibility import AccessibilityProfile
 from app.schemas.enums import ErrorCode
 from app.schemas.senior import SeniorProfileRead, SeniorRead
 
 router = APIRouter(tags=["senior"])
+NO_SENIOR = "No tienes un Sénior vinculado."
+
+
+def _active_pairing(
+    db: Session, guardian_id: uuid.UUID, lock: bool = False
+) -> Pairing | None:
+    """ES: Vinculación canjeada y activa más reciente del Tutor.
+    EN: The guardian's most recent redeemed, active pairing.
+    """
+    query = (
+        select(Pairing)
+        .where(
+            Pairing.guardian_id == guardian_id,
+            Pairing.senior_id.is_not(None),
+            Pairing.active.is_(True),
+        )
+        .order_by(Pairing.redeemed_at.desc())
+        .limit(1)
+    )
+    if lock:
+        query = query.with_for_update()
+    return db.scalar(query)
 
 
 @router.get("/senior")
@@ -39,7 +68,7 @@ def get_senior(db: DbSession, token: GuardianToken) -> SeniorRead:
     ).first()
 
     if row is None:
-        raise ApiError(404, ErrorCode.NOT_FOUND, "No tienes un Sénior vinculado.")
+        raise ApiError(404, ErrorCode.NOT_FOUND, NO_SENIOR)
 
     pairing, device, senior = row
     return SeniorRead(
@@ -77,3 +106,56 @@ def get_my_profile(db: DbSession, token: SeniorToken) -> SeniorProfileRead:
         accessibility_profile=senior.accessibility_profile,
         guardian_phone=guardian_phone,
     )
+
+
+@router.patch("/senior/accessibility")
+def update_accessibility(
+    body: AccessibilityProfile, db: DbSession, token: GuardianToken
+) -> AccessibilityProfile:
+    """ES: El Tutor cambia el perfil de accesibilidad de su Sénior. La app lo
+    recoge la próxima vez que llame a GET /senior/me.
+    EN: The guardian changes their senior's accessibility profile. The app
+    picks it up the next time it calls GET /senior/me.
+    """
+    pairing = _active_pairing(db, token.sub)
+    senior = db.get(User, pairing.senior_id) if pairing else None
+    if senior is None or senior.deleted_at is not None:
+        raise ApiError(404, ErrorCode.NOT_FOUND, NO_SENIOR)
+    senior.accessibility_profile = body.model_dump()
+    db.commit()
+    return body
+
+
+@router.delete("/senior", status_code=status.HTTP_204_NO_CONTENT)
+def unlink_senior(db: DbSession, token: GuardianToken):
+    """ES: Desvincula al Sénior. Si no le queda ningún otro Tutor, se da de baja
+    al Sénior (deleted_at) y se borra el push_token de sus móviles: su token
+    deja de valer (401 "Dispositivo no reconocido") y no recibe más avisos.
+    Sus análisis se borran con la retención normal.
+    EN: Unlinks the senior. If no other guardian remains, the senior is
+    deactivated (deleted_at) and their phones' push_token is cleared: the
+    token stops working (401 "Device not recognised") and no more
+    notifications are sent. Their analyses are removed by normal retention.
+    """
+    pairing = _active_pairing(db, token.sub, lock=True)
+    if pairing is None:
+        raise ApiError(404, ErrorCode.NOT_FOUND, NO_SENIOR)
+    pairing.active = False
+    db.flush()
+
+    still_linked = db.scalar(
+        select(Pairing.id).where(
+            Pairing.senior_id == pairing.senior_id, Pairing.active.is_(True)
+        )
+    )
+    if still_linked is None:
+        senior = db.get(User, pairing.senior_id)
+        if senior is not None and senior.deleted_at is None:
+            senior.deleted_at = datetime.now(UTC)
+        db.execute(
+            update(Device)
+            .where(Device.user_id == pairing.senior_id)
+            .values(push_token=None)
+        )
+    db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
