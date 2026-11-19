@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react';
 import { View, Text, Pressable, StyleSheet, Linking, Animated } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MaterialIcons } from '@expo/vector-icons';
+import * as SecureStore from 'expo-secure-store';
 import * as Haptics from 'expo-haptics';
 import Screen from '../../components/Screen';
 import { RootStackParamList } from '../../navigation/types';
 import { BlockTemplate } from '../../services/analyses';
 import { colors } from '../../constants/colors';
 import { fontWeight } from '../../constants/typography';
+import { STORAGE_KEYS } from '../../constants/storage';
 import { useAccessibility } from '../../contexts/AccessibilityContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SeniorBlock'>;
@@ -69,6 +71,13 @@ export default function SeniorBlockScreen({ navigation, route }: Props) {
   const config = CONFIGS[route.params.template];
   const { largeText, colorBlind, hardOfHearing } = useAccessibility();
   const [pulseAnim] = useState(() => new Animated.Value(1));
+  const [guardianPhone, setGuardianPhone] = useState<string | null>(null);
+
+  useEffect(() => {
+    SecureStore.getItemAsync(STORAGE_KEYS.GUARDIAN_PHONE)
+      .then(setGuardianPhone)
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!hardOfHearing) return;
@@ -107,15 +116,17 @@ export default function SeniorBlockScreen({ navigation, route }: Props) {
       </View>
 
       <View style={styles.footer}>
-        <Pressable
-          style={[styles.callButton, largeText && styles.callButtonLarge]}
-          onPress={() => Linking.openURL('tel:')}
-          accessibilityRole="button"
-          accessibilityLabel="Llamar a tu familiar"
-        >
-          <MaterialIcons name="phone" size={largeText ? 36 : 28} color={colors.success} />
-          <Text style={[styles.callLabel, largeText && styles.callLabelLarge]}>Llamar a tu familiar</Text>
-        </Pressable>
+        {guardianPhone !== null && (
+          <Pressable
+            style={[styles.callButton, largeText && styles.callButtonLarge]}
+            onPress={() => Linking.openURL(`tel:${guardianPhone}`)}
+            accessibilityRole="button"
+            accessibilityLabel="Llamar a tu familiar"
+          >
+            <MaterialIcons name="phone" size={largeText ? 36 : 28} color={colors.success} />
+            <Text style={[styles.callLabel, largeText && styles.callLabelLarge]}>Llamar a tu familiar</Text>
+          </Pressable>
+        )}
 
         <Pressable
           style={[styles.dismissButton, largeText && styles.dismissButtonLarge]}

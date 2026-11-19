@@ -103,6 +103,7 @@
     })();
 
     document.getElementById('nav-logout').addEventListener('click', () => {
+      if (!window.confirm('¿Seguro que quieres cerrar sesión? Se eliminará tu sesión de este dispositivo.')) return;
       localStorage.removeItem('avizor_token');
       window.location.href = '/';
     });

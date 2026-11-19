@@ -13,6 +13,7 @@ export type RootStackParamList = {
   AlertDetail: { alert: Alert };
   SeniorPairing: undefined;
   SeniorHome: undefined;
+  SeniorSettings: undefined;
   SeniorBlock: { template: BlockTemplate };
   AccessibilityPoc: undefined;
   VerifyEmail: { email: string };

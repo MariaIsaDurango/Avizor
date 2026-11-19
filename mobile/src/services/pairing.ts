@@ -23,6 +23,7 @@ interface RedeemResponse {
   device_id: string;
   senior_id: string;
   accessibility_profile: AccessibilityProfile | null;
+  guardian_phone: string | null;
 }
 
 export interface SeniorProfile {
@@ -59,6 +60,11 @@ export async function redeemPairing(code: string): Promise<void> {
     );
   } else {
     await SecureStore.deleteItemAsync(STORAGE_KEYS.ACCESSIBILITY_PROFILE).catch(() => {});
+  }
+  if (data.guardian_phone) {
+    await SecureStore.setItemAsync(STORAGE_KEYS.GUARDIAN_PHONE, data.guardian_phone);
+  } else {
+    await SecureStore.deleteItemAsync(STORAGE_KEYS.GUARDIAN_PHONE).catch(() => {});
   }
 }
 

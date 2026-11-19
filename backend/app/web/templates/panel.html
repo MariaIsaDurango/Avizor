@@ -278,19 +278,6 @@
 {% block extra_scripts %}
 <script src="{{ url_for('web_static', path='js/qrcode.min.js') }}"></script>
 <script>
-// Pre-rellenar checkboxes de accesibilidad si vienen del registro
-(function () {
-  const raw = sessionStorage.getItem('accessibility_profile_draft');
-  if (!raw) return;
-  try {
-    const p = JSON.parse(raw);
-    if (p.color_blindness)    document.getElementById('acc-color-blindness').checked = true;
-    if (p.low_vision)         document.getElementById('acc-low-vision').checked = true;
-    if (p.blindness)          document.getElementById('acc-blindness').checked = true;
-    if (p.hearing_impairment) document.getElementById('acc-hearing').checked = true;
-    sessionStorage.removeItem('accessibility_profile_draft');
-  } catch {}
-})();
 
 const CHANNEL_LABELS  = { sms:'SMS', call:'Llamada', notification:'Notificación', screen:'Pantalla', manual:'Manual' };
 const THREAT_LABELS   = { phishing:'Phishing', smishing:'Smishing', vishing:'Vishing', spam:'Spam', identity_theft:'Robo de identidad', bank_fraud:'Fraude bancario', other:'Otro', none:'-' };
@@ -332,6 +319,46 @@ function startPairingPoll(token) {
 }
 function stopPairingPoll() {
   if (_pairingPoller) { clearInterval(_pairingPoller); _pairingPoller = null; }
+}
+
+// ── Alerts live refresh ──────────────────────────────────────
+function renderAlerts(alerts) {
+  const tbody   = document.getElementById('alerts-body');
+  const emptyEl = document.getElementById('alerts-empty');
+  if (!alerts.length) {
+    emptyEl.style.display = 'block';
+    tbody.innerHTML = '';
+  } else {
+    emptyEl.style.display = 'none';
+    tbody.innerHTML = alerts.map(a => `
+      <tr>
+        <td class="text-muted">${formatDate(a.created_at)}</td>
+        <td>${CHANNEL_LABELS[a.channel]    ?? a.channel}</td>
+        <td>${THREAT_LABELS[a.threat_type] ?? a.threat_type}</td>
+        <td><span class="badge ${RISK_BADGE[a.risk_level]}">${RISK_LABEL[a.risk_level]}</span></td>
+        <td class="text-muted">${STATUS_LABELS[a.status] ?? a.status}</td>
+      </tr>`).join('');
+  }
+}
+
+function startAlertsPoller(token) {
+  setInterval(async () => {
+    try {
+      const [resAlerts, resSenior] = await Promise.all([
+        fetch('/api/v1/alerts?limit=5',  { headers: { Authorization: `Bearer ${token}` } }),
+        fetch('/api/v1/senior',          { headers: { Authorization: `Bearer ${token}` } }),
+      ]);
+      if (resAlerts.ok) renderAlerts((await resAlerts.json()).items ?? []);
+      if (resSenior.ok) {
+        const s = await resSenior.json();
+        if (s.last_seen_at) {
+          document.getElementById('senior-meta').innerHTML =
+            `<span>Plataforma: ${s.platform ?? '–'}</span>` +
+            `<span>Última actividad: ${formatRelative(s.last_seen_at)}</span>`;
+        }
+      }
+    } catch {}
+  }, 10000);
 }
 function startCountdown(expiresAt) {
   if (_countdownTimer) clearInterval(_countdownTimer);
@@ -491,19 +518,8 @@ async function loadPanel() {
 
     // ── Alertas recientes ─────────────────────────────────
     document.getElementById('alerts-card').style.display = 'block';
-    const tbody = document.getElementById('alerts-body');
-    if (!alerts.length) {
-      document.getElementById('alerts-empty').style.display = 'block';
-    } else {
-      tbody.innerHTML = alerts.map(a => `
-        <tr>
-          <td class="text-muted">${formatDate(a.created_at)}</td>
-          <td>${CHANNEL_LABELS[a.channel]    ?? a.channel}</td>
-          <td>${THREAT_LABELS[a.threat_type] ?? a.threat_type}</td>
-          <td><span class="badge ${RISK_BADGE[a.risk_level]}">${RISK_LABEL[a.risk_level]}</span></td>
-          <td class="text-muted">${STATUS_LABELS[a.status] ?? a.status}</td>
-        </tr>`).join('');
-    }
+    renderAlerts(alerts);
+    startAlertsPoller(token);
   } else {
     // ── Vincular Sénior ─────────────────────────────────────
     document.getElementById('pairing-card').style.display = 'flex';

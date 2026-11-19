@@ -7,7 +7,7 @@ import Screen from '../../components/Screen';
 import Button from '../../components/Button';
 import { colors } from '../../constants/colors';
 import { fontSize, fontWeight } from '../../constants/typography';
-import { updateAlert, AlertStatus, ThreatType, Channel } from '../../services/alerts';
+import { updateAlert, AlertStatus, ThreatType, Channel, Evidence, IndicatorEvidence } from '../../services/alerts';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AlertDetail'>;
 
@@ -36,6 +36,44 @@ const STATUS_LABELS: Record<AlertStatus, string> = {
   confirmed_fraud: 'Fraude confirmado',
   false_positive: 'Falso positivo',
 };
+
+const INDICATOR_LABELS: Record<IndicatorEvidence['type'], string> = {
+  domain: 'Dominio',
+  url: 'URL',
+  phone: 'Teléfono',
+  alphanumeric_sender: 'Remitente',
+};
+
+const RAG_SOURCE_LABELS: Record<string, string> = {
+  incibe: 'INCIBE',
+  osi: 'OSI',
+  policia_nacional: 'Policía Nacional',
+};
+
+function EvidenceItem({ item }: { item: Evidence }) {
+  if (item.type === 'official_notice') {
+    return (
+      <View style={styles.evidenceRow}>
+        <MaterialIcons name="verified" size={16} color={colors.primary} style={{ marginTop: 2 }} />
+        <View style={{ flex: 1 }}>
+          <Text style={styles.evidenceSource}>{RAG_SOURCE_LABELS[item.source] ?? item.source}</Text>
+          <Text style={styles.evidenceUrl} numberOfLines={1}>{item.url}</Text>
+        </View>
+      </View>
+    );
+  }
+  return (
+    <View style={styles.evidenceRow}>
+      <MaterialIcons name="info-outline" size={16} color={colors.warning} style={{ marginTop: 2 }} />
+      <View style={{ flex: 1 }}>
+        <Text style={styles.evidenceLabel}>
+          {INDICATOR_LABELS[item.type]}: <Text style={styles.evidenceValue}>{item.value}</Text>
+        </Text>
+        <Text style={styles.evidenceReason}>{item.reason}</Text>
+      </View>
+    </View>
+  );
+}
 
 function formatDate(isoString: string): string {
   return new Date(isoString).toLocaleDateString('es-ES', {
@@ -103,6 +141,15 @@ export default function AlertDetailScreen({ route, navigation }: Props) {
         <Text style={styles.sectionTitle}>Explicación</Text>
         <Text style={styles.sectionBody}>{alert.explanation}</Text>
       </View>
+
+      {alert.evidence.length > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Indicadores técnicos</Text>
+          {alert.evidence.map((item, i) => (
+            <EvidenceItem key={i} item={item} />
+          ))}
+        </View>
+      )}
 
       {error !== null && <Text style={styles.error}>{error}</Text>}
 
@@ -209,5 +256,37 @@ const styles = StyleSheet.create({
   },
   loader: {
     marginVertical: 16,
+  },
+  evidenceRow: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingVertical: 6,
+    borderTopWidth: 1,
+    borderTopColor: colors.primary + '14',
+  },
+  evidenceLabel: {
+    fontSize: 13,
+    color: colors.primary,
+    fontWeight: fontWeight.bold,
+  },
+  evidenceValue: {
+    fontWeight: '400',
+  },
+  evidenceReason: {
+    fontSize: 13,
+    color: colors.primary,
+    opacity: 0.65,
+    marginTop: 2,
+  },
+  evidenceSource: {
+    fontSize: 13,
+    color: colors.primary,
+    fontWeight: fontWeight.bold,
+  },
+  evidenceUrl: {
+    fontSize: 12,
+    color: colors.primary,
+    opacity: 0.55,
+    marginTop: 1,
   },
 });
