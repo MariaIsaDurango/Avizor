@@ -29,6 +29,7 @@ interface RedeemResponse {
 export interface SeniorProfile {
   display_name: string;
   accessibility_profile: AccessibilityProfile | null;
+  guardian_phone: string | null;
 }
 
 export async function redeemPairing(code: string): Promise<void> {

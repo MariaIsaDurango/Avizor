@@ -1,6 +1,6 @@
 // ES: Anonimización provisional por patrones hasta que llegue el NER de Laura.
 // EN: Temporary pattern-based anonymization until Laura's NER arrives.
-type Entity = 'IBAN' | 'CARD' | 'ID_NUMBER' | 'EMAIL' | 'PHONE' | 'NAME' | 'ADDRESS';
+type Entity = 'IBAN' | 'CARD' | 'ID_NUMBER' | 'EMAIL' | 'PHONE' | 'ADDRESS';
 
 const RULES: [Entity, RegExp][] = [
   ['IBAN', /\b[A-Z]{2}\d{2}(?:[ ]?[A-Z0-9]{4}){4,7}\b/gi],
@@ -9,7 +9,6 @@ const RULES: [Entity, RegExp][] = [
   ['EMAIL', /\b[\w.+-]+@[\w-]+\.[\w.-]+\b/g],
   ['PHONE', /(?:\+\d{2}[ ]?)?\b[6-9]\d{2}[ ]?\d{3}[ ]?\d{3}\b/g],
   ['ADDRESS', /\b(?:Calle|Cl\.|C\/|Avda?\.?|Avenida|Plaza|Pl\.|Paseo|Po\.|Travesía|Ronda|Camino|Gran Vía)\s+[^\n,]{3,60}(?:,\s*\d+[a-zA-Z]?)?/gi],
-  ['NAME', /\b[A-ZÁÉÍÓÚÑÜ][a-záéíóúñü]{2,}(?:\s+(?:de(?:l| la| los| las)?\s+)?[A-ZÁÉÍÓÚÑÜ][a-záéíóúñü]{2,}){1,3}\b/g],
 ];
 
 export const NER_MODEL_VERSION = 'regex-v0';

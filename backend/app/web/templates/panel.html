@@ -318,13 +318,25 @@ function formatCode(code) {
 // ── Countdown ───────────────────────────────────────────────
 let _countdownTimer = null;
 let _pairingPoller  = null;
+let _alertsPoller   = null;
+
+function stopAllPollers() {
+  if (_pairingPoller) { clearInterval(_pairingPoller); _pairingPoller = null; }
+  if (_alertsPoller)  { clearInterval(_alertsPoller);  _alertsPoller  = null; }
+}
+function handleUnauthorized() {
+  stopAllPollers();
+  localStorage.removeItem('avizor_token');
+  window.location.replace('/login');
+}
 
 function startPairingPoll(token) {
   if (_pairingPoller) return;
   _pairingPoller = setInterval(async () => {
     try {
       const res = await fetch('/api/v1/senior', { headers: { Authorization: `Bearer ${token}` } });
-      if (res.ok) { stopPairingPoll(); window.location.reload(); }
+      if (res.ok) { stopAllPollers(); window.location.reload(); }
+      else if (res.status === 401) handleUnauthorized();
     } catch {}
   }, 3000);
 }
@@ -353,12 +365,13 @@ function renderAlerts(alerts) {
 }
 
 function startAlertsPoller(token) {
-  setInterval(async () => {
+  _alertsPoller = setInterval(async () => {
     try {
       const [resAlerts, resSenior] = await Promise.all([
         fetch('/api/v1/alerts?limit=5',  { headers: { Authorization: `Bearer ${token}` } }),
         fetch('/api/v1/senior',          { headers: { Authorization: `Bearer ${token}` } }),
       ]);
+      if (resAlerts.status === 401 || resSenior.status === 401) { handleUnauthorized(); return; }
       if (resAlerts.ok) renderAlerts((await resAlerts.json()).items ?? []);
       if (resSenior.ok) {
         const s = await resSenior.json();
