@@ -23,11 +23,13 @@ interface RedeemResponse {
   device_id: string;
   senior_id: string;
   accessibility_profile: AccessibilityProfile | null;
+  guardian_phone: string | null;
 }
 
 export interface SeniorProfile {
   display_name: string;
   accessibility_profile: AccessibilityProfile | null;
+  guardian_phone: string | null;
 }
 
 export async function redeemPairing(code: string): Promise<void> {
@@ -60,15 +62,24 @@ export async function redeemPairing(code: string): Promise<void> {
   } else {
     await SecureStore.deleteItemAsync(STORAGE_KEYS.ACCESSIBILITY_PROFILE).catch(() => {});
   }
+  if (data.guardian_phone) {
+    await SecureStore.setItemAsync(STORAGE_KEYS.GUARDIAN_PHONE, data.guardian_phone);
+  } else {
+    await SecureStore.deleteItemAsync(STORAGE_KEYS.GUARDIAN_PHONE).catch(() => {});
+  }
 }
 
 export async function createPairing(
   seniorDisplayName: string,
   accessibilityProfile?: AccessibilityProfile,
+  guardianPhone?: string,
 ): Promise<Pairing> {
   const body: Record<string, unknown> = { senior_display_name: seniorDisplayName };
   if (accessibilityProfile) {
     body.senior_accessibility_profile = accessibilityProfile;
+  }
+  if (guardianPhone) {
+    body.guardian_phone = guardianPhone;
   }
   const response = await apiFetch('/api/v1/pairings', {
     method: 'POST',

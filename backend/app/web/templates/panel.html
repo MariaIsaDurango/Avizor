@@ -217,6 +217,17 @@
           </div>
         </div>
 
+        <div class="field-group">
+          <label class="field-label" for="pairing-phone-input">
+            Tu teléfono <span style="font-weight:400;color:var(--color-text-muted);">(opcional)</span>
+          </label>
+          <p style="font-size:var(--font-size-sm);color:var(--color-text-muted);margin-bottom:0.5rem;">
+            El Sénior podrá llamarte directamente desde la app si detecta algo peligroso.
+          </p>
+          <input class="field-input" type="tel" id="pairing-phone-input"
+            placeholder="+34 600 000 000" autocomplete="tel">
+        </div>
+
         <button class="btn btn--primary" id="btn-generate">
           <i data-lucide="link" aria-hidden="true"></i>
           Generar código
@@ -278,19 +289,6 @@
 {% block extra_scripts %}
 <script src="{{ url_for('web_static', path='js/qrcode.min.js') }}"></script>
 <script>
-// Pre-rellenar checkboxes de accesibilidad si vienen del registro
-(function () {
-  const raw = sessionStorage.getItem('accessibility_profile_draft');
-  if (!raw) return;
-  try {
-    const p = JSON.parse(raw);
-    if (p.color_blindness)    document.getElementById('acc-color-blindness').checked = true;
-    if (p.low_vision)         document.getElementById('acc-low-vision').checked = true;
-    if (p.blindness)          document.getElementById('acc-blindness').checked = true;
-    if (p.hearing_impairment) document.getElementById('acc-hearing').checked = true;
-    sessionStorage.removeItem('accessibility_profile_draft');
-  } catch {}
-})();
 
 const CHANNEL_LABELS  = { sms:'SMS', call:'Llamada', notification:'Notificación', screen:'Pantalla', manual:'Manual' };
 const THREAT_LABELS   = { phishing:'Phishing', smishing:'Smishing', vishing:'Vishing', spam:'Spam', identity_theft:'Robo de identidad', bank_fraud:'Fraude bancario', other:'Otro', none:'-' };
@@ -319,6 +317,73 @@ function formatCode(code) {
 
 // ── Countdown ───────────────────────────────────────────────
 let _countdownTimer = null;
+let _pairingPoller  = null;
+let _alertsPoller   = null;
+
+function stopAllPollers() {
+  if (_pairingPoller) { clearInterval(_pairingPoller); _pairingPoller = null; }
+  if (_alertsPoller)  { clearInterval(_alertsPoller);  _alertsPoller  = null; }
+}
+function handleUnauthorized() {
+  stopAllPollers();
+  localStorage.removeItem('avizor_token');
+  window.location.replace('/login');
+}
+
+function startPairingPoll(token) {
+  if (_pairingPoller) return;
+  _pairingPoller = setInterval(async () => {
+    try {
+      const res = await fetch('/api/v1/senior', { headers: { Authorization: `Bearer ${token}` } });
+      if (res.ok) { stopAllPollers(); window.location.reload(); }
+      else if (res.status === 401) handleUnauthorized();
+    } catch {}
+  }, 3000);
+}
+function stopPairingPoll() {
+  if (_pairingPoller) { clearInterval(_pairingPoller); _pairingPoller = null; }
+}
+
+// ── Alerts live refresh ──────────────────────────────────────
+function renderAlerts(alerts) {
+  const tbody   = document.getElementById('alerts-body');
+  const emptyEl = document.getElementById('alerts-empty');
+  if (!alerts.length) {
+    emptyEl.style.display = 'block';
+    tbody.innerHTML = '';
+  } else {
+    emptyEl.style.display = 'none';
+    tbody.innerHTML = alerts.map(a => `
+      <tr>
+        <td class="text-muted">${formatDate(a.created_at)}</td>
+        <td>${CHANNEL_LABELS[a.channel]    ?? a.channel}</td>
+        <td>${THREAT_LABELS[a.threat_type] ?? a.threat_type}</td>
+        <td><span class="badge ${RISK_BADGE[a.risk_level]}">${RISK_LABEL[a.risk_level]}</span></td>
+        <td class="text-muted">${STATUS_LABELS[a.status] ?? a.status}</td>
+      </tr>`).join('');
+  }
+}
+
+function startAlertsPoller(token) {
+  _alertsPoller = setInterval(async () => {
+    try {
+      const [resAlerts, resSenior] = await Promise.all([
+        fetch('/api/v1/alerts?limit=5',  { headers: { Authorization: `Bearer ${token}` } }),
+        fetch('/api/v1/senior',          { headers: { Authorization: `Bearer ${token}` } }),
+      ]);
+      if (resAlerts.status === 401 || resSenior.status === 401) { handleUnauthorized(); return; }
+      if (resAlerts.ok) renderAlerts((await resAlerts.json()).items ?? []);
+      if (resSenior.ok) {
+        const s = await resSenior.json();
+        if (s.last_seen_at) {
+          document.getElementById('senior-meta').innerHTML =
+            `<span>Plataforma: ${s.platform ?? '–'}</span>` +
+            `<span>Última actividad: ${formatRelative(s.last_seen_at)}</span>`;
+        }
+      }
+    } catch {}
+  }, 10000);
+}
 function startCountdown(expiresAt) {
   if (_countdownTimer) clearInterval(_countdownTimer);
   const countdownEl  = document.getElementById('pairing-countdown');
@@ -330,6 +395,7 @@ function startCountdown(expiresAt) {
     countdownEl.textContent = left > 0 ? `Expira en ${formatTime(left)}` : '';
     if (left === 0) {
       clearInterval(_countdownTimer);
+      stopPairingPoll();
       expiredMsg.style.display  = 'block';
       countdownEl.style.display = 'none';
       btnNewCode.style.display  = 'inline-flex';
@@ -371,10 +437,13 @@ async function generateCode() {
   };
   const hasProfile = Object.values(accProfile).some(Boolean);
 
+  const phone = document.getElementById('pairing-phone-input').value.trim();
+
   const token = localStorage.getItem('avizor_token');
   try {
     const body = { senior_display_name: name };
     if (hasProfile) body.senior_accessibility_profile = accProfile;
+    if (phone) body.guardian_phone = phone;
     const res = await fetch('/api/v1/pairings', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -397,6 +466,7 @@ async function generateCode() {
     document.getElementById('pairing-countdown').style.display = 'block';
     document.getElementById('btn-new-code').style.display = 'none';
     startCountdown(new Date(data.expires_at).getTime());
+    startPairingPoll(token);
 
     const qrEl = document.getElementById('pairing-qr');
     qrEl.innerHTML = '';
@@ -417,10 +487,12 @@ async function generateCode() {
 
 function resetPairing() {
   if (_countdownTimer) clearInterval(_countdownTimer);
+  stopPairingPoll();
   document.getElementById('pairing-step-name').style.display = 'block';
   document.getElementById('pairing-step-code').style.display = 'none';
   document.getElementById('pairing-qr').innerHTML = '';
   document.getElementById('pairing-name-input').value = '';
+  document.getElementById('pairing-phone-input').value = '';
   const btn = document.getElementById('btn-generate');
   btn.disabled = false;
   btn.innerHTML = '<i data-lucide="link" aria-hidden="true"></i> Generar código';
@@ -474,19 +546,8 @@ async function loadPanel() {
 
     // ── Alertas recientes ─────────────────────────────────
     document.getElementById('alerts-card').style.display = 'block';
-    const tbody = document.getElementById('alerts-body');
-    if (!alerts.length) {
-      document.getElementById('alerts-empty').style.display = 'block';
-    } else {
-      tbody.innerHTML = alerts.map(a => `
-        <tr>
-          <td class="text-muted">${formatDate(a.created_at)}</td>
-          <td>${CHANNEL_LABELS[a.channel]    ?? a.channel}</td>
-          <td>${THREAT_LABELS[a.threat_type] ?? a.threat_type}</td>
-          <td><span class="badge ${RISK_BADGE[a.risk_level]}">${RISK_LABEL[a.risk_level]}</span></td>
-          <td class="text-muted">${STATUS_LABELS[a.status] ?? a.status}</td>
-        </tr>`).join('');
-    }
+    renderAlerts(alerts);
+    startAlertsPoller(token);
   } else {
     // ── Vincular Sénior ─────────────────────────────────────
     document.getElementById('pairing-card').style.display = 'flex';

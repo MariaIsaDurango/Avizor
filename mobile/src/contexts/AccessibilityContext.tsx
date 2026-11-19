@@ -37,6 +37,11 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
             SecureStore.deleteItemAsync(STORAGE_KEYS.ACCESSIBILITY_PROFILE).catch(() => {});
             setProfile(null);
           }
+          if (seniorProfile.guardian_phone) {
+            SecureStore.setItemAsync(STORAGE_KEYS.GUARDIAN_PHONE, seniorProfile.guardian_phone).catch(() => {});
+          } else {
+            SecureStore.deleteItemAsync(STORAGE_KEYS.GUARDIAN_PHONE).catch(() => {});
+          }
         });
       })
       .catch(() => {});

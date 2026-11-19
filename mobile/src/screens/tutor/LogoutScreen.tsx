@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Alert } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/types';
 import Screen from '../../components/Screen';
@@ -10,9 +10,22 @@ import { logout } from '../../services/auth';
 type Props = NativeStackScreenProps<RootStackParamList, 'TutorLogout'>;
 
 export default function LogoutScreen({ navigation }: Props) {
-  async function handleLogout() {
-    await logout();
-    navigation.reset({ index: 0, routes: [{ name: 'TutorLogin' }] });
+  function handleLogout() {
+    Alert.alert(
+      '¿Estás seguro?',
+      'Se eliminará tu sesión de este dispositivo.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Cerrar sesión',
+          style: 'destructive',
+          onPress: async () => {
+            await logout();
+            navigation.reset({ index: 0, routes: [{ name: 'TutorLogin' }] });
+          },
+        },
+      ],
+    );
   }
 
   return (

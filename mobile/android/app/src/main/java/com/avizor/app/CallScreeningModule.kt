@@ -53,7 +53,7 @@ class CallScreeningModule(reactContext: ReactApplicationContext) :
             promise.reject("UNSUPPORTED", "CallScreeningService requires Android 10+")
             return
         }
-        val activity = currentActivity
+        val activity = reactApplicationContext.currentActivity
         if (activity == null) {
             promise.reject("NO_ACTIVITY", "No foreground activity")
             return

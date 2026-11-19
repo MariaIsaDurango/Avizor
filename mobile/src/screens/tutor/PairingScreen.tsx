@@ -37,6 +37,7 @@ function formatCode(code: string): string {
 
 export default function TutorPairingScreen({ navigation }: Props) {
   const [seniorName, setSeniorName] = useState('');
+  const [guardianPhone, setGuardianPhone] = useState('');
   const [profile, setProfile] = useState<AccessibilityProfile>(EMPTY_PROFILE);
   const [code, setCode] = useState<string | null>(null);
   const [expiresAt, setExpiresAt] = useState<Date | null>(null);
@@ -71,6 +72,7 @@ export default function TutorPairingScreen({ navigation }: Props) {
       const pairing = await createPairing(
         seniorName.trim(),
         hasProfile ? profile : undefined,
+        guardianPhone.trim() || undefined,
       );
       const expiry = new Date(pairing.expires_at);
       setCode(pairing.code);
@@ -109,6 +111,18 @@ export default function TutorPairingScreen({ navigation }: Props) {
               maxLength={50}
               autoCapitalize="words"
               autoComplete="name"
+            />
+
+            <TextInput
+              style={styles.input}
+              placeholder="Tu teléfono (opcional) — p.ej. +34 600 000 000"
+              placeholderTextColor={colors.primary}
+              value={guardianPhone}
+              onChangeText={setGuardianPhone}
+              keyboardType="phone-pad"
+              autoComplete="tel"
+              accessibilityLabel="Tu número de teléfono"
+              accessibilityHint="El Sénior podrá llamarte desde la app si detecta algo peligroso"
             />
 
             <View style={styles.accessibilitySection}>

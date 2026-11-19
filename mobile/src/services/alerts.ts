@@ -12,6 +12,22 @@ export type ThreatType =
 
 export type Channel = 'sms' | 'notification' | 'screen' | 'call' | 'manual';
 export type AlertStatus = 'new' | 'seen' | 'confirmed_fraud' | 'false_positive';
+export type IndicatorType = 'domain' | 'url' | 'phone' | 'alphanumeric_sender';
+export type RagSource = 'incibe' | 'osi' | 'policia_nacional';
+
+export interface IndicatorEvidence {
+  type: IndicatorType;
+  value: string;
+  reason: string;
+}
+
+export interface OfficialNoticeEvidence {
+  type: 'official_notice';
+  source: RagSource;
+  url: string;
+}
+
+export type Evidence = IndicatorEvidence | OfficialNoticeEvidence;
 
 export interface Alert {
   id: string;
@@ -23,6 +39,7 @@ export interface Alert {
   channel: Channel;
   summary: string;
   explanation: string;
+  evidence: Evidence[];
   status: AlertStatus;
   created_at: string;
 }

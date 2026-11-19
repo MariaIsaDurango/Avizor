@@ -257,40 +257,6 @@
           <span class="form-error" id="err-confirm"></span>
         </div>
 
-        <!-- Selección de tipo de cuenta -->
-        <div class="form-group" style="margin-top:0.5rem;">
-          <p class="form-label">¿Para quién es la cuenta?</p>
-          <div style="display:flex;flex-direction:column;gap:0.5rem;margin-top:0.25rem;">
-            <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:var(--font-size-sm);">
-              <input type="radio" name="account-type" id="type-self" value="self" checked> Para mí
-            </label>
-            <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:var(--font-size-sm);">
-              <input type="radio" name="account-type" id="type-senior" value="senior"> Para acompañar a un Sénior
-            </label>
-          </div>
-        </div>
-
-        <!-- Perfil de accesibilidad (solo si elige Sénior) -->
-        <div class="form-group" id="accessibility-group" style="display:none;">
-          <p class="form-label">Perfil de accesibilidad del Sénior <span style="font-weight:400;color:var(--color-text-muted);">(opcional)</span></p>
-          <p style="font-size:var(--font-size-sm);color:var(--color-text-muted);margin-bottom:0.5rem;">
-            La app del Sénior adaptará su interfaz. Puedes cambiarlo después.
-          </p>
-          <div style="display:flex;flex-direction:column;gap:0.5rem;">
-            <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:var(--font-size-sm);">
-              <input type="checkbox" id="reg-acc-color-blindness" value="color_blindness"> Daltonismo
-            </label>
-            <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:var(--font-size-sm);">
-              <input type="checkbox" id="reg-acc-low-vision" value="low_vision"> Baja visión
-            </label>
-            <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:var(--font-size-sm);">
-              <input type="checkbox" id="reg-acc-blindness" value="blindness"> Ceguera
-            </label>
-            <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:var(--font-size-sm);">
-              <input type="checkbox" id="reg-acc-hearing" value="hearing_impairment"> Dificultad auditiva
-            </label>
-          </div>
-        </div>
 
         <button type="submit" class="btn-submit" id="submit-btn">Crear cuenta</button>
 
@@ -307,13 +273,6 @@
   <script>
     lucide.createIcons();
 
-    // Mostrar/ocultar sección de accesibilidad según tipo de cuenta
-    document.querySelectorAll('input[name="account-type"]').forEach(radio => {
-      radio.addEventListener('change', () => {
-        const isSenior = document.getElementById('type-senior').checked;
-        document.getElementById('accessibility-group').style.display = isSenior ? 'block' : 'none';
-      });
-    });
 
     // Toggle visibilidad de contraseña
     document.querySelectorAll('.toggle-pw').forEach(btn => {
@@ -390,16 +349,6 @@
         });
 
         if (res.status === 201) {
-          // Guardar perfil de accesibilidad para pre-rellenar el panel
-          if (document.getElementById('type-senior').checked) {
-            const profile = {
-              color_blindness:    document.getElementById('reg-acc-color-blindness').checked,
-              low_vision:         document.getElementById('reg-acc-low-vision').checked,
-              blindness:          document.getElementById('reg-acc-blindness').checked,
-              hearing_impairment: document.getElementById('reg-acc-hearing').checked,
-            };
-            sessionStorage.setItem('accessibility_profile_draft', JSON.stringify(profile));
-          }
           window.location.href = '/verify-email?email=' + encodeURIComponent(email);
         } else {
           const data = await res.json().catch(() => ({}));
