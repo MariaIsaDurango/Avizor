@@ -21,8 +21,8 @@ from app.core.config import settings
 from app.db.session import SessionLocal
 from app.models.alert import Alert
 from app.models.analysis import Analysis
-from app.models.user import Device, User
-from app.schemas.alert import PushNotification
+from app.models.user import Device, Pairing, User
+from app.schemas.alert import LogoutNotification, PushNotification
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +34,7 @@ PUSH_TITLE = "Estafa bloqueada"
 
 class PushMessage(NamedTuple):
     token: str
-    notification: PushNotification
+    notification: PushNotification | LogoutNotification
 
 
 class PushSender(Protocol):
@@ -139,6 +139,34 @@ def send_alert_pushes(
     if invalid:
         # ES: App desinstalada: se borra el token para no reintentar.
         # EN: App uninstalled: the token is removed so it is not retried.
+        db.execute(
+            update(Device).where(Device.push_token.in_(invalid)).values(push_token=None)
+        )
+        db.commit()
+    return len(messages)
+
+
+def send_logout_push(
+    db: Session, senior_id: uuid.UUID, senior_name: str, sender: PushSender
+) -> int:
+    """ES: Push a todos los dispositivos del Tutor cuando el Sénior cierra sesión.
+    EN: Push to all guardian devices when the senior logs out.
+    """
+    tokens = db.scalars(
+        select(Device.push_token)
+        .join(Pairing, Pairing.guardian_id == Device.user_id)
+        .where(
+            Pairing.senior_id == senior_id,
+            Pairing.active.is_(True),
+            Device.push_token.is_not(None),
+        )
+    ).all()
+    if not tokens:
+        return 0
+    notification = LogoutNotification(body=f"{senior_name} ha cerrado sesión en Avizor.")
+    messages = [PushMessage(token, notification) for token in tokens]
+    invalid = sender.send(messages)
+    if invalid:
         db.execute(
             update(Device).where(Device.push_token.in_(invalid)).values(push_token=None)
         )

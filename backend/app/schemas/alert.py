@@ -94,3 +94,13 @@ class PushNotification(ContractModel):
     alert_id: UUID
     title: str = Field(min_length=1, max_length=50)
     body: str = Field(min_length=1, max_length=120)
+
+
+class LogoutNotification(ContractModel):
+    """ES: Push al Tutor cuando el Sénior cierra sesión.
+    EN: Push to the guardian when the senior logs out.
+    """
+
+    type: Literal["senior_logout"] = "senior_logout"
+    title: str = Field(default="Avizor", min_length=1, max_length=50)
+    body: str = Field(min_length=1, max_length=120)

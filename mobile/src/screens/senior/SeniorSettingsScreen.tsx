@@ -7,7 +7,7 @@ import Screen from '../../components/Screen';
 import { colors } from '../../constants/colors';
 import { fontSize, fontWeight } from '../../constants/typography';
 import { STORAGE_KEYS } from '../../constants/storage';
-import { clearToken } from '../../services/api';
+import { apiFetch, clearToken } from '../../services/api';
 import { useAccessibility } from '../../contexts/AccessibilityContext';
 import { RootStackParamList } from '../../navigation/types';
 
@@ -46,6 +46,7 @@ export default function SeniorSettingsScreen({ navigation }: Props) {
           text: 'Cerrar sesión',
           style: 'destructive',
           onPress: async () => {
+            try { await apiFetch('/api/v1/senior/logout', { method: 'POST' }); } catch {}
             await clearToken();
             await Promise.allSettled([
               SecureStore.deleteItemAsync(STORAGE_KEYS.USER_MODE),
