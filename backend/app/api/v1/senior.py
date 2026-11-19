@@ -86,6 +86,33 @@ def get_senior(db: DbSession, token: GuardianToken) -> SeniorRead:
     )
 
 
+@router.get("/senior/me")
+def get_my_profile(db: DbSession, token: SeniorToken) -> SeniorProfileRead:
+    """ES: La app del Sénior recupera su perfil (p. ej. al reiniciar sesión).
+    El token del Sénior identifica al dispositivo (sub = device.id).
+    EN: The senior app fetches its own profile (e.g. after restarting).
+    The senior token identifies the device (sub = device.id).
+    """
+    senior = db.scalar(
+        select(User)
+        .join(Device, Device.user_id == User.id)
+        .where(Device.id == token.sub, User.deleted_at.is_(None))
+    )
+    if senior is None:
+        raise ApiError(404, ErrorCode.NOT_FOUND, "Dispositivo no encontrado.")
+    guardian_phone = db.scalar(
+        select(Pairing.guardian_phone)
+        .where(Pairing.senior_id == senior.id, Pairing.active.is_(True))
+        .order_by(Pairing.redeemed_at.desc())
+        .limit(1)
+    )
+    return SeniorProfileRead(
+        display_name=senior.display_name,
+        accessibility_profile=senior.accessibility_profile,
+        guardian_phone=guardian_phone,
+    )
+
+
 @router.patch("/senior/accessibility")
 def update_accessibility(
     body: AccessibilityProfile, db: DbSession, token: GuardianToken
