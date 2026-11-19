@@ -11,6 +11,7 @@ EN: The push has NO message content (contract): only a fixed notice and the
 
 import logging
 import uuid
+from datetime import UTC, datetime
 from typing import NamedTuple, Protocol
 
 import httpx
@@ -28,6 +29,8 @@ logger = logging.getLogger(__name__)
 
 EXPO_PUSH_URL = "https://exp.host/--/api/v2/push/send"
 # ES: Expo acepta hasta 100 mensajes por petición. EN: Expo accepts up to 100.
+LOGOUT_PUSH_COOLDOWN_SECONDS = 300  # 5 minutos entre avisos de logout por sénior
+_logout_push_last_sent: dict[uuid.UUID, datetime] = {}
 EXPO_BATCH_SIZE = 100
 PUSH_TITLE = "Estafa bloqueada"
 
@@ -154,6 +157,11 @@ def send_logout_push(
     """ES: Push a todos los dispositivos del Tutor cuando el Sénior cierra sesión.
     EN: Push to all guardian devices when the senior logs out.
     """
+    now = datetime.now(UTC)
+    last = _logout_push_last_sent.get(senior_id)
+    if last is not None and (now - last).total_seconds() < LOGOUT_PUSH_COOLDOWN_SECONDS:
+        return 0
+
     tokens = db.scalars(
         select(Device.push_token)
         .join(Pairing, Pairing.guardian_id == Device.user_id)
@@ -170,6 +178,7 @@ def send_logout_push(
         body=f"{senior_name} ha cerrado sesión en Avizor."
     )
     messages = [PushMessage(token, notification) for token in tokens]
+    _logout_push_last_sent[senior_id] = now
     invalid = sender.send(messages)
     if invalid:
         db.execute(

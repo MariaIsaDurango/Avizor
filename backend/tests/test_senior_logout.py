@@ -84,3 +84,19 @@ def test_logout_sender_error_devuelve_204(
     response = api_client.post(LOGOUT, headers=paired_senior.headers)
 
     assert response.status_code == 204
+
+
+# ---------- Rate limiting / Cooldown ----------
+
+
+def test_segundo_logout_en_cooldown_no_envia(
+    api_client, paired_senior, guardian_with_push, monkeypatch
+):
+    monkeypatch.setattr(push_service, "_logout_push_last_sent", {})
+    sender = FakeSender()
+    monkeypatch.setattr(push_service, "get_sender", lambda: sender)
+
+    api_client.post(LOGOUT, headers=paired_senior.headers)
+    api_client.post(LOGOUT, headers=paired_senior.headers)
+
+    assert len(sender.sent) == 1
