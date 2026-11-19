@@ -166,8 +166,8 @@ def unlink_senior(db: DbSession, token: GuardianToken):
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@router.post("/senior/logout", status_code=200)
-def notify_senior_logout(db: DbSession, token: SeniorToken) -> None:
+@router.post("/senior/logout", status_code=status.HTTP_204_NO_CONTENT)
+def notify_senior_logout(db: DbSession, token: SeniorToken):
     """ES: El Sénior avisa al Tutor de que ha cerrado sesión. No bloquea el logout
     aunque el push falle — el dispositivo limpia su token independientemente.
     EN: The senior notifies the guardian that they have logged out. Does not block
@@ -179,10 +179,11 @@ def notify_senior_logout(db: DbSession, token: SeniorToken) -> None:
         .where(Device.id == token.sub, User.deleted_at.is_(None))
     )
     if senior is None:
-        return
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
     try:
         push_service.send_logout_push(
             db, senior.id, senior.display_name, push_service.get_sender()
         )
     except Exception:
         logger.exception("Logout push failed for senior %s", senior.id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

@@ -52,7 +52,9 @@ class LogPushSender:
 
     def send(self, messages: list[PushMessage]) -> set[str]:
         for message in messages:
-            logger.info("Push (log only) for alert %s", message.notification.alert_id)
+            logger.info(
+                "Push (log only) — type: %s", type(message.notification).__name__
+            )
         return set()
 
 
@@ -160,6 +162,7 @@ def send_logout_push(
             Pairing.active.is_(True),
             Device.push_token.is_not(None),
         )
+        .distinct()
     ).all()
     if not tokens:
         return 0
