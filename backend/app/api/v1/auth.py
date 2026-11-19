@@ -146,7 +146,7 @@ def login(body: LoginRequest, db: DbSession) -> TokenResponse:
             "Verifica tu email con el código que te enviamos antes de iniciar sesión.",
         )
 
-    token = create_access_token(user.id, user.role)
+    token = create_access_token(user.id, user.role, token_version=user.token_version)
     return TokenResponse(
         access_token=token, expires_in=settings.JWT_EXPIRE_MINUTES * 60
     )
@@ -178,10 +178,12 @@ def update_me(body: UpdateMeRequest, token: GuardianToken, db: DbSession) -> Use
 
 @router.post("/change-password", status_code=status.HTTP_204_NO_CONTENT)
 def change_password(body: ChangePasswordRequest, token: GuardianToken, db: DbSession):
-    """ES: Cambia la contraseña comprobando antes la actual. Al cambiarla, los
-    enlaces de recuperación pendientes dejan de valer (ver password_reset).
-    EN: Changes the password after checking the current one. Pending reset
-    links stop working once it changes (see password_reset).
+    """ES: Cambia la contraseña comprobando antes la actual. Al cambiarla se
+    cierran todas las sesiones (token_version) y los enlaces de recuperación
+    pendientes dejan de valer (ver password_reset).
+    EN: Changes the password after checking the current one. Once changed,
+    every session is closed (token_version) and pending reset links stop
+    working (see password_reset).
     """
     user = _active_guardian(db, token.sub)
     if not user.password_hash or not verify_password(
@@ -197,5 +199,8 @@ def change_password(body: ChangePasswordRequest, token: GuardianToken, db: DbSes
             "La nueva contraseña debe ser distinta de la actual.",
         )
     user.password_hash = hash_password(body.new_password)
+    # ES: Cierra todas las sesiones, también la actual: la app vuelve al login.
+    # EN: Closes every session, including this one: the app returns to login.
+    user.token_version += 1
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)

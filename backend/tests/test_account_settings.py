@@ -274,3 +274,58 @@ def test_senior_stays_active_if_another_guardian_remains(
     assert paired_senior.user.deleted_at is None
     assert api_client.get(SENIOR, headers=second_headers).status_code == 200
     assert api_client.get(SENIOR_ME, headers=paired_senior.headers).status_code == 200
+
+
+# ---------- Cerrar sesiones / close sessions (token_version) ----------
+
+
+def login_token(api_client, email, password):
+    response = api_client.post(LOGIN, json={"email": email, "password": password})
+    assert response.status_code == 200
+    return {"Authorization": f"Bearer {response.json()['access_token']}"}
+
+
+def test_change_password_closes_all_sessions(api_client, guardian):
+    phone = login_token(api_client, guardian.email, CURRENT)
+    laptop = login_token(api_client, guardian.email, CURRENT)
+    assert api_client.get(ME, headers=laptop).status_code == 200
+
+    assert change(api_client, phone).status_code == 204
+
+    for headers in (phone, laptop):
+        response = api_client.get(ME, headers=headers)
+        assert response.status_code == 401
+        assert "Vuelve a iniciar sesión" in response.json()["detail"]
+    new_session = login_token(api_client, guardian.email, NEW)
+    assert api_client.get(ME, headers=new_session).status_code == 200
+
+
+def test_failed_change_keeps_sessions(api_client, guardian):
+    session = login_token(api_client, guardian.email, CURRENT)
+    assert change(api_client, session, current="no-es-la-buena").status_code == 400
+    assert api_client.get(ME, headers=session).status_code == 200
+
+
+def test_password_reset_closes_sessions(api_client, db_session, guardian):
+    from app.services import password_reset
+
+    session = login_token(api_client, guardian.email, CURRENT)
+    token = password_reset.create_reset_token(guardian)
+    response = api_client.post(
+        "/api/v1/auth/reset-password", json={"token": token, "new_password": NEW}
+    )
+    assert response.status_code == 204
+    assert api_client.get(ME, headers=session).status_code == 401
+
+
+def test_deleted_guardian_token_stops_working(api_client, db_session, guardian):
+    session = login_token(api_client, guardian.email, CURRENT)
+    guardian.deleted_at = datetime.now(UTC)
+    db_session.flush()
+    assert api_client.get(ME, headers=session).status_code == 401
+
+
+def test_senior_token_not_affected(api_client, guardian_headers, paired_senior):
+    assert change(api_client, guardian_headers).status_code == 204
+    response = api_client.get(SENIOR_ME, headers=paired_senior.headers)
+    assert response.status_code == 200
