@@ -21,7 +21,7 @@ from app.core.errors import ApiError
 from app.models.user import Device, Pairing, User
 from app.schemas.accessibility import AccessibilityProfile
 from app.schemas.enums import ErrorCode
-from app.schemas.senior import SeniorProfileRead, SeniorRead
+from app.schemas.senior import PhoneUpdate, SeniorProfileRead, SeniorRead
 from app.services import push as push_service
 
 logger = logging.getLogger(__name__)
@@ -83,6 +83,7 @@ def get_senior(db: DbSession, token: GuardianToken) -> SeniorRead:
         last_seen_at=device.last_seen_at if device else None,
         paired_since=pairing.redeemed_at,
         accessibility_profile=senior.accessibility_profile,
+        guardian_phone=pairing.guardian_phone,
     )
 
 
@@ -127,6 +128,19 @@ def update_accessibility(
     if senior is None or senior.deleted_at is not None:
         raise ApiError(404, ErrorCode.NOT_FOUND, NO_SENIOR)
     senior.accessibility_profile = body.model_dump()
+    db.commit()
+    return body
+
+
+@router.patch("/senior/phone")
+def update_phone(body: PhoneUpdate, db: DbSession, token: GuardianToken) -> PhoneUpdate:
+    """ES: El Tutor actualiza su teléfono de contacto en la vinculación activa.
+    EN: Guardian updates their contact phone in the active pairing.
+    """
+    pairing = _active_pairing(db, token.sub, lock=True)
+    if pairing is None:
+        raise ApiError(404, ErrorCode.NOT_FOUND, NO_SENIOR)
+    pairing.guardian_phone = body.guardian_phone
     db.commit()
     return body
 

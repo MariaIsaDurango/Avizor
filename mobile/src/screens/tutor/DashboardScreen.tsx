@@ -82,12 +82,12 @@ export default function TutorDashboardScreen({ navigation }: Props) {
           <Text style={styles.brandName}>Avizor</Text>
         </View>
         <Pressable
-          onPress={() => navigation.navigate('TutorLogout')}
+          onPress={() => navigation.navigate('TutorAccount')}
           style={styles.logoutBtn}
           accessibilityRole="button"
-          accessibilityLabel="Cerrar sesión"
+          accessibilityLabel="Ajustes de cuenta"
         >
-          <MaterialIcons name="logout" size={20} color={colors.primary} style={{ opacity: 0.45 }} />
+          <MaterialIcons name="person" size={22} color={colors.primary} style={{ opacity: 0.45 }} />
         </Pressable>
       </View>
 

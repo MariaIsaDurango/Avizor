@@ -79,6 +79,34 @@ export async function resendVerification(email: string): Promise<void> {
   });
 }
 
+export async function getMe(): Promise<{ id: string; display_name: string; email: string | null }> {
+  const response = await apiFetch('/api/v1/auth/me');
+  if (!response.ok) throw new Error('Error al obtener el perfil.');
+  return response.json();
+}
+
+export async function updateMe(displayName: string): Promise<void> {
+  const response = await apiFetch('/api/v1/auth/me', {
+    method: 'PATCH',
+    body: JSON.stringify({ display_name: displayName }),
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail ?? 'Error al actualizar el nombre.');
+  }
+}
+
+export async function changePassword(currentPassword: string, newPassword: string): Promise<void> {
+  const response = await apiFetch('/api/v1/auth/change-password', {
+    method: 'POST',
+    body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail ?? 'Error al cambiar la contraseña.');
+  }
+}
+
 export async function isTokenExpired(): Promise<boolean> {
   const raw = await SecureStore.getItemAsync(STORAGE_KEYS.TOKEN_EXPIRES_AT);
   if (!raw) return false;
