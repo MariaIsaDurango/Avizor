@@ -131,6 +131,9 @@ export async function updateSeniorPhone(phone: string | null): Promise<void> {
   });
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.detail ?? 'Error al guardar el teléfono.');
+    const detail = Array.isArray(error.detail)
+      ? 'Teléfono no válido. Ejemplo: +34 600 000 000'
+      : error.detail;
+    throw new Error(detail ?? 'Error al guardar el teléfono.');
   }
 }

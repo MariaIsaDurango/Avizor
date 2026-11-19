@@ -393,7 +393,9 @@
           fb.className = 'modal-feedback modal-feedback--success';
         } else {
           const err = await res.json();
-          fb.textContent = err.detail ?? 'Error al guardar.';
+          fb.textContent = Array.isArray(err.detail)
+            ? 'Teléfono no válido. Ejemplo: +34 600 000 000'
+            : (err.detail ?? 'Error al guardar.');
           fb.className = 'modal-feedback modal-feedback--error';
         }
       } catch { fb.textContent = 'Error de conexión.'; fb.className = 'modal-feedback modal-feedback--error'; }

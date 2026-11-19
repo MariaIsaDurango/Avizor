@@ -7,10 +7,11 @@ GET /api/v1/senior/me  (senior)   → SeniorProfileRead | 404
 
 from typing import Literal
 
-from pydantic import AwareDatetime
+from pydantic import AwareDatetime, Field, field_validator
 
 from app.schemas.accessibility import AccessibilityProfile
 from app.schemas.common import ContractModel
+from app.schemas.pairing import normalize_phone
 
 
 class SeniorRead(ContractModel):
@@ -32,7 +33,12 @@ class PhoneUpdate(ContractModel):
     EN: Guardian phone, editable from account settings.
     """
 
-    guardian_phone: str | None = None
+    guardian_phone: str | None = Field(default=None, max_length=30)
+
+    @field_validator("guardian_phone")
+    @classmethod
+    def check_phone(cls, value: str | None) -> str | None:
+        return normalize_phone(value)
 
 
 class SeniorProfileRead(ContractModel):
