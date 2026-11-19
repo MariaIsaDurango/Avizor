@@ -163,7 +163,9 @@ def send_logout_push(
     ).all()
     if not tokens:
         return 0
-    notification = LogoutNotification(body=f"{senior_name} ha cerrado sesión en Avizor.")
+    notification = LogoutNotification(
+        body=f"{senior_name} ha cerrado sesión en Avizor."
+    )
     messages = [PushMessage(token, notification) for token in tokens]
     invalid = sender.send(messages)
     if invalid:
