@@ -3,10 +3,12 @@ Minimum data retention tests (need PostgreSQL).
 """
 
 import uuid
+from contextlib import nullcontext
 from datetime import UTC, datetime, timedelta
 
 import pytest
 
+from app.jobs import purge as purge_job
 from app.models.alert import Unlock
 from app.models.analysis import Analysis, TempContent
 from app.models.indicator import Case, Indicator
@@ -75,6 +77,17 @@ def add_indicator(db_session, last_seen_at):
 def test_expired_text_is_deleted(db_session, analysis):
     add_temp(db_session, analysis, NOW - timedelta(minutes=1))
     result = purge_expired(db_session, NOW)
+    assert result.temp_content_deleted == 1
+    assert db_session.get(TempContent, analysis.id) is None
+
+
+def test_purge_job_deletes_expired_text(monkeypatch, db_session, analysis):
+    add_temp(db_session, analysis, NOW - timedelta(minutes=1))
+    monkeypatch.setattr(purge_job, "SessionLocal", lambda: nullcontext(db_session))
+
+    result = purge_job.run_purge_once()
+
+    assert result is not None
     assert result.temp_content_deleted == 1
     assert db_session.get(TempContent, analysis.id) is None
 
