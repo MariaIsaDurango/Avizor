@@ -319,6 +319,20 @@ function formatCode(code) {
 
 // ── Countdown ───────────────────────────────────────────────
 let _countdownTimer = null;
+let _pairingPoller  = null;
+
+function startPairingPoll(token) {
+  if (_pairingPoller) return;
+  _pairingPoller = setInterval(async () => {
+    try {
+      const res = await fetch('/api/v1/senior', { headers: { Authorization: `Bearer ${token}` } });
+      if (res.ok) { stopPairingPoll(); window.location.reload(); }
+    } catch {}
+  }, 3000);
+}
+function stopPairingPoll() {
+  if (_pairingPoller) { clearInterval(_pairingPoller); _pairingPoller = null; }
+}
 function startCountdown(expiresAt) {
   if (_countdownTimer) clearInterval(_countdownTimer);
   const countdownEl  = document.getElementById('pairing-countdown');
@@ -330,6 +344,7 @@ function startCountdown(expiresAt) {
     countdownEl.textContent = left > 0 ? `Expira en ${formatTime(left)}` : '';
     if (left === 0) {
       clearInterval(_countdownTimer);
+      stopPairingPoll();
       expiredMsg.style.display  = 'block';
       countdownEl.style.display = 'none';
       btnNewCode.style.display  = 'inline-flex';
@@ -397,6 +412,7 @@ async function generateCode() {
     document.getElementById('pairing-countdown').style.display = 'block';
     document.getElementById('btn-new-code').style.display = 'none';
     startCountdown(new Date(data.expires_at).getTime());
+    startPairingPoll(token);
 
     const qrEl = document.getElementById('pairing-qr');
     qrEl.innerHTML = '';
@@ -417,6 +433,7 @@ async function generateCode() {
 
 function resetPairing() {
   if (_countdownTimer) clearInterval(_countdownTimer);
+  stopPairingPoll();
   document.getElementById('pairing-step-name').style.display = 'block';
   document.getElementById('pairing-step-code').style.display = 'none';
   document.getElementById('pairing-qr').innerHTML = '';
