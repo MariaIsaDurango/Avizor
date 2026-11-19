@@ -33,3 +33,6 @@ class SeniorProfileRead(ContractModel):
 
     display_name: str
     accessibility_profile: AccessibilityProfile | None = None
+    # ES: Teléfono del Tutor de la vinculación activa más reciente.
+    # EN: Guardian phone from the most recent active pairing.
+    guardian_phone: str | None = None

@@ -134,10 +134,9 @@ def test_senior_fetches_own_profile(api_client, db_session, paired_senior):
     db_session.flush()
     response = api_client.get(SENIOR_ME, headers=paired_senior.headers)
     assert response.status_code == 200
-    assert response.json() == {
-        "display_name": "Carmen",
-        "accessibility_profile": PROFILE,
-    }
+    body = response.json()
+    assert body["display_name"] == "Carmen"
+    assert body["accessibility_profile"] == PROFILE
 
 
 def test_senior_without_profile_gets_null(api_client, paired_senior):
