@@ -40,15 +40,24 @@ class TokenPayload(BaseModel):
     sub: uuid.UUID  # ES: id del usuario o dispositivo / EN: user or device id
     role: UserRole
     exp: datetime
+    # ES: Versión de sesión del usuario (Tutor/admin). Si cambia en la BD,
+    #     los tokens anteriores dejan de valer. Los tokens sin "tv" cuentan como 0.
+    # EN: User session version (guardian/admin). If it changes in the DB,
+    #     earlier tokens stop working. Tokens without "tv" count as 0.
+    tv: int = 0
 
 
 def create_access_token(
-    subject: uuid.UUID, role: UserRole, expires_minutes: int | None = None
+    subject: uuid.UUID,
+    role: UserRole,
+    expires_minutes: int | None = None,
+    token_version: int = 0,
 ) -> str:
     minutes = expires_minutes or settings.JWT_EXPIRE_MINUTES
     payload = {
         "sub": str(subject),
         "role": role.value,
+        "tv": token_version,
         "exp": datetime.now(UTC) + timedelta(minutes=minutes),
     }
     return jwt.encode(payload, settings.JWT_SECRET, algorithm=JWT_ALGORITHM)
