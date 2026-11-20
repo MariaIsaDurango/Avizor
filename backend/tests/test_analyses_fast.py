@@ -105,6 +105,27 @@ def test_analysis_row_stores_hmac_not_phone(db_session, red_response):
     assert analysis.latency_ms is not None
 
 
+def test_message_body_is_not_persisted_in_analyses(
+    api_client, db_session, consented_senior
+):
+    marker = "mensaje-prueba-sin-identificadores"
+    message = f"{PHISHING} {marker}"
+    body = sms_request(consented_senior.device.id, message, [PHISHING_URL])
+    response = api_client.post(ANALYSES, json=body, headers=consented_senior.headers)
+
+    assert response.status_code == 200
+    analysis = db_session.get(Analysis, response.json()["analysis_id"])
+    assert analysis is not None
+    persisted_values = " ".join(
+        str(getattr(analysis, column.name)) for column in Analysis.__table__.columns
+    )
+    assert marker not in persisted_values
+
+    temp = db_session.get(TempContent, response.json()["analysis_id"])
+    assert temp is not None
+    assert temp.anonymized_text == message
+
+
 def test_red_text_is_kept_30_days(db_session, red_response):
     temp = db_session.get(TempContent, red_response.json()["analysis_id"])
     assert temp.anonymized_text == PHISHING
