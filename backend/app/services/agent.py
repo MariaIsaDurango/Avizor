@@ -159,8 +159,11 @@ def run_agent(agent: ManualAgent, data: AgentInput) -> AgentOutput | None:
     except ValidationError:
         logger.warning("Agent output rejected by schema")
         return None
-    except Exception:  # noqa: BLE001
-        logger.warning("Agent unavailable; using fast path")
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(
+            "Agent unavailable; using fast path. Error type: %s",
+            type(exc).__name__,
+        )
         return None
     if (
         output.risk_level != data.fast_risk_level
