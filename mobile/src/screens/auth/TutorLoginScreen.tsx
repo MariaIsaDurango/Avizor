@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, Image, TextInput, Pressable, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, Image, TextInput, Pressable, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Screen from '../../components/Screen';
@@ -38,8 +38,6 @@ export default function TutorLoginScreen({ navigation, route }: Props) {
 
   return (
     <Screen scrollable>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-
         <Pressable onPress={() => navigation.navigate('ModeSelection')} style={a.back} accessibilityRole="button" accessibilityLabel="Volver">
           <Ionicons name="arrow-back-outline" size={18} color="#6b7280" />
           <Text style={a.backText}>Volver</Text>
@@ -109,7 +107,6 @@ export default function TutorLoginScreen({ navigation, route }: Props) {
           <Text style={a.footerText}>¿No tienes cuenta? <Text style={a.footerTextBold}>Regístrate</Text></Text>
         </Pressable>
 
-      </KeyboardAvoidingView>
     </Screen>
   );
 }

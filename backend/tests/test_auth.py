@@ -11,6 +11,7 @@ from fastapi.testclient import TestClient
 from app.api.deps import GuardianToken
 from app.core.errors import register_error_handlers
 from app.core.security import create_access_token
+from app.db.session import get_db
 from app.models.user import User
 from app.schemas.enums import UserRole
 
@@ -126,9 +127,21 @@ def _guardian_only(token: GuardianToken):
     ("role", "status"),
     [(UserRole.GUARDIAN, 200), (UserRole.SENIOR, 403), (UserRole.ADMIN, 403)],
 )
-def test_require_role(role, status):
-    token = create_access_token(uuid.uuid4(), role)
-    response = TestClient(roles_app).get(
-        "/guardian-only", headers={"Authorization": f"Bearer {token}"}
-    )
+def test_require_role(db_session, role, status):
+    # ES: Tutor y admin deben existir en la BD (se comprueba token_version).
+    # EN: Guardians and admins must exist in the DB (token_version is checked).
+    subject = uuid.uuid4()
+    if role != UserRole.SENIOR:
+        user = User(role=role, display_name="Rol", email=f"{role.value}@example.com")
+        db_session.add(user)
+        db_session.flush()
+        subject = user.id
+    token = create_access_token(subject, role)
+    roles_app.dependency_overrides[get_db] = lambda: db_session
+    try:
+        response = TestClient(roles_app).get(
+            "/guardian-only", headers={"Authorization": f"Bearer {token}"}
+        )
+    finally:
+        roles_app.dependency_overrides.clear()
     assert response.status_code == status

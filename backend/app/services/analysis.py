@@ -11,9 +11,11 @@ EN: Stores only metadata in analyses. Anonymized text goes to temp_content
 
 import uuid
 from datetime import UTC, datetime, timedelta
+from functools import partial
 from time import perf_counter
 from typing import NamedTuple
 
+from anyio.from_thread import run as run_on_app_loop
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
@@ -38,6 +40,7 @@ from app.schemas.enums import (
 from app.schemas.verdict import Verdict
 from app.services.consent import has_active_consent
 from app.services.detection.decision import AMBER_THRESHOLD, decide
+from app.services.detection.reputation import ReputationRuntime
 from app.services.detection.text_rules import KeywordClassifier, ThreatClassifier
 from app.services.detection.url_rules import domain_of
 from app.services.devices import touch_device
@@ -146,7 +149,12 @@ class FastResult(NamedTuple):
     alert_ids: list[uuid.UUID]
 
 
-def analyze_fast(db: Session, token: TokenPayload, body: AnalysisRequest) -> FastResult:
+def analyze_fast(
+    db: Session,
+    token: TokenPayload,
+    body: AnalysisRequest,
+    reputation: ReputationRuntime | None = None,
+) -> FastResult:
     started = perf_counter()
     now = datetime.now(UTC)
 
@@ -188,7 +196,8 @@ def analyze_fast(db: Session, token: TokenPayload, body: AnalysisRequest) -> Fas
         default=0,
     )
 
-    decision = decide(
+    classify = partial(
+        decide,
         input_type=body.input_type,
         origin=body.origin,
         channel=body.channel,
@@ -200,6 +209,12 @@ def analyze_fast(db: Session, token: TokenPayload, body: AnalysisRequest) -> Fas
     )
 
     is_phone = body.input_type == InputType.PHONE_NUMBER
+    # SQLAlchemy stays in this worker. Only the pure decision and IO run concurrently.
+    # Phone analysis keeps the existing local HMAC route; no external phone calls.
+    if reputation is not None and urls and not is_phone:
+        decision = run_on_app_loop(reputation.evaluate, classify, urls, body.channel)
+    else:
+        decision = classify()
     analysis = Analysis(
         device_id=body.device_id,
         channel=body.channel,
@@ -240,7 +255,16 @@ def analyze_fast(db: Session, token: TokenPayload, body: AnalysisRequest) -> Fas
                         "reason": finding.reasons[0],
                     }
                 )
-        if body.sender and sender_type:
+        for finding in decision.reputation_findings:
+            evidence.append(
+                {
+                    "type": "domain",
+                    "value": finding.domain,
+                    "reason": finding.reasons[0],
+                }
+            )
+        # An external URL match alone must not create a sender/domain report.
+        if body.sender and sender_type and not decision.reputation_only:
             record_indicator(db, sender_type, body.sender.value, now)
             if sender_reports:
                 evidence.append(

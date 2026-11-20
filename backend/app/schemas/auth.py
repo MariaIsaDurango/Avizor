@@ -72,6 +72,24 @@ class ResetPasswordRequest(ContractModel):
     new_password: str = Field(min_length=10, max_length=128)
 
 
+class UpdateMeRequest(ContractModel):
+    display_name: str = Field(min_length=1, max_length=50)
+
+    @field_validator("display_name")
+    @classmethod
+    def not_blank(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("El nombre no puede estar vacío.")
+        return value
+
+
+class ChangePasswordRequest(ContractModel):
+    current_password: str = Field(min_length=1, max_length=128)
+    # ES: Misma regla que en el registro. EN: Same rule as sign-up.
+    new_password: str = Field(min_length=10, max_length=128)
+
+
 class MessageResponse(ContractModel):
     message: str
 

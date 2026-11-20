@@ -9,8 +9,8 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
 } from 'react-native';
-import * as SecureStore from 'expo-secure-store';
 import * as Haptics from 'expo-haptics';
+import * as SecureStore from 'expo-secure-store';
 import { MaterialIcons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Screen from '../../components/Screen';
@@ -125,7 +125,7 @@ export default function SeniorHomeScreen({ navigation }: Props) {
     setError(null);
   }
 
-  if (verdict) {
+if (verdict) {
     const accentColor = RISK_COLORS[verdict.risk_level];
     return (
       <Screen style={styles.screen}>
@@ -154,6 +154,15 @@ export default function SeniorHomeScreen({ navigation }: Props) {
 
   return (
     <Screen style={styles.screen}>
+      <Pressable
+        style={styles.settingsBtn}
+        onPress={() => navigation.navigate('SeniorSettings')}
+        accessibilityRole="button"
+        accessibilityLabel="Ajustes"
+      >
+        <MaterialIcons name="settings" size={22} color={colors.primary} style={{ opacity: 0.4 }} />
+      </Pressable>
+
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <View style={styles.inner}>
           <View style={styles.top}>
@@ -350,5 +359,12 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 3,
     textAlign: 'center',
+  },
+  settingsBtn: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    padding: 8,
+    zIndex: 1,
   },
 });

@@ -43,6 +43,9 @@ class User(Base):
     verification_code_hash: Mapped[str | None] = mapped_column(Text)
     verification_code_expires_at: Mapped[datetime | None] = mapped_column(TZ)
     verification_attempts: Mapped[int] = mapped_column(Integer, server_default="0")
+    # ES: Sube al cambiar o recuperar la contraseña: cierra todas las sesiones (0007).
+    # EN: Bumped on password change or reset: closes every session (0007).
+    token_version: Mapped[int] = mapped_column(Integer, server_default="0", default=0)
     # ES: Solo Sénior (migración 0005). Ver schemas/accessibility.py.
     # EN: Senior only (migration 0005). See schemas/accessibility.py.
     accessibility_profile: Mapped[dict | None] = mapped_column(JSONB)
@@ -77,6 +80,9 @@ class Pairing(Base):
     # ES: Perfil que indica el Tutor; se copia al Sénior al canjear (0005).
     # EN: Profile set by the guardian; copied to the senior on redeem (0005).
     senior_accessibility_profile: Mapped[dict | None] = mapped_column(JSONB)
+    # ES: Teléfono del Tutor para el botón "Llamar a tu familiar" (0006).
+    # EN: Guardian phone for the "Call your family" button (0006).
+    guardian_phone: Mapped[str | None] = mapped_column(Text)
     expires_at: Mapped[datetime] = mapped_column(TZ)
     redeemed_at: Mapped[datetime | None] = mapped_column(TZ)
     active: Mapped[bool] = mapped_column(Boolean, server_default="true")
