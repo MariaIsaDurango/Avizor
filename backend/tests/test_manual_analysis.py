@@ -8,8 +8,10 @@ EN: The background task is replaced by a list ("jobs" fixture) and run by
 """
 
 import json
+import os
 import uuid
 from datetime import UTC, datetime, timedelta
+from time import monotonic
 
 import pytest
 from sqlalchemy import select
@@ -109,7 +111,7 @@ def test_poll_while_pending_returns_202(api_client, paired_senior, jobs):
 # ---------- Agente / agent ----------
 
 
-def test_agent_red_creates_alert_and_final_verdict(
+def test_disabled_rag_red_creates_alert_and_final_verdict(
     api_client, db_session, paired_senior, jobs
 ):
     body = send(api_client, paired_senior, metadata(paired_senior)).json()
@@ -118,7 +120,7 @@ def test_agent_red_creates_alert_and_final_verdict(
     response = poll(api_client, paired_senior, body["analysis_id"])
     assert response.status_code == 200
     verdict = response.json()
-    assert verdict["phase"] == "agent"
+    assert verdict["phase"] == "fast"
     assert verdict["final"] is True
     assert verdict["risk_level"] == "red"
     assert verdict["action"] == "block_and_alert"
@@ -161,7 +163,7 @@ class BrokenAgent:
 def test_invalid_agent_falls_back_to_fast_path(
     api_client, db_session, paired_senior, jobs, monkeypatch, agent
 ):
-    monkeypatch.setattr(manual_service, "get_agent", lambda fast: agent)
+    monkeypatch.setattr(manual_service, "get_agent", lambda fast, **kwargs: agent)
     body = send(api_client, paired_senior, metadata(paired_senior)).json()
     finish_manual_analysis(db_session, jobs[0])
     verdict = poll(api_client, paired_senior, body["analysis_id"]).json()
@@ -195,7 +197,7 @@ class InventingAgent:
     def analyze(self, data):
         return {
             "risk_level": "red",
-            "threat_type": "phishing",
+            "threat_type": data.fast_threat_type,
             "block_template": "FAKE_DO_NOT_TOUCH",
             "confidence": 0.9,
             "explanation": "Suplanta a un banco.",
@@ -217,9 +219,14 @@ class InventingAgent:
 def test_agent_cannot_invent_indicators(
     api_client, db_session, paired_senior, jobs, monkeypatch
 ):
-    monkeypatch.setattr(manual_service, "get_agent", lambda fast: InventingAgent())
+    monkeypatch.setattr(
+        manual_service, "get_agent", lambda fast, **kwargs: InventingAgent()
+    )
     send(api_client, paired_senior, metadata(paired_senior))
-    finish_manual_analysis(db_session, jobs[0])
+    alert_ids = finish_manual_analysis(db_session, jobs[0])
+    assert len(alert_ids) == 1
+    alert = db_session.get(Alert, alert_ids[0])
+    assert all("<" not in item.get("value", "") for item in alert.evidence)
     values = set(db_session.scalars(select(Indicator.public_value)).all())
     assert "bbva-seguro.top" in values
     assert not any("<" in value for value in values)
@@ -348,3 +355,120 @@ def test_fast_path_verdict_can_be_polled(api_client, consented_senior):
     polled = poll(api_client, consented_senior, verdict["analysis_id"]).json()
     assert polled["phase"] == "fast"
     assert polled["risk_level"] == verdict["risk_level"]
+
+
+def test_rag_evidence_persisted_only_for_guardian(
+    api_client, db_session, paired_senior, jobs, monkeypatch
+):
+    from app.services import agent as rag_service
+
+    url = "https://www.incibe.es/ciudadania/avisos/campana-de-smishing-que-suplanta-entidades-bancarias-solicitando-que-les-llames"
+
+    class Engine:
+        def analyze(self, state, *, timeout):
+            assert "[IBAN]" in state["text"]
+            assert 0 < timeout <= 13
+            return {
+                "risk_level": state["risk"],
+                "threat_type": state["threat"],
+                "confidence": state["confidence"],
+                "block_template": "FAKE_DO_NOT_TOUCH",
+                "explanation": "Aviso oficial relacionado.",
+                "evidence": state["technical"]
+                + [{"type": "official_notice", "source": "incibe", "url": url}],
+            }
+
+    monkeypatch.setattr(rag_service, "_engine", Engine())
+    body = send(api_client, paired_senior, metadata(paired_senior)).json()
+    ids = finish_manual_analysis(db_session, jobs[0])
+    assert len(ids) == 1
+    verdict = poll(api_client, paired_senior, body["analysis_id"]).json()
+    assert verdict["phase"] == "agent"
+    assert verdict["risk_level"] == "red"
+    assert "explanation" not in verdict and "evidence" not in verdict
+    alert = db_session.get(Alert, ids[0])
+    assert any(item.get("url") == url for item in alert.evidence)
+    assert db_session.get(Analysis, uuid.UUID(body["analysis_id"])).latency_ms >= 0
+    assert finish_manual_analysis(db_session, jobs[0]) == []
+
+
+def test_late_agent_cannot_overwrite_expired_verdict(
+    api_client, db_session, paired_senior, jobs, monkeypatch
+):
+    class LateAgent:
+        model_version = "late-test"
+
+        def analyze(self, data):
+            # Simulate a poll winning finalization while the agent is in flight.
+            row = db_session.get(Analysis, jobs[0].analysis_id)
+            row.created_at = datetime.now(UTC) - timedelta(seconds=20)
+            db_session.flush()
+            manual_service._expire(db_session, row.id)
+            return {
+                "risk_level": data.fast_risk_level,
+                "threat_type": data.fast_threat_type,
+                "block_template": "FAKE_DO_NOT_TOUCH",
+                "confidence": 0.9,
+                "explanation": "Late agent",
+                "evidence": [],
+            }
+
+    monkeypatch.setattr(manual_service, "get_agent", lambda fast, **kwargs: LateAgent())
+    body = send(api_client, paired_senior, metadata(paired_senior)).json()
+    assert finish_manual_analysis(db_session, jobs[0]) == []
+    verdict = poll(api_client, paired_senior, body["analysis_id"]).json()
+    assert verdict["phase"] == "fast"
+    assert (
+        len(
+            db_session.scalars(
+                select(Alert).where(Alert.analysis_id == jobs[0].analysis_id)
+            ).all()
+        )
+        == 1
+    )
+
+
+@pytest.mark.skipif(
+    os.environ.get("AVIZOR_RUN_LIVE_RAG_TEST") != "1",
+    reason="Opt-in: needs local official corpus, E5, Ollama and PostgreSQL",
+)
+def test_live_rag_manual_endpoint(api_client, db_session, paired_senior, jobs):
+    from app.services import agent as rag_service
+
+    start = monotonic()
+    rag_service.initialize_agent(True)
+    print(f"RAG startup: {monotonic() - start:.3f} s")
+    try:
+        assert rag_service._engine is not None, "RAG not initialized"
+        start = monotonic()
+        text = "SMS de mi banco: su cuenta ha sido bloqueada. Verifique sus claves urgentemente."
+        response = send(api_client, paired_senior, metadata(paired_senior, text=text))
+        assert response.status_code == 202
+        ids = finish_manual_analysis(db_session, jobs[0])
+        final = poll(api_client, paired_senior, response.json()["analysis_id"])
+        elapsed = monotonic() - start
+        assert final.status_code == 200
+        verdict = final.json()
+        print(
+            json.dumps(
+                {
+                    "elapsed_s": round(elapsed, 3),
+                    "phase": verdict["phase"],
+                    "risk": verdict["risk_level"],
+                    "threat": verdict["threat_type"],
+                }
+            )
+        )
+        assert elapsed < 15
+        assert verdict["risk_level"] == "red"
+        assert verdict["phase"] == "agent"
+        assert "evidence" not in verdict and "explanation" not in verdict
+        assert len(ids) == 1
+        alert = db_session.get(Alert, ids[0])
+        evidence = [
+            item for item in alert.evidence if item["type"] == "official_notice"
+        ]
+        print(json.dumps({"official_evidence": evidence}, ensure_ascii=False))
+        assert evidence
+    finally:
+        rag_service.close_agent()

@@ -206,3 +206,33 @@ def test_long_text_falls_back_without_truncation():
         assert engine.analyze({**state(), "text": "a" * 1201}) is None
     finally:
         engine.close()
+
+
+def test_engine_respects_per_request_timeout(monkeypatch):
+    """The backend budget may be shorter than the graph default."""
+    import time
+
+    from rag.src.agent.graph import AgentEngine
+
+    class SlowGraph:
+        def invoke(self, state):
+            time.sleep(0.12)
+            return {"output": {"ignored": True}}
+
+    engine = AgentEngine(SlowGraph(), timeout=1)
+    monkeypatch.setattr(engine, "_invoke", lambda state: SlowGraph().invoke(state))
+    try:
+        result = engine.analyze(
+            {
+                "text": "Mensaje con riesgo",
+                "risk": "red",
+                "threat": "smishing",
+                "confidence": 0.9,
+                "templates": ["FAKE_DO_NOT_TOUCH"],
+                "technical": [],
+            },
+            timeout=0.03,
+        )
+        assert result is None
+    finally:
+        engine.close()

@@ -18,9 +18,11 @@ EN: 1. start: stores the analysis with a provisional verdict (final=false)
 import logging
 import re
 import uuid
+from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from typing import NamedTuple
 
+from pydantic import ValidationError
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -62,7 +64,7 @@ logger = logging.getLogger(__name__)
 RETRY_AFTER_MS = 2000
 # ES: Si el agente no termina en este tiempo, vale la vía rápida.
 # EN: If the agent does not finish in this time, the fast path wins.
-AGENT_TIMEOUT = timedelta(seconds=60)
+AGENT_TIMEOUT = timedelta(seconds=15)
 # ES: OCR/Whisper en servidor: decisión abierta (#7). De momento no se extrae
 #     nada, así que ningún dato sin anonimizar llega al agente.
 # EN: Server OCR/Whisper: open decision (#7). For now nothing is extracted,
@@ -85,6 +87,7 @@ class ManualJob(NamedTuple):
     analysis_id: uuid.UUID
     text: str
     urls: list[str]
+    fast: FastDecision | None = None
 
 
 class VerdictResult(NamedTuple):
@@ -174,6 +177,7 @@ def start_manual_analysis(
         model_version=CLASSIFIER.model_version,
         server_processed=any(r.ner_applied_on == "server" for r in rows),
         final=False,
+        created_at=datetime.now(UTC),
     )
     db.add(analysis)
     db.flush()
@@ -181,7 +185,7 @@ def start_manual_analysis(
         row.analysis_id = analysis.id
     db.add_all(rows)
     db.commit()
-    return ManualJob(analysis.id, text, urls)
+    return ManualJob(analysis.id, text, urls, fast)
 
 
 def _complete(
@@ -211,6 +215,9 @@ def _complete(
     analysis.phase = phase
     analysis.model_version = model_version
     analysis.final = True
+    analysis.latency_ms = max(
+        0, round((now - analysis.created_at).total_seconds() * 1000)
+    )
 
     alert_ids: list[uuid.UUID] = []
     if risk_level != RiskLevel.GREEN:
@@ -229,6 +236,12 @@ def _complete(
         # EN: Domains only: a manual forward has no sender (no sender field).
         #     And only those in the message: the agent cannot invent them.
         message_domains = {domain_of(url) for url in extract_urls(text)}
+        evidence = [
+            item
+            for item in evidence
+            if item.get("type") != IndicatorType.DOMAIN
+            or item.get("value") in message_domains
+        ]
         for item in evidence:
             if (
                 item.get("type") == IndicatorType.DOMAIN
@@ -247,27 +260,66 @@ def _locked_pending(db: Session, analysis_id: uuid.UUID) -> Analysis | None:
     EN: Locks the row: the agent and polling cannot finish it twice.
     """
     analysis = db.scalar(
-        select(Analysis).where(Analysis.id == analysis_id).with_for_update()
+        select(Analysis)
+        .where(Analysis.id == analysis_id)
+        .with_for_update()
+        .execution_options(populate_existing=True)
     )
     return analysis if analysis is not None and not analysis.final else None
 
 
 def finish_manual_analysis(db: Session, job: ManualJob) -> list[uuid.UUID]:
+    # Read the persisted fast verdict, release the transaction before inference.
+    # Lock only for finalization so polling/expiration can proceed concurrently.
+    analysis = db.get(Analysis, job.analysis_id, populate_existing=True)
+    if analysis is None or analysis.final:
+        return []
+    deadline = analysis.created_at + AGENT_TIMEOUT
+    model_version = analysis.model_version
+    fast = replace(
+        job.fast or _fast_decision(job.text, job.urls),
+        risk_level=analysis.risk_level,
+        threat_type=analysis.threat_type,
+        action=analysis.action,
+        block_template=(
+            BlockTemplate(analysis.block_template) if analysis.block_template else None
+        ),
+        confidence=float(analysis.confidence or 0),
+    )
+    db.commit()
+    budget = min(13.0, (deadline - datetime.now(UTC)).total_seconds() - 0.5)
+    agent = get_agent(fast, timeout=budget)
+    output = None
+    if budget > 0 and len(job.text) <= 30_000:
+        output = run_agent(
+            agent,
+            AgentInput(
+                text=job.text,
+                urls=job.urls,
+                fast_risk_level=fast.risk_level,
+                fast_threat_type=fast.threat_type,
+            ),
+        )
     analysis = _locked_pending(db, job.analysis_id)
     if analysis is None:
         return []
-
-    fast = _fast_decision(job.text, job.urls)
-    agent = get_agent(fast)
-    output = run_agent(
-        agent,
-        AgentInput(
-            text=job.text,
-            urls=job.urls,
-            fast_risk_level=fast.risk_level,
-            fast_threat_type=fast.threat_type,
-        ),
-    )
+    if datetime.now(UTC) >= deadline:
+        output = None
+    if output is not None:
+        try:
+            Verdict(
+                analysis_id=analysis.id,
+                phase=VerdictPhase.AGENT,
+                risk_level=output.risk_level,
+                threat_type=output.threat_type,
+                action=ACTION_BY_LEVEL[output.risk_level],
+                block_template=output.block_template,
+                confidence=output.confidence,
+                final=True,
+                issued_at=datetime.now(UTC),
+            )
+        except ValidationError:
+            output = None
     if output is None:
         # ES: Salida no válida: decisión de la vía rápida (contrato).
         # EN: Invalid output: fast path decision (contract).
@@ -279,7 +331,7 @@ def finish_manual_analysis(db: Session, job: ManualJob) -> list[uuid.UUID]:
             block_template=fast.block_template or BlockTemplate.UNSURE_CALL_FAMILY,
             confidence=fast.confidence,
             phase=VerdictPhase.FAST,
-            model_version=CLASSIFIER.model_version,
+            model_version=model_version,
             explanation=explain(fast.reasons),
             evidence=[
                 {"type": "domain", "value": f.domain, "reason": f.reasons[0]}
@@ -312,8 +364,8 @@ def run_manual_job(job: ManualJob) -> None:
             alert_ids = finish_manual_analysis(db, job)
         if alert_ids:
             push_service.send_alert_pushes_job(alert_ids)
-    except Exception:
-        logger.exception("Manual analysis failed for %s", job.analysis_id)
+    except Exception:  # noqa: BLE001 - background-job boundary; never log message content
+        logger.warning("Manual analysis failed for %s", job.analysis_id)
 
 
 def _expire(db: Session, analysis_id: uuid.UUID) -> list[uuid.UUID]:

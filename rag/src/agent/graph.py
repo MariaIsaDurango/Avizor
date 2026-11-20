@@ -149,7 +149,10 @@ class AgentEngine:
         with tracing_context(enabled=False):
             return self.graph.invoke(state)
 
-    def analyze(self, state: State) -> dict | None:
+    def analyze(self, state: State, *, timeout: float | None = None) -> dict | None:
+        budget = self.timeout if timeout is None else min(self.timeout, timeout)
+        if budget <= 0:
+            return None
         if (
             not state["text"].strip()
             or len(state["text"]) > 1200
@@ -175,7 +178,7 @@ class AgentEngine:
                             "technical",
                         )
                     },
-                    "deadline": start + self.timeout,
+                    "deadline": start + budget,
                 },
             )
         except RuntimeError:
@@ -183,8 +186,8 @@ class AgentEngine:
             return None
         future.add_done_callback(lambda _: self.slot.release())
         try:
-            result = future.result(timeout=max(0, self.timeout - (monotonic() - start)))
-            if monotonic() - start >= self.timeout:
+            result = future.result(timeout=max(0, budget - (monotonic() - start)))
+            if monotonic() - start >= budget:
                 return None
             return result.get("output")
         except Exception:  # noqa: BLE001 - do not log untrusted text or model errors
