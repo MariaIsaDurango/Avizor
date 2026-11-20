@@ -54,9 +54,13 @@ class Settings(BaseSettings):
     # EN: Optional: only if the Expo project requires an access token.
     EXPO_ACCESS_TOKEN: str | None = None
 
-    # ES: "log" solo escribe el correo en el log (desarrollo); "smtp" lo envía.
-    # EN: "log" only writes the email to the log (development); "smtp" sends it.
-    MAIL_PROVIDER: Literal["log", "smtp"] = "log"
+    # ES: "log" solo escribe el correo en el log (desarrollo); "smtp" lo envía
+    #     por Gmail (local); "brevo" lo envía por la API HTTPS de Brevo
+    #     (Railway bloquea el SMTP en los planes Free, Trial y Hobby).
+    # EN: "log" only writes the email to the log (development); "smtp" sends it
+    #     through Gmail (local); "brevo" sends it through Brevo's HTTPS API
+    #     (Railway blocks SMTP on the Free, Trial and Hobby plans).
+    MAIL_PROVIDER: Literal["log", "smtp", "brevo"] = "log"
     MAIL_SERVER: str = "smtp.gmail.com"
     MAIL_PORT: int = 587
     MAIL_USERNAME: str | None = None
@@ -64,6 +68,9 @@ class Settings(BaseSettings):
     # EN: Gmail: app password, never the normal one. Only in the .env.
     MAIL_PASSWORD: str | None = None
     MAIL_FROM: str | None = None
+    # ES: Clave de API de Brevo. Solo en el .env o en Railway, nunca en el repo.
+    # EN: Brevo API key. Only in the .env or Railway, never in the repo.
+    BREVO_API_KEY: SecretStr = SecretStr("")
     EMAIL_CODE_EXPIRE_MINUTES: int = 15
     EMAIL_CODE_MAX_ATTEMPTS: int = 5
     # ES: Dirección donde se abre el enlace para cambiar la contraseña.
