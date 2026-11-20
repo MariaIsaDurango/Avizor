@@ -11,4 +11,5 @@ python-multipart>=0.0.9
 jinja2>=3.1
 httpx>=0.27
 
-phonenumbers>=8.13      # ES: validar y enmascarar teléfonos / EN: validate and mask phonesbeautifulsoup4>=4.12
+phonenumbers>=8.13      # ES: validar y enmascarar teléfonos / EN: validate and mask phones
+beautifulsoup4>=4.12
