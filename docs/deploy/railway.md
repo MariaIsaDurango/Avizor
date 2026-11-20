@@ -36,14 +36,18 @@ sin `mobile/` y sin `ml/`.
    | `PHONE_HMAC_KEY` | otros 64 caracteres distintos: `openssl rand -hex 32` |
    | `APP_ENV` | `production` |
    | `FRONTEND_URL` | `https://<dominio-de-railway>` (paso 4) |
-   | `MAIL_PROVIDER` | `smtp` |
-   | `MAIL_USERNAME` | `avizorapp1.0@gmail.com` |
-   | `MAIL_PASSWORD` | contraseña de aplicación de Gmail |
-   | `MAIL_FROM` | `avizorapp1.0@gmail.com` |
+   | `MAIL_PROVIDER` | `brevo` (o `log` mientras no haya clave: el código sale en los logs) |
+   | `BREVO_API_KEY` | clave de API de Brevo (SMTP & API → API Keys) |
+   | `MAIL_FROM` | `Avizor <avizorapp1.0@gmail.com>` (remitente verificado en Brevo) |
    | `PUSH_PROVIDER` | `expo` (cuando la app tenga push real; si no, `log`) |
 
    `DATABASE_URL` puede llegar como `postgresql://...`: el backend lo convierte
    solo a `postgresql+psycopg://...`.
+
+   **Correo:** Railway bloquea el SMTP saliente (puertos 25, 465, 587 y 2525)
+   en los planes Free, Trial y Hobby, así que `MAIL_PROVIDER=smtp` (Gmail) no
+   funciona allí. Se usa la API HTTPS de Brevo. En local se puede seguir usando
+   `smtp` con Gmail o `log`.
 
    No hace falta `CHROMADB_*`: el backend todavía no usa ChromaDB (el RAG se
    integrará más adelante).
