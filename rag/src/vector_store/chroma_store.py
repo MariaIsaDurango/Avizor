@@ -65,12 +65,16 @@ class ChromaStore:
             self.collection.delete(ids=stale)
         return ("updated" if old else "inserted"), len(ids)
 
-    def query(self, vector, *, limit: int = 5):
+    def query(self, vector, *, limit: int = 5, where=None, documents: bool = False):
         count = self.collection.count()
-        if count == 0:
-            return {"ids": [[]], "metadatas": [[]], "distances": [[]]}
+        fields = ["metadatas", "distances"]
+        if documents:
+            fields.append("documents")
+        if count == 0 or limit <= 0:
+            return {key: [[]] for key in ["ids", *fields]}
         return self.collection.query(
             query_embeddings=[vector],
             n_results=min(limit, count, 5),
-            include=["metadatas", "distances"],
+            include=fields,
+            **({"where": where} if where is not None else {}),
         )

@@ -63,7 +63,7 @@ jobs:
 
       - name: Run backend tests
         if: ${{ hashFiles('backend/tests/**/*.py') != '' }}
-        run: pytest backend/tests
+        run: PYTHONPATH=backend:. pytest backend/tests
 
       - name: Report missing backend tests
         if: ${{ hashFiles('backend/tests/**/*.py') == '' }}

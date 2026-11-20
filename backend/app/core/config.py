@@ -79,6 +79,7 @@ class Settings(BaseSettings):
     PASSWORD_RESET_EXPIRE_MINUTES: int = 15
 
     # Issue #42: remote egress is limited to an explicit reviewed URL list.
+    AVIZOR_RAG_ENABLED: bool = False
     AVIZOR_PHISHTANK_LOCAL: bool = True
     AVIZOR_EXTERNAL_URLS: bool = False
     AVIZOR_REPUTATION_PUBLIC_URLS: list[str] = Field(default_factory=list)

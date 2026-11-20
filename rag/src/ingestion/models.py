@@ -79,6 +79,7 @@ class Notice:
     threat_type: str
     impersonated_entities: str = ""
     synthetic: bool = False
+    secondary_threats: tuple[str, ...] = ()
 
     @classmethod
     def from_record(
@@ -125,6 +126,16 @@ class Notice:
         entities = labels.get("impersonated_entities", "")
         if threat not in THREATS or not isinstance(entities, str):
             raise ValueError("Invalid threat classification or entities")
+        secondary = labels.get("secondary_threats", [])
+        if (
+            not isinstance(secondary, list)
+            or any(
+                not isinstance(item, str) or item not in THREATS for item in secondary
+            )
+            or "none" in secondary
+            or (threat == "none" and secondary)
+        ):
+            raise ValueError("Invalid secondary threat classification")
         title = clean_text(raw["title"])
         if not title:
             raise ValueError("Missing title")
@@ -139,6 +150,7 @@ class Notice:
             threat,
             entities,
             synthetic,
+            tuple(sorted(set(secondary) - {threat})),
         )
 
     def chunk_id(self, index: int) -> str:
@@ -154,6 +166,11 @@ class Notice:
             "url": self.url,
             "title": self.title,
             "published_at": self.published_at,
+            "published_at_day": date.fromisoformat(self.published_at).toordinal(),
+            **{
+                f"is_{kind}": kind in (self.threat_type, *self.secondary_threats)
+                for kind in sorted(THREATS)
+            },
             "scraped_at": self.scraped_at,
             "threat_type": self.threat_type,
             "impersonated_entities": self.impersonated_entities,

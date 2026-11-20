@@ -10,6 +10,7 @@ from app.api.v1.router import api_router
 from app.core.config import settings
 from app.core.errors import register_error_handlers
 from app.jobs.purge import purge_loop
+from app.services.agent import close_agent, initialize_agent
 from app.services.detection.reputation import (
     create_runtime,
     install_private_request_filters,
@@ -26,12 +27,15 @@ async def lifespan(app: FastAPI):
         task = asyncio.create_task(purge_loop(settings.RETENTION_PURGE_MINUTES))
     remove_filters = install_private_request_filters()
     try:
+        # AI inference is CPU-intensive; do not block the event loop during startup.
+        await asyncio.to_thread(initialize_agent, settings.AVIZOR_RAG_ENABLED)
         async with new_client() as client:
             app.state.reputation = await asyncio.to_thread(
                 create_runtime, client, settings
             )
             yield
     finally:
+        await asyncio.to_thread(close_agent)
         app.state.reputation = None
         remove_filters()
         if task:
