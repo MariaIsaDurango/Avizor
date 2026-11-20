@@ -159,6 +159,12 @@ def run_agent(agent: ManualAgent, data: AgentInput) -> AgentOutput | None:
     except ValidationError:
         logger.warning("Agent output rejected by schema")
         return None
+    except ModuleNotFoundError as exc:
+        logger.warning(
+            "Agent unavailable; missing Python module: %s",
+            exc.name,
+        )
+        return None
     except Exception as exc:  # noqa: BLE001
         logger.warning(
             "Agent unavailable; using fast path. Error type: %s",
