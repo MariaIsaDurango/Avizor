@@ -92,6 +92,14 @@ export async function createPairing(
   return response.json();
 }
 
+export async function unlinkSenior(): Promise<void> {
+  const response = await apiFetch('/api/v1/senior', { method: 'DELETE' });
+  if (!response.ok && response.status !== 404) {
+    const error = await response.json();
+    throw new Error(error.detail ?? 'Error al desvincular al Sénior.');
+  }
+}
+
 export async function getSeniorProfile(): Promise<SeniorProfile> {
   const response = await apiFetch('/api/v1/senior/me');
   if (!response.ok) {
@@ -99,4 +107,33 @@ export async function getSeniorProfile(): Promise<SeniorProfile> {
     throw new Error(error.detail ?? 'Error al obtener el perfil del Sénior.');
   }
   return response.json();
+}
+
+export interface GuardianSeniorInfo {
+  senior_display_name: string;
+  guardian_phone: string | null;
+}
+
+export async function getSenior(): Promise<GuardianSeniorInfo | null> {
+  const response = await apiFetch('/api/v1/senior');
+  if (response.status === 404) return null;
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail ?? 'Error al obtener el Sénior.');
+  }
+  return response.json();
+}
+
+export async function updateSeniorPhone(phone: string | null): Promise<void> {
+  const response = await apiFetch('/api/v1/senior/phone', {
+    method: 'PATCH',
+    body: JSON.stringify({ guardian_phone: phone }),
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    const detail = Array.isArray(error.detail)
+      ? 'Teléfono no válido. Ejemplo: +34 600 000 000'
+      : error.detail;
+    throw new Error(detail ?? 'Error al guardar el teléfono.');
+  }
 }

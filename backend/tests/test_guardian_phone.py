@@ -14,7 +14,9 @@ from app.schemas.pairing import normalize_phone
 
 PAIRINGS = "/api/v1/pairings"
 REDEEM = "/api/v1/pairings/redeem"
+SENIOR = "/api/v1/senior"
 SENIOR_ME = "/api/v1/senior/me"
+SENIOR_PHONE = "/api/v1/senior/phone"
 DEVICE = {"platform": "android", "app_version": "0.5.0", "push_token": None}
 
 
@@ -105,3 +107,98 @@ def test_senior_me_without_phone_is_null(api_client, paired_senior):
     response = api_client.get(SENIOR_ME, headers=paired_senior.headers)
     assert response.status_code == 200
     assert response.json()["guardian_phone"] is None
+
+
+# ---------- PATCH /senior/phone ----------
+
+
+def test_get_senior_includes_phone(api_client, guardian_headers, paired_senior):
+    response = api_client.get(SENIOR, headers=guardian_headers)
+    assert response.status_code == 200
+    assert "guardian_phone" in response.json()
+
+
+def test_update_phone_saves_normalized(api_client, guardian_headers, paired_senior):
+    response = api_client.patch(
+        SENIOR_PHONE,
+        json={"guardian_phone": "+34 600 000 000"},
+        headers=guardian_headers,
+    )
+    assert response.status_code == 200
+    assert response.json()["guardian_phone"] == "+34600000000"
+
+
+def test_senior_sees_updated_phone(api_client, guardian_headers, paired_senior):
+    api_client.patch(
+        SENIOR_PHONE,
+        json={"guardian_phone": "+34 600 000 000"},
+        headers=guardian_headers,
+    )
+    response = api_client.get(SENIOR_ME, headers=paired_senior.headers)
+    assert response.status_code == 200
+    assert response.json()["guardian_phone"] == "+34600000000"
+
+
+def test_update_phone_invalid_is_422(api_client, guardian_headers, paired_senior):
+    response = api_client.patch(
+        SENIOR_PHONE,
+        json={"guardian_phone": "llámame"},
+        headers=guardian_headers,
+    )
+    assert response.status_code == 422
+
+
+def test_update_phone_null_clears(api_client, guardian_headers, paired_senior):
+    api_client.patch(
+        SENIOR_PHONE,
+        json={"guardian_phone": "+34600000000"},
+        headers=guardian_headers,
+    )
+    response = api_client.patch(
+        SENIOR_PHONE, json={"guardian_phone": None}, headers=guardian_headers
+    )
+    assert response.status_code == 200
+    assert response.json()["guardian_phone"] is None
+
+
+def test_update_phone_no_senior_is_404(api_client, guardian_headers):
+    response = api_client.patch(
+        SENIOR_PHONE,
+        json={"guardian_phone": "+34600000000"},
+        headers=guardian_headers,
+    )
+    assert response.status_code == 404
+
+
+def test_update_phone_other_guardian_is_404(api_client, db_session, paired_senior):
+    from app.core.security import create_access_token, hash_password
+    from app.models.user import User
+    from app.schemas.enums import UserRole
+
+    other = User(
+        role=UserRole.GUARDIAN,
+        display_name="Otro",
+        email="otro@example.com",
+        password_hash=hash_password("contraseña-larga-2"),
+        is_verified=True,
+    )
+    db_session.add(other)
+    db_session.flush()
+    other_headers = {
+        "Authorization": f"Bearer {create_access_token(other.id, UserRole.GUARDIAN)}"
+    }
+    response = api_client.patch(
+        SENIOR_PHONE,
+        json={"guardian_phone": "+34600000000"},
+        headers=other_headers,
+    )
+    assert response.status_code == 404
+
+
+def test_update_phone_senior_token_is_403(api_client, paired_senior):
+    response = api_client.patch(
+        SENIOR_PHONE,
+        json={"guardian_phone": "+34600000000"},
+        headers=paired_senior.headers,
+    )
+    assert response.status_code == 403

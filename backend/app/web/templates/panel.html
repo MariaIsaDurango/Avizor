@@ -82,47 +82,6 @@
   }
   .pairing-hint { font-size: var(--font-size-sm); color: var(--color-text-muted); margin-top: 0.5rem; }
 
-  /* ── Form elements (panel) ─────────────────────────────── */
-  .field-group { margin-bottom: 0.75rem; }
-  .field-label {
-    display: block; font-size: var(--font-size-sm);
-    font-weight: 600; color: var(--color-text); margin-bottom: 0.3rem;
-  }
-  .field-input {
-    width: 100%; padding: 0.625rem 0.875rem;
-    border: 1.5px solid var(--color-border); border-radius: var(--radius-sm);
-    font-family: var(--font-family); font-size: var(--font-size-base);
-    color: var(--color-text); background: var(--color-white); outline: none;
-    transition: border-color 0.15s, box-shadow 0.15s;
-  }
-  .field-input:focus {
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px rgba(22, 78, 85, 0.1);
-  }
-  .field-input--error { border-color: var(--color-alert); }
-  .field-error {
-    font-size: 0.8125rem; color: var(--color-alert);
-    display: none; margin-top: 0.25rem;
-  }
-  .field-error--visible { display: block; }
-
-  /* ── Buttons ───────────────────────────────────────────── */
-  .btn {
-    display: inline-flex; align-items: center; justify-content: center;
-    gap: 0.4rem; padding: 0.65rem 1.5rem; border-radius: var(--radius-sm);
-    font-family: var(--font-family); font-size: var(--font-size-base);
-    font-weight: 600; cursor: pointer; border: none;
-    transition: background 0.15s, opacity 0.15s; text-decoration: none;
-  }
-  .btn:disabled { opacity: 0.65; cursor: not-allowed; }
-  .btn--primary { background: var(--color-primary); color: var(--color-white); }
-  .btn--primary:hover:not(:disabled) { background: var(--color-primary-light); color: var(--color-white); text-decoration: none; }
-  .btn--outline {
-    background: transparent; color: var(--color-primary);
-    border: 1.5px solid var(--color-primary);
-  }
-  .btn--outline:hover:not(:disabled) { background: rgba(22,78,85,0.06); text-decoration: none; }
-
   /* ── Alerts table ──────────────────────────────────────── */
   .section-title { font-size: var(--font-size-base); font-weight: 700; color: var(--color-primary); margin-bottom: 1rem; }
   .alerts-table { width: 100%; border-collapse: collapse; font-size: var(--font-size-sm); }

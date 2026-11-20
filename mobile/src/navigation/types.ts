@@ -10,6 +10,7 @@ export type RootStackParamList = {
   TutorPairing: undefined;
   TutorDashboard: undefined;
   TutorLogout: undefined;
+  TutorAccount: undefined;
   AlertDetail: { alert: Alert };
   SeniorPairing: undefined;
   SeniorHome: undefined;

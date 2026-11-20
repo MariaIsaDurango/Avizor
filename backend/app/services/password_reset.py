@@ -124,6 +124,9 @@ def reset_password(db: Session, token: str, new_password: str) -> None:
         raise invalid
 
     user.password_hash = hash_password(new_password)
+    # ES: Si alguien entró con la contraseña robada, pierde la sesión.
+    # EN: Anyone who logged in with the stolen password loses the session.
+    user.token_version += 1
     # ES: Abrir el enlace del correo demuestra que el email es suyo.
     # EN: Opening the emailed link proves the email belongs to them.
     user.is_verified = True
