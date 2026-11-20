@@ -131,6 +131,10 @@
     font-size: var(--font-size-base);
     font-weight: 700;
     text-decoration: none;
+    transition: opacity 0.15s;
+  }
+  .btn-download:hover { opacity: 0.88; }
+  .btn-download--disabled {
     cursor: not-allowed;
     opacity: 0.6;
     pointer-events: none;
@@ -239,17 +243,40 @@
   </ul>
 </section>
 
+<!-- ── Cómo instalar la APK ──────────────────────────────── -->
+<section class="card" style="margin-bottom: 2rem;">
+  <h2 class="card__title">Cómo instalar la APK</h2>
+  <ul class="req-list" aria-label="Pasos para instalar la APK">
+    <li>
+      <i data-lucide="download" aria-hidden="true"></i>
+      <span>Pulsa el botón de descarga y espera a que el archivo <strong>avizor.apk</strong> se guarde en tu móvil.</span>
+    </li>
+    <li>
+      <i data-lucide="settings" aria-hidden="true"></i>
+      <span>Ve a <strong>Ajustes → Seguridad → Instalar apps desconocidas</strong> (o "Fuentes desconocidas" en versiones anteriores) y actívalo para tu navegador o gestor de archivos.</span>
+    </li>
+    <li>
+      <i data-lucide="folder-open" aria-hidden="true"></i>
+      <span>Abre el archivo descargado desde el gestor de archivos o la notificación de descarga y pulsa <strong>Instalar</strong>.</span>
+    </li>
+    <li>
+      <i data-lucide="shield-check" aria-hidden="true"></i>
+      <span>Una vez instalada puedes <strong>volver a desactivar la opción</strong> de fuentes desconocidas para mayor seguridad.</span>
+    </li>
+  </ul>
+</section>
+
 <!-- ── Descarga ───────────────────────────────────────────── -->
 <div class="download-cta">
   <a
-    href="#"
-    class="btn-download"
+    href="https://github.com/MariaIsaDurango/Avizor/releases/latest/download/avizor.apk"
+    class="btn-download btn-download--disabled"
     aria-disabled="true"
     aria-label="Descarga de la APK próximamente disponible"
   >
     <i data-lucide="download" aria-hidden="true"></i>
     Descargar APK (Android)
   </a>
-  <p class="coming-soon-note">La descarga estará disponible próximamente.</p>
+  <p class="coming-soon-note">La descarga estará disponible en la primera versión estable.</p>
 </div>
 {% endblock %}
