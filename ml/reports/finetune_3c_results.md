@@ -1,6 +1,6 @@
 # Resultados del fine-tuning de 3 clases (#36)
 
-Fecha: 2026-11-21 · Entorno: Google Colab, GPU T4 · Notebook: `ml/notebooks/04_finetune_colab.ipynb`
+Fecha: 2026-11-21 · Versión: `beto-3c-20261121` · Entorno: Google Colab, GPU T4 · Notebook: `ml/notebooks/04_finetune_colab.ipynb`
 
 ## Configuración
 
@@ -27,7 +27,7 @@ Modelos descartados: `PlanTL-GOB-ES/roberta-base-bne` (su tokenizer no carga con
 | SMS: recall de fraud | 0.444 | 0.667 |
 | SMS: precisión de fraud | 0.571 | 0.667 |
 | SMS: macro F1 | 0.772 | 0.827 |
-| Latencia CPU (mediana) | 247 ms | 270 ms |
+| Latencia CPU (mediana) | 247 ms | 283 ms |
 
 ## Objetivos
 
@@ -35,7 +35,7 @@ Modelos descartados: `PlanTL-GOB-ES/roberta-base-bne` (su tokenizer no carga con
 |---|---|
 | SMS: recall de sospechosos ≥ 80 % | Cumplido (91 %) |
 | Email: recall de fraud ≥ 95 % | No cumplido (92,7 %) |
-| Latencia < 500 ms en CPU | Cumplido (270 ms) |
+| Latencia < 500 ms en CPU | Cumplido (283 ms) |
 
 ## Limitaciones
 
