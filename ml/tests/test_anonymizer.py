@@ -1,3 +1,5 @@
+import time
+
 import pytest
 
 from src.ner.anonymizer import AnonymizationResult, NER_MODEL_VERSION, anonymize
@@ -11,6 +13,8 @@ except (ImportError, OSError):
     _HAS_MODEL = False
 
 requires_model = pytest.mark.skipif(not _HAS_MODEL, reason="es_core_news_sm not installed")
+
+CPU_LATENCY_TARGET_MS = 200
 
 
 # ---------------------------------------------------------------------------
@@ -57,11 +61,13 @@ def test_nie_censored():
     assert "ID_NUMBER" in r.entities_found
 
 
-def test_url_censored():
-    r = anonymize("Haz clic aquí: https://phishing.example.com/login", use_ner=False)
-    assert "[URL]" in r.text
-    assert "phishing.example.com" not in r.text
-    assert "URL" in r.entities_found
+def test_url_kept():
+    # URLs are intentionally NOT anonymized — the domain is a phishing signal.
+    text = "Haz clic aquí: https://phishing.example.com/login"
+    r = anonymize(text, use_ner=False)
+    assert "phishing.example.com" in r.text
+    assert "[URL]" not in r.text
+    assert "URL" not in r.entities_found
 
 
 def test_multiple_entities_in_one_text():
@@ -106,3 +112,19 @@ def test_address_censored():
     r = anonymize("Vivo en Madrid y necesito que me envíes el paquete.")
     assert "[ADDRESS]" in r.text
     assert "ADDRESS" in r.entities_found
+
+
+@requires_model
+def test_cpu_latency_under_200ms():
+    text = "Hola, me llamo Juan García. Mi IBAN es ES91 2100 0418 4502 0005 1332 y mi email es juan@banco.es."
+    # Warm-up
+    anonymize(text)
+    timings = []
+    for _ in range(10):
+        t0 = time.perf_counter()
+        anonymize(text)
+        timings.append((time.perf_counter() - t0) * 1000)
+    median_ms = sorted(timings)[len(timings) // 2]
+    assert median_ms < CPU_LATENCY_TARGET_MS, (
+        f"Latencia mediana {median_ms:.1f} ms supera el objetivo de {CPU_LATENCY_TARGET_MS} ms"
+    )

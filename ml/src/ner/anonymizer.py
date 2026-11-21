@@ -5,12 +5,13 @@ from dataclasses import dataclass, field
 
 # Bump when regex patterns or the spaCy model change so backends can track
 # which anonymization pass was applied to each message.
-NER_MODEL_VERSION = "hybrid-regex-spacy-es-sm-1.0"
+NER_MODEL_VERSION = "hybrid-regex-spacy-es-sm-1.1"
 
+# URLs are intentionally NOT replaced: the domain is a strong phishing signal
+# (e.g. banco-seguro.top/login). Keeping them visible improves classifier accuracy.
 # Order matters: IBAN before CARD to avoid partial overlaps.
 _REGEX_PATTERNS: list[tuple[re.Pattern[str], str]] = [
     (re.compile(r"\b[\w.+-]+@[\w-]+\.[a-z]{2,}\b", re.IGNORECASE), "[EMAIL]"),
-    (re.compile(r"https?://\S+", re.IGNORECASE), "[URL]"),
     (re.compile(r"\b[A-Z]{2}\d{2}[\s]?(?:\d{4}[\s]?){3,6}\b"), "[IBAN]"),
     (re.compile(r"\b(?:\d{4}[\s\-]?){3}\d{4}\b"), "[CARD]"),
     (re.compile(r"\b(?:\+?34[\s\-]?)?[6789]\d{2}[\s\-]?\d{3}[\s\-]?\d{3}\b"), "[PHONE]"),
