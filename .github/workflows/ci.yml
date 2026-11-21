@@ -116,11 +116,13 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-          cache-dependency-path: ml/requirements.txt
+          cache-dependency-path: ml/requirements-test.txt
 
+      # ES: Los tests no necesitan torch; el entrenamiento se hace en Colab.
+      # EN: Tests do not need torch; training runs on Colab.
       - name: Install ML dependencies
         if: ${{ hashFiles('ml/tests/**/*.py') != '' }}
-        run: python -m pip install -r ml/requirements.txt
+        run: python -m pip install -r ml/requirements-test.txt
 
       - name: Run ML tests
         if: ${{ hashFiles('ml/tests/**/*.py') != '' }}
