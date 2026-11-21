@@ -91,7 +91,9 @@ def load_base_model(name: str | None):
             )
             print(f"Modelo base: {candidate}")
             return candidate, tokenizer, model
-        except OSError as error:  # ES: no existe o sin pesos / EN: missing
+        # ES: OSError = no existe o sin pesos; ValueError = tokenizer incompleto.
+        # EN: OSError = missing repo or weights; ValueError = broken tokenizer.
+        except (OSError, ValueError) as error:
             print(f"No disponible: {candidate} ({error.__class__.__name__})")
             last_error = error
     raise RuntimeError("Ningún modelo base disponible") from last_error
