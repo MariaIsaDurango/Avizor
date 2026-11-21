@@ -81,6 +81,18 @@ def test_multiple_entities_in_one_text():
     assert "EMAIL" in r.entities_found
 
 
+def test_lowercase_entities():
+    r = anonymize(
+        "IBAN es91 2100 0418 4502 0005 1332, DNI 12345678z, NIE x1234567l",
+        use_ner=False,
+    )
+    assert "[IBAN]" in r.text
+    assert "es91" not in r.text
+    assert "[ID_NUMBER]" in r.text
+    assert "12345678z" not in r.text
+    assert "x1234567l" not in r.text
+
+
 def test_clean_text_unchanged():
     text = "Hola, ¿cómo estás? Ha llegado un paquete para ti."
     r = anonymize(text, use_ner=False)

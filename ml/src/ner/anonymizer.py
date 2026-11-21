@@ -12,11 +12,11 @@ NER_MODEL_VERSION = "hybrid-regex-spacy-es-sm-1.1"
 # Order matters: IBAN before CARD to avoid partial overlaps.
 _REGEX_PATTERNS: list[tuple[re.Pattern[str], str]] = [
     (re.compile(r"\b[\w.+-]+@[\w-]+\.[a-z]{2,}\b", re.IGNORECASE), "[EMAIL]"),
-    (re.compile(r"\b[A-Z]{2}\d{2}[\s]?(?:\d{4}[\s]?){3,6}\b"), "[IBAN]"),
+    (re.compile(r"\b[A-Z]{2}\d{2}[\s]?(?:\d{4}[\s]?){3,6}\b", re.IGNORECASE), "[IBAN]"),
     (re.compile(r"\b(?:\d{4}[\s\-]?){3}\d{4}\b"), "[CARD]"),
     (re.compile(r"\b(?:\+?34[\s\-]?)?[6789]\d{2}[\s\-]?\d{3}[\s\-]?\d{3}\b"), "[PHONE]"),
-    (re.compile(r"\b\d{8}[A-Z]\b"), "[ID_NUMBER]"),   # DNI
-    (re.compile(r"\b[XYZ]\d{7}[A-Z]\b"), "[ID_NUMBER]"),  # NIE
+    (re.compile(r"\b\d{8}[A-Z]\b", re.IGNORECASE), "[ID_NUMBER]"),   # DNI
+    (re.compile(r"\b[XYZ]\d{7}[A-Z]\b", re.IGNORECASE), "[ID_NUMBER]"),  # NIE
 ]
 
 _nlp = None
@@ -26,7 +26,7 @@ def _load_spacy():
     global _nlp
     if _nlp is None:
         try:
-            import spacy  # noqa: PLC0415
+            import spacy
         except ImportError as exc:
             raise ImportError(
                 "spaCy is required for NER: pip install spacy"
