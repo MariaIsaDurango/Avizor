@@ -1,5 +1,5 @@
-"""Fine-tuning de RoBERTa-BNE para 3 clases: none / spam / fraud (#36).
-Fine-tuning RoBERTa-BNE for 3 classes: none / spam / fraud (#36).
+"""Fine-tuning de un modelo BERT en español para 3 clases: none / spam / fraud (#36).
+Fine-tuning a Spanish BERT model for 3 classes: none / spam / fraud (#36).
 
 ES: Pensado para ejecutarse en Google Colab con GPU (notebook 04). Guarda en
     --out el modelo, el tokenizador, los splits anonimizados y metrics.json.
@@ -8,7 +8,7 @@ ES: Pensado para ejecutarse en Google Colab con GPU (notebook 04). Guarda en
           --spaphish "data/raw/spaphish/Spaphish dataset - DiB.csv" \\
           --spamspa data/raw/spamspa/train.csv \\
           --review data/raw/spamspa/spamspa_review.csv \\
-          --out models/roberta-3c
+          --out models/avizor-3c
 EN: Meant to run on Google Colab with a GPU (notebook 04). Saves the model,
     tokenizer, anonymized splits and metrics.json in --out.
 """
@@ -46,12 +46,13 @@ from src.classifier.data import (
 )
 from src.classifier.metrics import class_metrics, confusion, meets_targets
 
-# ES: Se prueba en orden; los pesos de PlanTL se han movido de cuenta varias veces.
-# EN: Tried in order; PlanTL weights have moved between accounts several times.
+# ES: Se prueba en orden. BETO es el elegido en el #36; el tokenizer de
+#     PlanTL falla con transformers 5 y BSC-LT/roberta-base-bne ya no existe.
+# EN: Tried in order. BETO is the #36 choice; the PlanTL tokenizer fails with
+#     transformers 5 and BSC-LT/roberta-base-bne was removed.
 CANDIDATE_MODELS = [
-    "PlanTL-GOB-ES/roberta-base-bne",
-    "BSC-LT/roberta-base-bne",
     "dccuchile/bert-base-spanish-wwm-cased",
+    "PlanTL-GOB-ES/roberta-base-bne",
 ]
 
 
@@ -143,7 +144,7 @@ def main() -> None:
     parser.add_argument("--batch-size", type=int, default=16)
     parser.add_argument("--lr", type=float, default=2e-5)
     parser.add_argument("--max-length", type=int, default=256)
-    parser.add_argument("--fraud-weight", type=float, default=2.0)
+    parser.add_argument("--fraud-weight", type=float, default=3.0)
     args = parser.parse_args()
 
     set_seed(RANDOM_STATE)
@@ -218,7 +219,8 @@ def main() -> None:
             test["label_id"].to_numpy()[mask], predictions[mask]
         )
 
-    version = f"roberta-3c-{datetime.now(UTC):%Y%m%d}"
+    family = "beto" if "bert-base-spanish" in base_name else "roberta"
+    version = f"{family}-3c-{datetime.now(UTC):%Y%m%d}"
     sample = test["text"].sample(min(50, len(test)), random_state=RANDOM_STATE)
     report = {
         "model_version": version,
