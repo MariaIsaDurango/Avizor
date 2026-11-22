@@ -140,10 +140,14 @@ class OnnxModel:
         }
 
     def latency_ms(self, texts: list[str]) -> float:
+        """ES: Tokenizado + inferencia, de uno en uno, como en el backend.
+        EN: Tokenization + inference, one at a time, as in the backend.
+        """
         timings = []
         for text in texts:
             start = time.perf_counter()
-            self.session.run(None, self._feed([self.tokenizer.encode(text)]))
+            encoding = self.tokenizer.encode(text)
+            self.session.run(None, self._feed([encoding]))
             timings.append((time.perf_counter() - start) * 1000)
         return float(np.median(timings))
 
