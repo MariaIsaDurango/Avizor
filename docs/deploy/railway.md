@@ -62,6 +62,32 @@ sin `mobile/` y sin `ml/`.
    → {"status":"ok","contract_version":"1.0.0"}
    ```
 
+## Modelo de IA (#38)
+
+El clasificador de IA (BETO de 3 clases en ONNX int8, 111 MB) no está en el
+repo: GitHub no admite archivos de más de 100 MB. Se publica como adjunto de una
+**release de GitHub** y el Dockerfile lo descarga al construir la imagen,
+comprobando su SHA-256. Si el SHA-256 no coincide, el build falla.
+
+Variables del servicio del backend:
+
+| Variable | Valor |
+|---|---|
+| `ML_MODEL_URL` | `https://github.com/MariaIsaDurango/Avizor/releases/download/<tag>/avizor-3c-onnx.zip` |
+| `ML_MODEL_SHA256` | el SHA-256 del zip (se indica en la release) |
+| `CLASSIFIER_PROVIDER` | `ml` (`keywords` vuelve a las reglas sin redesplegar el modelo) |
+| `ML_FRAUD_THRESHOLD` | opcional; vacío = el umbral del paquete del modelo |
+
+- Railway pasa estas variables al build porque el Dockerfile las declara con
+  `ARG`. Sin `ML_MODEL_URL` la imagen se construye igual y usa las reglas.
+- Si el modelo no se puede cargar al arrancar, la API sigue funcionando con
+  las reglas y lo deja escrito en los logs ("ML classifier could not be
+  loaded").
+- Memoria: con el modelo cargado la API ocupa unos 360 MB (medido en local;
+  sin modelo, unos 95 MB). Comprueba en **Metrics** que el plan lo admite.
+- Para cambiar de modelo: nueva release con el zip nuevo y actualizar
+  `ML_MODEL_URL` y `ML_MODEL_SHA256`.
+
 ## Después del despliegue
 
 - **App móvil**: en `mobile/.env.local`,

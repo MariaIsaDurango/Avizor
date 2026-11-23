@@ -78,6 +78,26 @@ class Settings(BaseSettings):
     FRONTEND_URL: str = "http://localhost:8000"
     PASSWORD_RESET_EXPIRE_MINUTES: int = 15
 
+    # ES: Clasificador de texto (#38): "keywords" (reglas) o "ml" (modelo ONNX).
+    #     Si "ml" no puede cargar el modelo, se usan las reglas.
+    # EN: Text classifier (#38): "keywords" (rules) or "ml" (ONNX model).
+    #     If "ml" cannot load the model, rules are used.
+    CLASSIFIER_PROVIDER: Literal["keywords", "ml"] = "keywords"
+    # ES: Carpeta con avizor_classifier.json, model.int8.onnx y tokenizer.json.
+    # EN: Folder with avizor_classifier.json, model.int8.onnx and tokenizer.json.
+    ML_MODEL_DIR: str | None = None
+    # ES: Vacío = el umbral del paquete del modelo. EN: Empty = the bundle's threshold.
+    ML_FRAUD_THRESHOLD: float | None = Field(default=None, gt=0, lt=1)
+    ML_THREADS: int = Field(default=1, ge=1)
+
+    @field_validator("ML_MODEL_DIR", "ML_FRAUD_THRESHOLD", mode="before")
+    @classmethod
+    def empty_is_none(cls, value):
+        """ES: "ML_FRAUD_THRESHOLD=" vacío (como en .env.example) = sin valor.
+        EN: An empty "ML_FRAUD_THRESHOLD=" (as in .env.example) = no value.
+        """
+        return None if isinstance(value, str) and not value.strip() else value
+
     # Issue #42: remote egress is limited to an explicit reviewed URL list.
     AVIZOR_RAG_ENABLED: bool = False
     AVIZOR_PHISHTANK_LOCAL: bool = True
