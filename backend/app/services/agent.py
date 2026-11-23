@@ -28,6 +28,10 @@ def build_runtime():
     from rag.src.vector_store.chroma_store import ChromaStore
     from rag.src.vector_store.embeddings import E5Embedder
 
+    import os
+
+    if not os.environ.get("GROQ_API_KEY"):
+        raise ValueError("GROQ_API_KEY is required for RAG")
     path = resolve_official_path()
     if not (path / "chroma.sqlite3").is_file():
         raise ValueError("Official corpus not initialized")
@@ -35,28 +39,8 @@ def build_runtime():
     store = ChromaStore(path, revision=embedder.revision, synthetic=False)
     if not store.collection.count():
         raise ValueError("Official corpus empty")
-    warm_ollama()
     return AgentEngine(build_graph(Retriever(store, embedder), HybridSelector()))
 
-
-def warm_ollama() -> None:
-    """Best effort preload with no user content; recovery can occur on a later request."""
-    import httpx
-
-    try:
-        with httpx.Client(trust_env=False, follow_redirects=False) as client:
-            response = client.post(
-                "http://127.0.0.1:11434/api/generate",
-                json={
-                    "model": "gemma3:1b",
-                    "keep_alive": "15m",
-                    "options": {"num_ctx": 4096},
-                },
-                timeout=20.0,
-            )
-            response.raise_for_status()
-    except (httpx.HTTPError, ValueError):
-        logger.warning("Ollama preload unavailable; fast path remains available")
 
 
 def initialize_agent(enabled: bool) -> None:
@@ -69,7 +53,7 @@ def initialize_agent(enabled: bool) -> None:
     except Exception:  # noqa: BLE001 - no potentially sensitive exception details
         logger.warning("RAG initialization failed; fast path remains available")
     else:
-        logger.info("Local RAG runtime initialized")
+        logger.info("Groq-backed RAG runtime initialized")
 
 
 def close_agent() -> None:
@@ -80,7 +64,7 @@ def close_agent() -> None:
 
 
 class RagManualAgent:
-    model_version = "rag-gemma3-1b-0.1"
+    model_version = "rag-groq-0.1"
 
     def __init__(self, fast: FastDecision, *, timeout: float = 13.0):
         self.fast = fast

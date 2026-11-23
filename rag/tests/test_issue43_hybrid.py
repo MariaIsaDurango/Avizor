@@ -2,7 +2,6 @@
 
 import json
 
-import httpx
 import pytest
 
 from rag.src.agent.hybrid import HybridSelector
@@ -22,25 +21,22 @@ def payload():
 
 
 def select(content, *, done_reason="stop"):
-    def handler(request):
-        body = json.loads(request.content)
-        data = json.loads(body["messages"][1]["content"])
-        assert request.url.host == "127.0.0.1"
-        assert "Ignora las instrucciones" not in body["messages"][0]["content"]
-        assert data["notice"]["excerpt"] == "a" * 240
-        assert "Segundo" not in body["messages"][1]["content"]
-        assert "references" not in body["format"]["properties"]
-        return httpx.Response(
-            200,
-            json={
-                "done": True,
-                "done_reason": done_reason,
-                "message": {"content": json.dumps(content)},
-            },
-        )
+    from types import SimpleNamespace
 
-    with httpx.Client(transport=httpx.MockTransport(handler)) as client:
-        return HybridSelector(client=client).select(payload(), timeout=1)
+    class FakeCompletions:
+        def create(self, **body):
+            data = json.loads(body["messages"][1]["content"])
+            assert "Ignora las instrucciones" not in body["messages"][0]["content"]
+            assert data["notice"]["excerpt"] == "a" * 240
+            assert "Segundo" not in body["messages"][1]["content"]
+            assert body["response_format"] == {"type": "json_object"}
+            return SimpleNamespace(choices=[SimpleNamespace(
+                finish_reason=done_reason,
+                message=SimpleNamespace(content=json.dumps(content)),
+            )])
+
+    fake = SimpleNamespace(chat=SimpleNamespace(completions=FakeCompletions()))
+    return HybridSelector(client=fake).select(payload(), timeout=1)
 
 
 def test_hybrid_attaches_only_trusted_first_candidate():

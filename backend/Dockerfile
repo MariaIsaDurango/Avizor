@@ -11,11 +11,18 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 
 WORKDIR /app/backend
+ENV PYTHONPATH=/app:/app/backend
 
 # ES: Primero las dependencias (capa en caché si no cambian).
 # EN: Dependencies first (cached layer while they do not change).
 COPY backend/requirements.txt ./requirements.txt
-RUN pip install -r requirements.txt
+
+COPY rag/requirements.txt /app/rag/requirements.txt
+RUN pip install -r requirements.txt -r /app/rag/requirements.txt
+
+# Modelo E5 precargado para el RAG sin descarga al arrancar.
+ENV HF_HOME=/app/huggingface
+RUN python -c "from pathlib import Path; from huggingface_hub import snapshot_download; p=Path(snapshot_download('intfloat/multilingual-e5-base', revision='main')); assert p.name == 'd128750597153bb5987e10b1c3493a34e5a4502a', f'Revision E5 incompatible: {p.name}'; print('E5 listo:', p.name)"
 
 # ES: Modelo de IA (#38), opcional. No está en el repo (111 MB): se descarga de
 #     una release de GitHub y se comprueba su SHA-256. Sin estas variables la
@@ -37,7 +44,7 @@ COPY backend/alembic.ini ./alembic.ini
 COPY backend/migrations ./migrations
 COPY backend/app ./app
 COPY backend/docker-entrypoint.sh ./docker-entrypoint.sh
-COPY rag/src/reputation /app/rag/src/reputation
+COPY rag/src /app/rag/src
 COPY rag/data/reputation /app/rag/data/reputation
 
 # ES: Sin root dentro del contenedor. EN: No root inside the container.

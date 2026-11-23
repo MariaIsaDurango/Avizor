@@ -4,7 +4,6 @@ import json
 import time
 from datetime import date
 
-import httpx
 import pytest
 from pydantic import ValidationError
 
@@ -15,7 +14,7 @@ from rag.src.agent.graph import (
     output_from_selection,
     select_payload,
 )
-from rag.src.agent.llm import OllamaSelector, Selection
+from rag.src.agent.llm import GroqSelector, Selection
 from rag.src.agent.retriever import RetrievedNotice
 
 
@@ -89,33 +88,25 @@ def test_model_cannot_invent_fields(extra):
         )
 
 
-def test_ollama_separates_untrusted_data():
-    def handler(request):
-        body = json.loads(request.content)
-        assert request.url.host == "127.0.0.1"
-        assert state()["text"] not in body["messages"][0]["content"]
-        assert (
-            json.loads(body["messages"][1]["content"])["anonymized_text"]
-            == state()["text"]
-        )
-        assert body["format"]["properties"]["block_template"]["enum"] == [
-            "FAKE_DO_NOT_TOUCH"
-        ]
-        return httpx.Response(
-            200,
-            json={
-                "done": True,
-                "done_reason": "stop",
-                "message": {
-                    "content": '{"block_template":"FAKE_DO_NOT_TOUCH","references":[0]}'
-                },
-            },
-        )
+def test_groq_separates_untrusted_data():
+    from types import SimpleNamespace
 
-    with httpx.Client(transport=httpx.MockTransport(handler)) as client:
-        assert OllamaSelector(client=client).select(
-            select_payload(state()), timeout=1
-        ).references == [0]
+    class Completions:
+        def create(self, **kwargs):
+            body = kwargs
+            assert body["model"] == "openai/gpt-oss-20b"
+            assert body["response_format"] == {"type": "json_object"}
+            assert state()["text"] not in body["messages"][0]["content"]
+            assert (json.loads(body["messages"][1]["content"])["anonymized_text"]
+                    == state()["text"])
+            return SimpleNamespace(choices=[SimpleNamespace(
+                finish_reason="stop", message=SimpleNamespace(content=json.dumps({
+                    "block_template": "FAKE_DO_NOT_TOUCH", "references": [0],
+                }))
+            )])
+
+    fake = SimpleNamespace(chat=SimpleNamespace(completions=Completions()))
+    assert GroqSelector(client=fake).select(select_payload(state()), timeout=1).references == [0]
 
 
 def test_graph_real():
@@ -183,21 +174,22 @@ def test_backend_contract():
 
 
 @pytest.mark.parametrize(
-    "body",
-    [
-        {"done": False},
-        {"done": True, "done_reason": "length"},
-        {"done": True, "done_reason": "stop", "message": {"content": "not JSON"}},
-    ],
+    "content, reason",
+    [("not JSON", "stop"), ("{}", "length"),
+     ('{"block_template":"FAKE_DO_NOT_TOUCH","references":[-1]}', "stop")],
 )
-def test_invalid_ollama_response(body):
-    with (
-        httpx.Client(
-            transport=httpx.MockTransport(lambda _: httpx.Response(200, json=body))
-        ) as client,
-        pytest.raises(ValueError),
-    ):
-        OllamaSelector(client=client).select(select_payload(state()), timeout=1)
+def test_invalid_groq_response(content, reason):
+    from types import SimpleNamespace
+
+    class FakeCompletions:
+        def create(self, **kwargs):
+            return SimpleNamespace(choices=[SimpleNamespace(
+                finish_reason=reason, message=SimpleNamespace(content=content)
+            )])
+
+    fake = SimpleNamespace(chat=SimpleNamespace(completions=FakeCompletions()))
+    with pytest.raises((ValueError, ValidationError, json.JSONDecodeError)):
+        GroqSelector(client=fake).select(select_payload(state()), timeout=1)
 
 
 def test_long_text_falls_back_without_truncation():
@@ -206,7 +198,6 @@ def test_long_text_falls_back_without_truncation():
         assert engine.analyze({**state(), "text": "a" * 1201}) is None
     finally:
         engine.close()
-
 
 def test_engine_respects_per_request_timeout(monkeypatch):
     """The backend budget may be shorter than the graph default."""
