@@ -46,3 +46,30 @@ Modelos descartados: `PlanTL-GOB-ES/roberta-base-bne` (su tokenizer no carga con
 ## Siguiente paso (#38)
 
 En lugar de elegir la clase más probable, marcar `fraud` cuando su probabilidad supere un umbral calibrado con el conjunto de validación, para acercarse al 95 % de recall sin disparar los falsos positivos. Exportar el modelo a ONNX int8 e integrarlo en el backend como `MlClassifier`.
+
+## Experimento con SMS sintéticos (#146)
+
+Fecha: 2026-11-23 · Mismos datos reales, mismos splits de validación y test, mismo modelo base (BETO) y peso de fraud 3.0. Los SMS sintéticos (generados con Groq por Majo) se añaden **solo al entrenamiento**.
+
+**Prueba de enlaces (`link_probe`):** de los 118 SMS reales normales o de publicidad del test, cuántos se clasifican como `fraud` sin enlace y al añadirles un enlace neutro (`https://www.ejemplo.es/info`). Detecta si el modelo aprendió "SMS con enlace = estafa".
+
+| Métrica (test, datos reales) | Modelo en producción | + 247 estafas sintéticas | + 247 estafas y 222 legítimos con enlace |
+|---|---|---|---|
+| Prueba de enlaces (sin → con enlace) | no medida | 1 → **96** | 2 → **0** |
+| SMS: recall de fraud | **0.667** | 0.444 | 0.444 |
+| SMS: precisión de fraud | 0.667 | 0.800 | 0.667 |
+| SMS: recall de sospechosos | **0.91** | 0.91 | 0.881 |
+| SMS: macro F1 | **0.827** | 0.801 | 0.780 |
+| Email: recall de fraud | 0.927 | 0.945 | 0.936 |
+| Email: precisión de fraud | **0.953** | 0.928 | 0.927 |
+
+**Conclusiones**
+
+- Solo con estafas sintéticas, el modelo aprendió el atajo del enlace: 96 de 118 SMS reales legítimos pasaban a `fraud` con un enlace. Ese modelo se descartó.
+- Con los SMS legítimos con enlace (`legit_links_groq.csv`), el atajo desaparece (0 de 118).
+- Aun así, en los SMS reales de SpamSpa ninguna de las dos versiones mejora al modelo en producción: el recall de estafas baja de 6 a 4 de las 9 estafas del test. Con tan pocas estafas la diferencia es pequeña, pero no hay evidencia de mejora.
+- Causa probable: las estafas de SpamSpa son mensajes cortos sin enlace ("Haz clic para reclamar tu premio") y las sintéticas imitan campañas reales con entidad y enlace. Este test no mide bien ese segundo tipo.
+
+**Estado:** pendiente de decidir con Majo. Mientras tanto sigue en producción `beto-3c-20261121-onnx-int8`. Se conservan el código (`load_synthetic`, `build_splits`, `--synthetic`, `link_probe`) y los dos CSV.
+
+**Mejoras propuestas:** un conjunto de test con smishing **real** (por ejemplo, los textos de estafas citados en los avisos de INCIBE y OSI del corpus del RAG) para medir si los SMS sintéticos mejoran la detección de campañas reales.

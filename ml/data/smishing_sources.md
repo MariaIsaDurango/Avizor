@@ -82,6 +82,7 @@ python -m src.classifier.train \
     --spamspa data/raw/spamspa/train.csv \
     --review data/raw/spamspa/spamspa_review.csv \
     --synthetic data/raw/smishing_groq.csv \
+    --synthetic data/raw/smishing_no_link_groq.csv \
     --synthetic data/raw/legit_links_groq.csv \
     --out models/avizor-3c
 ```
@@ -92,6 +93,13 @@ El notebook `04_finetune_colab.ipynb` ya lo incluye. `export.py` necesita el mis
 Riesgo vigilado: todos los SMS sintéticos llevan enlace y los SMS reales de SpamSpa
 no. En el primer entrenamiento solo con `smishing_groq.csv` (estafas), 96 de 118 SMS
 reales normales o de publicidad pasaron a `fraud` solo por añadirles un enlace. Por eso
-se añadió `legit_links_groq.csv`: 222 SMS legítimos con enlace (Correos, bancos, AEAT,
-DGT, Seguridad Social, Iberdrola y centros de salud), etiqueta `ham` = `none`. `metrics.json` incluye `link_probe`: cuántos SMS reales normales o de publicidad
+se añadió `legit_links_groq.csv` (etiqueta `ham` = `none`). Con 222 SMS legítimos el
+atajo desapareció (0 de 118), pero el modelo no mejoró en los SMS reales. Segunda versión:
+
+- `legit_links_groq.csv` ampliado a 593 SMS legítimos con enlace, incluidos dominios
+  poco conocidos (clínicas, farmacias, gestorías, tiendas), para que el modelo no
+  aprenda "dominio desconocido = estafa".
+- `smishing_no_link_groq.csv`: 247 estafas **sin enlace** (premios, herencias, cuenta
+  bloqueada, códigos OTP, "hijo en apuros", Hacienda), del mismo estilo que las de
+  SpamSpa. `metrics.json` incluye `link_probe`: cuántos SMS reales normales o de publicidad
 pasan a `fraud` solo por añadirles un enlace neutro.
