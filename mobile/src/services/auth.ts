@@ -79,20 +79,22 @@ export async function resendVerification(email: string): Promise<void> {
   });
 }
 
-export async function getMe(): Promise<{ id: string; display_name: string; email: string | null }> {
+export async function getMe(): Promise<{ id: string; display_name: string; email: string | null; phone: string | null }> {
   const response = await apiFetch('/api/v1/auth/me');
   if (!response.ok) throw new Error('Error al obtener el perfil.');
   return response.json();
 }
 
-export async function updateMe(displayName: string): Promise<void> {
+export async function updateMe(displayName: string, phone?: string | null): Promise<void> {
+  const body: Record<string, unknown> = { display_name: displayName };
+  if (phone !== undefined) body.phone = phone || null;
   const response = await apiFetch('/api/v1/auth/me', {
     method: 'PATCH',
-    body: JSON.stringify({ display_name: displayName }),
+    body: JSON.stringify(body),
   });
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.detail ?? 'Error al actualizar el nombre.');
+    throw new Error(error.detail ?? 'Error al actualizar el perfil.');
   }
 }
 

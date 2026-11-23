@@ -6,7 +6,7 @@ import Screen from '../../components/Screen';
 import { colors } from '../../constants/colors';
 import { fontSize, fontWeight } from '../../constants/typography';
 import { getMe, updateMe, changePassword, logout } from '../../services/auth';
-import { unlinkSenior, getSenior, updateSeniorPhone } from '../../services/pairing';
+import { unlinkSenior } from '../../services/pairing';
 import { RootStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TutorAccount'>;
@@ -21,7 +21,6 @@ export default function TutorAccountScreen({ navigation }: Props) {
 
   const [phone, setPhone] = useState('');
   const [originalPhone, setOriginalPhone] = useState('');
-  const [hasSenior, setHasSenior] = useState(false);
   const [phoneSaving, setPhoneSaving] = useState(false);
   const [phoneError, setPhoneError] = useState('');
 
@@ -33,16 +32,13 @@ export default function TutorAccountScreen({ navigation }: Props) {
   const [pwdError, setPwdError] = useState('');
 
   useEffect(() => {
-    Promise.all([getMe(), getSenior()])
-      .then(([me, senior]) => {
+    getMe()
+      .then((me) => {
         setDisplayName(me.display_name);
         setOriginalName(me.display_name);
         setEmail(me.email ?? '');
-        if (senior) {
-          setHasSenior(true);
-          setPhone(senior.guardian_phone ?? '');
-          setOriginalPhone(senior.guardian_phone ?? '');
-        }
+        setPhone(me.phone ?? '');
+        setOriginalPhone(me.phone ?? '');
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -68,7 +64,7 @@ export default function TutorAccountScreen({ navigation }: Props) {
     setPhoneSaving(true);
     setPhoneError('');
     try {
-      await updateSeniorPhone(phone.trim() || null);
+      await updateMe(originalName, phone.trim() || null);
       setOriginalPhone(phone.trim());
     } catch (e) {
       setPhoneError(e instanceof Error ? e.message : 'Error al guardar.');
@@ -167,34 +163,30 @@ export default function TutorAccountScreen({ navigation }: Props) {
           </>
         )}
 
-        {hasSenior && (
-          <>
-            <Text style={[styles.fieldLabel, { marginTop: 16 }]}>
-              Tu teléfono{' '}
-              <Text style={{ fontWeight: '400', opacity: 0.6 }}>(para llamadas del Sénior)</Text>
-            </Text>
-            <TextInput
-              style={styles.input}
-              value={phone}
-              onChangeText={(t) => { setPhone(t); setPhoneError(''); }}
-              keyboardType="phone-pad"
-              placeholder="+34 600 000 000"
-              maxLength={30}
-              returnKeyType="done"
-              onSubmitEditing={phone.trim() !== originalPhone ? handleSavePhone : undefined}
-            />
-            {phoneError !== '' && <Text style={styles.fieldError}>{phoneError}</Text>}
-            {phone.trim() !== originalPhone && (
-              <Pressable
-                style={[styles.saveBtn, phoneSaving && styles.saveBtnDisabled]}
-                onPress={handleSavePhone}
-                disabled={phoneSaving}
-                accessibilityRole="button"
-              >
-                <Text style={styles.saveBtnText}>{phoneSaving ? 'Guardando…' : 'Guardar teléfono'}</Text>
-              </Pressable>
-            )}
-          </>
+        <Text style={[styles.fieldLabel, { marginTop: 16 }]}>
+          Tu teléfono{' '}
+          <Text style={{ fontWeight: '400', opacity: 0.6 }}>(para llamadas del Sénior)</Text>
+        </Text>
+        <TextInput
+          style={styles.input}
+          value={phone}
+          onChangeText={(t) => { setPhone(t); setPhoneError(''); }}
+          keyboardType="phone-pad"
+          placeholder="+34 600 000 000"
+          maxLength={30}
+          returnKeyType="done"
+          onSubmitEditing={phone.trim() !== originalPhone ? handleSavePhone : undefined}
+        />
+        {phoneError !== '' && <Text style={styles.fieldError}>{phoneError}</Text>}
+        {phone.trim() !== originalPhone && (
+          <Pressable
+            style={[styles.saveBtn, phoneSaving && styles.saveBtnDisabled]}
+            onPress={handleSavePhone}
+            disabled={phoneSaving}
+            accessibilityRole="button"
+          >
+            <Text style={styles.saveBtnText}>{phoneSaving ? 'Guardando…' : 'Guardar teléfono'}</Text>
+          </Pressable>
         )}
       </View>
 
