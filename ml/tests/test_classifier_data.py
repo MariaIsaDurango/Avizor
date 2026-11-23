@@ -11,8 +11,10 @@ from src.classifier.anonymize import anonymize
 from src.classifier.data import (
     LABEL2ID,
     LABELS,
+    build_splits,
     load_spamspa,
     load_spaphish,
+    load_synthetic,
     prepare,
     split,
 )
@@ -195,3 +197,72 @@ def test_build_review_reviews_each_text_once(tmp_path):
         }
     ).to_csv(path, index=False)
     assert build_review(path)["row"].tolist() == [0]
+
+
+def write_synthetic(tmp_path, rows):
+    path = tmp_path / "synthetic.csv"
+    pd.DataFrame(rows, columns=["text", "label", "source"]).to_csv(path, index=False)
+    return path
+
+
+def test_load_synthetic_reads_labels_and_source(tmp_path):
+    path = write_synthetic(tmp_path, [["Paga aquí https://x-fake.es", "fraud", "groq"]])
+    frame = load_synthetic(path)
+    assert frame.loc[0, "label"] == "fraud"
+    assert frame.loc[0, "source"] == "groq"
+
+
+def test_load_synthetic_rejects_unknown_labels(tmp_path):
+    path = write_synthetic(tmp_path, [["Hola", "phishing", "groq"]])
+    with pytest.raises(ValueError):
+        load_synthetic(path)
+
+
+def test_load_synthetic_rejects_missing_columns(tmp_path):
+    path = tmp_path / "bad.csv"
+    pd.DataFrame({"mensaje": ["Hola"], " tipo": ["ham"]}).to_csv(path, index=False)
+    with pytest.raises(ValueError):
+        load_synthetic(path)
+
+
+def real_frames():
+    rows = [(f"mensaje normal {i}", "none") for i in range(40)]
+    rows += [(f"estafa real {i}", "fraud") for i in range(40)]
+    return [
+        pd.DataFrame(
+            {
+                "text": [t for t, _ in rows],
+                "label": [lab for _, lab in rows],
+                "source": "real",
+            }
+        )
+    ]
+
+
+def test_synthetic_rows_go_to_train_only_and_real_splits_do_not_change(tmp_path):
+    baseline = build_splits(real_frames())
+    synthetic = load_synthetic(
+        write_synthetic(
+            tmp_path,
+            [
+                [f"Paga la multa {i} en https://dgt-falsa.es", "fraud", "groq"]
+                for i in range(10)
+            ]
+            + [["estafa real 3", "fraud", "groq"]],  # ES: repite un texto real
+        )
+    )
+    parts = build_splits(real_frames(), [synthetic])
+    for name in ("val", "test"):
+        assert parts[name].equals(baseline[name])
+        assert (parts[name]["source"] != "groq").all()
+    # ES: 10 sintéticos únicos: 8 a train y 2 a synthetic_test (20 %).
+    added = parts["train"][parts["train"]["source"] == "groq"]
+    assert len(added) == 8
+    assert len(parts["train"]) == len(baseline["train"]) + 8
+    assert len(parts["synthetic_test"]) == 2
+    assert not set(parts["synthetic_test"]["text"]) & set(parts["train"]["text"])
+
+
+def test_load_synthetic_reads_ham_as_none(tmp_path):
+    path = write_synthetic(tmp_path, [["Su cita es mañana https://x.es", "ham", "legit"]])
+    assert load_synthetic(path).loc[0, "label"] == "none"

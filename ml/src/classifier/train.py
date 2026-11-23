@@ -39,10 +39,11 @@ from src.classifier.data import (
     LABEL2ID,
     LABELS,
     RANDOM_STATE,
+    build_splits,
     load_spamspa,
     load_spaphish,
+    load_synthetic,
     prepare,
-    split,
 )
 from src.classifier.metrics import class_metrics, confusion, meets_targets
 
@@ -116,6 +117,66 @@ def predict(trainer: Trainer, dataset: Dataset) -> np.ndarray:
     return np.argmax(trainer.predict(dataset).predictions, axis=-1)
 
 
+# ES: Enlace neutro para la prueba de sensibilidad a enlaces.
+# EN: Neutral link for the link-sensitivity probe.
+PROBE_LINK = "https://www.ejemplo.es/info"
+
+
+def link_probe(trainer: Trainer, test: pd.DataFrame, tokenizer, max_length: int):
+    """ES: SMS reales normales o de publicidad del test que pasan a "fraud"
+    solo por añadirles un enlace neutro. Sirve para detectar si el modelo
+    aprendió el atajo "SMS con enlace = estafa" (los SMS sintéticos llevan
+    todos enlace y los reales no).
+    EN: Real normal/advertising test SMS that flip to "fraud" just by adding a
+    neutral link. Detects the "SMS with a link = scam" shortcut (all synthetic
+    SMS have links and the real ones do not).
+    """
+    sms = test[(test["source"] == "spamspa") & (test["label"] != "fraud")]
+    if sms.empty:
+        return None
+    with_link = sms.assign(text=sms["text"] + " " + PROBE_LINK)
+    before = predict(trainer, to_dataset(sms, tokenizer, max_length))
+    after = predict(trainer, to_dataset(with_link, tokenizer, max_length))
+    fraud = LABEL2ID["fraud"]
+    return {
+        "messages": len(sms),
+        "fraud_without_link": int((before == fraud).sum()),
+        "fraud_with_link": int((after == fraud).sum()),
+    }
+
+
+def evaluate_frame(trainer: Trainer, frame: pd.DataFrame, tokenizer, max_length):
+    predictions = predict(trainer, to_dataset(frame, tokenizer, max_length))
+    y_true = frame["label_id"].to_numpy()
+    fraud, none = LABEL2ID["fraud"], LABEL2ID["none"]
+    return {
+        "messages": len(frame),
+        "by_label": frame["label"].value_counts().to_dict(),
+        "fraud_detected": int(((y_true == fraud) & (predictions == fraud)).sum()),
+        "legit_flagged_as_fraud": int(
+            ((y_true == none) & (predictions == fraud)).sum()
+        ),
+        "metrics": class_metrics(y_true, predictions),
+    }
+
+
+def extra_tests(trainer, tokenizer, max_length, parts, real_test_paths):
+    """ES: Mediciones aparte del test principal: el 20 % de los sintéticos y
+    los tests de smishing real (--real-test). Nunca se entrena con ellos.
+    EN: Measurements apart from the main test: the synthetic 20 % and the real
+    smishing tests (--real-test). Never trained on.
+    """
+    results = {}
+    if "synthetic_test" in parts:
+        results["synthetic_test"] = evaluate_frame(
+            trainer, parts["synthetic_test"], tokenizer, max_length
+        )
+    if real_test_paths:
+        real = prepare([load_synthetic(path) for path in real_test_paths])
+        results["real_test"] = evaluate_frame(trainer, real, tokenizer, max_length)
+    return results
+
+
 def measure_latency(model, tokenizer, texts: list[str], max_length: int) -> float:
     """ES: Milisegundos por mensaje en CPU, de uno en uno (como en la API).
     EN: Milliseconds per message on CPU, one at a time (like the API).
@@ -138,6 +199,10 @@ def main() -> None:
     parser.add_argument("--spaphish", type=Path, required=True)
     parser.add_argument("--spamspa", type=Path, required=True)
     parser.add_argument("--review", type=Path, default=None)
+    # ES: SMS sintéticos (#146), solo para entrenar. EN: Synthetic SMS, train only.
+    parser.add_argument("--synthetic", type=Path, action="append", default=[])
+    # ES: Test extra con smishing real (solo se mide). EN: Extra real test, eval only.
+    parser.add_argument("--real-test", type=Path, action="append", default=[])
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--model", default=None)
     parser.add_argument("--epochs", type=int, default=5)
@@ -150,18 +215,20 @@ def main() -> None:
     set_seed(RANDOM_STATE)
     args.out.mkdir(parents=True, exist_ok=True)
 
-    data = prepare(
-        [load_spaphish(args.spaphish), load_spamspa(args.spamspa, args.review)]
+    parts = build_splits(
+        [load_spaphish(args.spaphish), load_spamspa(args.spamspa, args.review)],
+        [load_synthetic(path) for path in args.synthetic],
     )
-    parts = split(data)
     for name, frame in parts.items():
         frame.to_csv(args.out / f"{name}.csv", index=False)
-    print(pd.crosstab(data["source"], data["label"]))
+    parts_for_training = {k: parts[k] for k in ("train", "val", "test")}
+    # ES: Los sintéticos solo aparecen en train. EN: Synthetic rows only in train.
+    print(pd.crosstab(parts["train"]["source"], parts["train"]["label"]))
 
     base_name, tokenizer, model = load_base_model(args.model)
     datasets = {
         name: to_dataset(frame, tokenizer, args.max_length)
-        for name, frame in parts.items()
+        for name, frame in parts_for_training.items()
     }
 
     weights = torch.ones(len(LABELS))
@@ -229,9 +296,15 @@ def main() -> None:
         "ner_model_version": NER_MODEL_VERSION,
         "max_length": args.max_length,
         "sizes": {name: len(frame) for name, frame in parts.items()},
+        "synthetic": [path.name for path in args.synthetic],
+        "train_by_source": parts["train"]["source"].value_counts().to_dict(),
         "test": class_metrics(test["label_id"], predictions),
         "test_by_source": by_source,
         "confusion_test": confusion(test["label_id"], predictions),
+        "link_probe": link_probe(trainer, test, tokenizer, args.max_length),
+        "extra_tests": extra_tests(
+            trainer, tokenizer, args.max_length, parts, args.real_test
+        ),
         "targets": meets_targets(by_source),
         "cpu_latency_ms_median": measure_latency(
             trainer.model, tokenizer, sample.tolist(), args.max_length

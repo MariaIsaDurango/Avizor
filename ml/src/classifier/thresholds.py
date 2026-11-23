@@ -53,13 +53,18 @@ def calibrate_fraud_threshold(
     probs: np.ndarray, y_true: np.ndarray, target_recall: float
 ) -> float:
     """ES: El umbral más alto que alcanza el recall objetivo en validación.
-    Si ninguno lo alcanza, devuelve MIN_THRESHOLD.
+    Si ninguno lo alcanza, el umbral más alto con el mejor recall posible:
+    bajar más solo añadiría falsos positivos sin detectar más estafas.
     EN: The highest threshold that reaches the target recall on validation.
-    If none does, returns MIN_THRESHOLD.
+    If none does, the highest threshold with the best reachable recall:
+    going lower would only add false positives without catching more scams.
     """
     grid = np.round(np.arange(DEFAULT_THRESHOLD, MIN_THRESHOLD - 1e-9, -0.01), 2)
-    for threshold in grid:
-        predictions = predict_with_threshold(probs, float(threshold))
-        if fraud_recall(y_true, predictions) >= target_recall:
+    recalls = [
+        fraud_recall(y_true, predict_with_threshold(probs, float(t))) for t in grid
+    ]
+    for threshold, recall in zip(grid, recalls, strict=True):
+        if recall >= target_recall:
             return float(threshold)
-    return MIN_THRESHOLD
+    best = max(recalls)
+    return float(next(t for t, r in zip(grid, recalls, strict=True) if r == best))

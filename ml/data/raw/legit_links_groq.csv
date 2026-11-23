@@ -1,0 +1,345 @@
+text,label,source
+"Su paquete AH83920156ES está en tu buzón epistolar, puedes consultarlo en https://correos.es/seguimiento",ham,legit-groq
+Tu envío se ha entregado. Consulta el justificante en https://correos.es/seguimiento/AH90213456ES,ham,legit-groq
+Hemos intentado entregar tu paquete en tu buzón. Recógelo en oficina en https://correos.es/office-search,ham,legit-groq
+Tu paquete ha quedado a disposición. Recógelo o solicita nueva entrega en https://correos.es/gestiona-envios,ham,legit-groq
+Notificación de entrega final efectuada. Detalles en https://correos.es/seguimiento/BX55120987ES,ham,legit-groq
+Tu envío pequeño ha sido entregado en tu buzón. Más info en https://correos.es/seguimiento/AH11223344ES,ham,legit-groq
+El paquete correspondiente a tu pedido ya está en tu buzón. Verifica en https://correos.es/seguimiento,ham,legit-groq
+Tu envío no cabe en el buzón. Recógelo en la oficina más cercana vía https://correos.es/oficinas,ham,legit-groq
+Aviso de entrega realizada con éxito. Consulta el estado en https://correos.es/seguimiento/YT44556677ES,ham,legit-groq
+Tu paquete ha llegado a su destino. Puedes cerrar el seguimiento en https://correos.es/seguimiento,ham,legit-groq
+"Entrega completada. Si no has recibido el paquete, gestiona la incidencia en https://correos.es/ayuda",ham,legit-groq
+Tu envío ha sido depositado en el buzón comunitario. Detalles en https://correos.es/seguimiento/ZX99887766ES,ham,legit-groq
+Su paquete está listo para ser retirado en oficina. Reserva cita en https://correos.es/gestiona-envios,ham,legit-groq
+Hemos entregado tu paquete a un vecino autorizado. Justificante en https://correos.es/seguimiento,ham,legit-groq
+Tu paquete ha cambiado de estado a entregado. Consulta en https://correos.es/seguimiento/AX12345678ES,ham,legit-groq
+Aviso de que tu envío pequeño ya se encuentra en tu buzón. Ver en https://correos.es/seguimiento,ham,legit-groq
+Tu paquete fue entregado el día 14/05/2024. Detalles en https://correos.es/seguimiento/BY67890123ES,ham,legit-groq
+El envío ha quedado a disposición en oficina. Recógelo sin cita previa en https://correos.es/oficinas,ham,legit-groq
+"Tu paquete ha sido entregado en el buzón. Si falta, contacta con nosotros en https://correos.es/ayuda",ham,legit-groq
+Estado de tu envío: entregado. Puedes descargar la prueba en https://correos.es/seguimiento/CZ11223344ES,ham,legit-groq
+Tu paquete no pudo entregarse. Recógelo en la oficina de tu zona en https://correos.es/office-search,ham,legit-groq
+Notificación de entrega en buzón epistolar. Consulta el código de seguimiento en https://correos.es/seguimiento,ham,legit-groq
+Tu envío ha sido entregado correctamente. Gestiona tu cuenta en https://correos.es/cuenta-cliente,ham,legit-groq
+El paquete correspondiente a tu pedido ha sido entregado en tu buzón. Ver en https://correos.es/seguimiento,ham,legit-groq
+Tu paquete está disponible en oficina. Realiza el seguimiento para más detalles en https://correos.es/seguimiento,ham,legit-groq
+"Transferencia recibida de 150,00 € de Juan Pérez. Consúltala en https://santander.es/app/movimientos/abc123",ham,legit-groq
+"Pago domiciliado de 45,20 € a Naturgy. Verifica en https://santander.es/app/domiciliados/xyz789",ham,legit-groq
+"Saldo actual de tu cuenta: 1.250,40 €. Gestiona tu saldo en https://santander.es/app/saldo/home",ham,legit-groq
+"Transfiere 200,00 € a María López. Confirma operación en https://santander.es/app/transferencias/op998",ham,legit-groq
+"Retiro efectivo de 50,00 € en cajero ubicado en C/ Mayor. Detalles en https://santander.es/app/retiros/cajero1",ham,legit-groq
+"Pagado recibo de 80,15 € a Iberdrola. Consulta historial en https://santander.es/app/pagos/recibos22",ham,legit-groq
+"Importe de 300,00 € ingresado en caja de tu oficina. Verifica ingreso en https://santander.es/app/ingresos/caja1",ham,legit-groq
+"Abono por interés de 12,50 € en cuenta corriente. Consulta abono en https://santander.es/app/intereses/bono1",ham,legit-groq
+"Transferencia enviada de 75,00 € a Carlos Ruiz. Estado en https://santander.es/app/transferencias/env12",ham,legit-groq
+"Movimiento: -25,90 € en comercio online Amazon. Detalles en https://santander.es/app/compras/azo45",ham,legit-groq
+"Pago de hipoteca 650,00 € realizado con éxito. Verifica pago en https://santander.es/app/hipoteca/cuota24",ham,legit-groq
+"Ingreso de nómina: 1.800,00 €. Consulta desglose en https://santander.es/app/nominas/oct24",ham,legit-groq
+"Retiro de 100,00 € en terminal bancaria. Revisa movimiento en https://santander.es/app/retiros/tb789",ham,legit-groq
+"Carga en tarjeta: 150,50 € en comercio El Corte Inglés. Detalles en https://santander.es/app/tarjetas/carga1",ham,legit-groq
+"Transferencia internacional recibida de 350,00 €. Verifica origen en https://santander.es/app/internacional/recib",ham,legit-groq
+"Pago de seguro de hogar: 120,00 €. Consulta póliza en https://santander.es/app/seguros/hogar24",ham,legit-groq
+"Abono por devolución de 45,00 € en tienda Zara. Detalles en https://santander.es/app/devoluciones/zar98",ham,legit-groq
+"Saldo negativo de -10,00 € en cuenta principal. Gestiona en https://santander.es/app/saldo/alerta",ham,legit-groq
+"Pago de multa de tráfico: 90,00 €. Verifica registro en https://santander.es/app/pagos/multas/tr24",ham,legit-groq
+"Transferencia pendiente de 500,00 € a cuenta externa. Estado en https://santander.es/app/transferencias/pend1",ham,legit-groq
+"Ingreso de dividendo de 25,00 € en cuenta de valores. Consulta en https://santander.es/app/valores/divid1",ham,legit-groq
+"Retiro de 20,00 € en cajero ATM Santander. Detalles en https://santander.es/app/retiros/atm24",ham,legit-groq
+"Pago de cuota de tarjeta: 150,00 € realizado. Verifica en https://santander.es/app/tarjetas/cuota24",ham,legit-groq
+"Abono por devolución de IVA: 30,00 €. Consulta etiqueta en https://s",ham,legit-groq
+Tu transferencia de 1500€ a cuenta 0049-1234-56 ha sido procesada con éxito. https://www.bbva.es/app/extracto/oct24,ham,legit-groq
+Extracto mensual disponible en tu banco online. Revisa tus movimientos de septiembre. https://www.bbva.es/app/estado-cuenta/sept24,ham,legit-groq
+Pago recibido de 85.50€ en factura eléctrica. Consulta el detalle en tu app. https://www.bbva.es/app/pago/factura/1029,ham,legit-groq
+Tu recibo del seguro de hogar ha sido pagado correctamente. Ver datos. https://www.bbva.es/servicios/seguro/pago/ok,ham,legit-groq
+Confirmamos el abono de tu nominativa de 1200€. Consulta el justificante. https://www.bbva.es/app/justificante/nom/202410,ham,legit-groq
+Transferencia entrante de 450€ desde cuenta externa. Revisa tu saldo. https://www.bbva.es/app/saldo/transferencia/ent,ham,legit-groq
+Extracción con tarjeta en ATM Madrid centro por 200€. Ver detalles. https://www.bbva.es/app/movimientos/tarjeta/20241015,ham,legit-groq
+Pago de la hipoteca mensual realizado con cargo a cuenta sueldo. https://www.bbva.es/app/hipoteca/pago/oct24,ham,legit-groq
+Recargo por IBAN internacional aplicado. Consulta el importe exacto. https://www.bbva.es/app/tasas/iban/intl/120,ham,legit-groq
+"Tu cuenta de remuneración ha generado 12,50€ de intereses. Ver cálculo. https://www.bbva.es/app/cuenta/remun/intereses",ham,legit-groq
+Pago domiciliado de cuota mensual de 35€. Ver extracción en extracto. https://www.bbva.es/app/domiciliaciones/cuota/ok,ham,legit-groq
+Confirmamos el reembolso de 15€ por compra anulada. Abono en 48h. https://www.bbva.es/app/reembolsos/compra/anulada,ham,legit-groq
+Tu factura de telefonía móvil ha sido abonada. Consulta el recibo. https://www.bbva.es/app/facturas/movil/sep24,ham,legit-groq
+Ingreso en efectivo de 300€ realizado. Ver justificante de caja. https://www.bbva.es/app/cajas/ingreso/efectivo,ham,legit-groq
+Tu solicitud de aumento de límite de tarjeta ha sido aprobada. https://www.bbva.es/app/tarjetas/limite/nuevo,ham,legit-groq
+Pago de la comunidad de vecinos realizado. Recibo disponible online. https://www.bbva.es/app/comunidad/recibo/oct24,ham,legit-groq
+Transferencia enviada de 800€ a empresa externa. Estado: completada. https://www.bbva.es/app/transferencias/enviada/ok,ham,legit-groq
+Tu préstamo personal tiene cuota pendiente. Ver fecha límite. https://www.bbva.es/app/prestamos/personal/cuota,ham,legit-groq
+Abono de dividendos de acciones por 250€. Ver detalle en cartera. https://www.bbva.es/app/inversiones/dividendos/abono,ham,legit-groq
+Pago de matrícula universitaria realizado. Ver justificante académico. https://www.bbva.es/app/pagos/matricula/uni/ok,ham,legit-groq
+Extracción con Bizum de 50€ realizada. Ver detalle del contacto. https://www.bbva.es/app/bizum/extracto/mes/oct,ham,legit-groq
+Tu póliza de vida ha renovado. Confirmamos el cargo anual. https://www.bbva.es/servicios/seguro/vida/renewal,ham,legit-groq
+Pago de la luz con pago fraccionado realizado. Ver parte mensual. https://www.bb,ham,legit-groq
+Su factura de octubre está lista para ver en https://www.caixabank.com/app/facturas/oct24,ham,legit-groq
+Ya puede descargar su recibo bancario en https://www.caixabank.com/app/recibos/20241115,ham,legit-groq
+Hemos detectado una operación en su cuenta. Revísela en https://www.caixabank.com/app/movimientos/op8821,ham,legit-groq
+Su factura de luz está disponible en la app: https://www.caixabank.com/app/facturas/luz-129,ham,legit-groq
+Puede verificar el ingreso recibido en https://www.caixabank.com/app/transferencias/ing99201,ham,legit-groq
+Le hemos enviado el justificante de su última compra. Vea detalles en https://www.caixabank.com/app/compras/tkt552,ham,legit-groq
+Está pendiente de aprobar una factura de su tarjeta. Acceda en https://www.caixabank.com/app/pendientes/tar-j,ham,legit-groq
+Su recibo de la hipoteca se ha generado. Consúltelo en https://www.caixabank.com/app/hipoteca/rec1124,ham,legit-groq
+Ha recibido una notificación sobre su cuenta remunerada. Lea más en https://www.caixabank.com/app/cuentas/notif-44,ham,legit-groq
+Su factura de internet está lista para descargar aquí: https://www.caixabank.com/app/facturas/int-882,ham,legit-groq
+Puede verificar un cargo recurrente activado en https://www.caixabank.com/app/suscripciones/cargos,ham,legit-groq
+Su extracto mensual está disponible en https://www.caixabank.com/app/extractos/nov24,ham,legit-groq
+Hemos emitido el justificante de su transferencia internacional. Vea en https://www.caixabank.com/app/remesas/t2001,ham,legit-groq
+Ya tiene su factura de telefonía móvil. Acceda en https://www.caixabank.com/app/facturas/tel-77,ham,legit-groq
+Su recibo de la nómina está disponible en la app: https://www.caixabank.com/app/nomina/rec-1125,ham,legit-groq
+Puede revisar el estado de su solicitud de préstamo en https://www.caixabank.com/app/creditos/estado-req,ham,legit-groq
+Ha realizado un pago en efectivo. Justificante en https://www.caixabank.com/app/efectivo/pago-992,ham,legit-groq
+Su factura de gas natural está lista. Descárguela en https://www.caixabank.com/app/facturas/gas-331,ham,legit-groq
+Puede comprobar el saldo de su cuenta infantil en https://www.caixabank.com/app/familia/saldo-inf,ham,legit-groq
+Su recibo de la vivienda está disponible en https://www.caixabank.com/app/vivienda/rec-2024,ham,legit-groq
+Ha recibido una alerta de movimiento en su cuenta. Revise en https://www.caixabank.com/app/seguridad/alerta,ham,legit-groq
+Su factura de mantenimiento está lista para ver en https://www.caixabank.com/app/facturas/man-102,ham,legit-groq
+Puede descargar el certificado de sus movimientos anuales en https://www.caixabank.com/app/certificados/2023,ham,legit-groq
+Su recibo de la comunidad está pendiente de pago. Vea en https://www.caixabank.com/app/comunidad/rec-pend,ham,legit-groq
+Ha confirmado una operación por autogestión. Justificante en https://www.caixabank.com/app/autogestion/op-88,ham,legit-groq
+Su declaración de la renta del ejercicio 2023 ya está disponible. Puede consultarla en https://sede.agenciatributaria.gob.es,ham,legit-groq
+Recibida notificación de la AEAT. Consulte su bandeja de entrada en https://sede.agenciatributaria.gob.es,ham,legit-groq
+Ha finalizado el cálculo de su declaración de la renta. Acceda en https://sede.agenciatributaria.gob.es,ham,legit-groq
+La AEAT le informa de que su declaración está lista para presentar. Enlace: https://sede.agenciatributaria.gob.es,ham,legit-groq
+Disponible su resultado de la campaña de la renta. Revise en https://sede.agenciatributaria.gob.es,ham,legit-groq
+Tiene una nueva notificación en la sede electrónica de la AEAT. Visite https://sede.agenciatributaria.gob.es,ham,legit-groq
+Su borrador de la declaración de la renta ha sido generado. Consulte en https://sede.agenciatributaria.gob.es,ham,legit-groq
+AEAT: su solicitud de liquidación provisional ha sido tramitada. Detalles en https://sede.agenciatributaria.gob.es,ham,legit-groq
+Ha sido admitida su autoliquidación. Verifique el estado en https://sede.agenciatributaria.gob.es,ham,legit-groq
+La Agencia Tributaria ha emitido su certificado de residencia fiscal. Descárguelo en https://sede.agenciatributaria.gob.es,ham,legit-groq
+Nuevo estado de cuenta disponible en su cuenta de la AEAT. Acceda en https://sede.agenciatributaria.gob.es,ham,legit-groq
+Su declaración de la renta 2022 ha sido corregida. Consulte en https://sede.agenciatributaria.gob.es,ham,legit-groq
+Notificación de resultado de su declaración de la renta. Información en https://sede.agenciatributaria.gob.es,ham,legit-groq
+La AEAT le comunica la disponibilidad de su certificado de empresa. Enlace: https://sede.agenciatributaria.gob.es,ham,legit-groq
+Ha finalizado el proceso de validación de su declaración. Revise en https://sede.agenciatributaria.gob.es,ham,legit-groq
+Nuevo importe a ingresar o a devolver según su declaración. Detalle en https://sede.agenciatributaria.gob.es,ham,legit-groq
+Su solicitud de duplicado de NIF ha sido aprobada. Disponible en https://sede.agenciatributaria.gob.es,ham,legit-groq
+AEAT: ha recibido su solicitud de aplazamiento de pago. Estado en https://sede.agenciatributaria.gob.es,ham,legit-groq
+Su declaración de la renta ha sido presentada correctamente. Aceptación en https://sede.agenciatributaria.gob.es,ham,legit-groq
+Disponible su certificado de ingresos y retenciones. Descárguelo en https://sede.agenciatributaria.gob.es,ham,legit-groq
+Su solicitud de certificado de no antecedentes ha sido finalizada. Enlace: https://sede.agenciatributaria.gob.es,ham,legit-groq
+Ha sido actualizada su información personal en la AEAT. Revise en https://sede.agenciatributaria.gob.es,ham,legit-groq
+Disponible su factura de servicios de la AEAT. Pague o descargue en https://sede.agenciatributaria.gob.es,ham,legit-groq
+Usted tiene cita para renovar su permiso de conducir el 15/10/2024 a las 09:30. Confirme su asistencia en https://sede.dgt.es/citas/renovacion,ham,legit-groq
+Recordatorio: su cita para renovar el permiso de conducir es hoy a las 11:00. Presente su DNI y el certificado médico. Más info en https://sede.dgt.es/citas,ham,legit-groq
+Su solicitud de duplicado de permiso de conducir ha sido aprobada. Puede recogerlo en cualquier oficina. Estado en https://sede.dgt.es/tramites,ham,legit-groq
+Tiene un nuevo documento disponible para descarga. Acceda a su área personal para ver la notificación en https://sede.dgt.es/notificaciones,ham,legit-groq
+Confirmación de cita para examen teórico. Fecha: 20/11/2024. Revise los detalles y prepare su documentación en https://sede.dgt.es/examenes,ham,legit-groq
+Su pago para la renovación del permiso ha sido ingresado correctamente. Recibirá el nuevo documento en 5-7 días laborables. https://sede.dgt.es/pagos,ham,legit-groq
+Recordatorio: debe presentar la declaración jurada de no padecimiento de adicciones. Cumplimente el formulario en https://sede.dgt.es/docs/declaracion,ham,legit-groq
+Cita confirmada para la revisión de su carnet de conducir. Lleve una foto tipo pasaporte. Detalles en https://sede.dgt.es/citas/revision,ham,legit-groq
+Su solicitud de cambio de domicilio de envío de multas ha sido registrada. Verifique los datos en https://sede.dgt.es/cuenta/domicilio,ham,legit-groq
+Notificación: su permiso de conducir provisional ha caducado. Inicie el trámite de renovación en https://sede.dgt.es/renovacion,ham,legit-groq
+Usted tiene un trámite pendiente de firma electrónica. Acceda a la sede electrónica para validarlo en https://sede.dgt.es/firma,ham,legit-groq
+Confirmación: su cita para la obtención del permiso internacional fue reprogramada al 05/12/2024. Verifique en https://sede.dgt.es/citas,ham,legit-groq
+Su solicitud de duplicado por robo ha sido tramitada. El nuevo documento se enviará a su domicilio. Seguimiento en https://sede.dgt.es/tramites,ham,legit-groq
+Recordatorio: cita para renovar su permiso de conducir. Recuerde llevar el certificado médico vigente. Info en https://sede.dgt.es/citas,ham,legit-groq
+Su permiso de conducir ha sido renovado. El nuevo documento estará disponible para su recogida en 3 días. Estado en https://sede.dgt.es/renovacion,ham,legit-groq
+Notificación de observaciones sobre su expediente de conducir. Resuelva las incidencias en https://sede.dgt.es/expediente,ham,legit-groq
+Cita confirmada para la prueba médica de aptitud psicológica. Fecha: 12/10/2024. Detalles en https://sede.dgt.es/citas/medica,ham,legit-groq
+Su pago de tasa por duplicado de permiso ha sido validado. Inicie el trámite de solicitud en https://sede.dgt.es/tramites,ham,legit-groq
+Recordatorio: usted tiene cita para renovar su carnet de conducir mañana a las 10:15. Confirme presencia en https://sede.dgt.es/citas,ham,legit-groq
+Su solicitud de cambio de nombre en el permiso ha sido aceptada. El nuevo documento se emitirá en 7 días. Info en https://sede.dgt.es/tramites,ham,legit-groq
+Notificación: su documento de autorización para conducir ha sido expedido. Descárguelo en https://sede.dgt.es/documents,ham,legit-groq
+Cita para la renovación de su permiso profesional. Recuerde llevar la documentación de la empresa. Detalles en https://sede.dgt.es/citas,ham,legit-groq
+Su cita médica en el INSS para el 15/10 a las 10:30 ha sido confirmada. Consulte su certificado: https://sede.seg-social.gob.es/cita/MED2024,ham,legit-groq
+Prestación por desempleo de octubre abonada. Puede consultar el detalle y el estado de su cuenta en https://sede.seg-social.gob.es/prestaciones,ham,legit-groq
+Le informamos de que su solicitud de incapacidad temporal ha sido tramitada. Verifique el resultado en https://sede.seg-social.gob.es/it/verificar,ham,legit-groq
+Cita de revisión anual de su pensión programada para el 20/10. Acceda a la información en https://sede.seg-social.gob.es/pensiones/revision,ham,legit-groq
+Ha finalizado correctamente el abono de su prestación por maternidad. Consulte el justificante en https://sede.seg-social.gob.es/pago/maternidad,ham,legit-groq
+Su nueva cita para la valoración médica en el centro de Madrid ha quedado apuntada. Detalles en https://sede.seg-social.gob.es/cita/valoracion,ham,legit-groq
+Recibimos su solicitud de subsidio por hijo a cargo. El estado actual es 'En trámite'. Vea más en https://sede.seg-social.gob.es/subsidios/estado,ham,legit-groq
+Pensión de jubilación de este mes transferida. Puede descargar la nómina en https://sede.seg-social.gob.es/jubilacion/documentos,ham,legit-groq
+Confirmación de cita para el reconocimiento de gran invalidez. Fecha: 12/11. Información en https://sede.seg-social.gob.es/cita/gv,ham,legit-groq
+Actualización de datos de cotización recibida. Verifique la corrección en https://sede.seg-social.gob.es/empresa/cotizaciones,ham,legit-groq
+Su prestación por cese de actividad está activa. Consulte las condiciones en https://sede.seg-social.gob.es/prestaciones/ese,ham,legit-groq
+Cita de control de la baja por enfermedad confirmada. Recuerde llevar la tarjeta sanitaria. Info: https://sede.seg-social.gob.es/cita/control,ham,legit-groq
+Abono de la ayuda por discapacidad realizado. Encuentre el resumen bancario en https://sede.seg-social.gob.es/auxiliares/ayuda,ham,legit-groq
+Ha sido seleccionado para la revisión por muestreo de su expediente laboral. Acceda a https://sede.seg-social.gob.es/revision/expediente,ham,legit-groq
+Presta disponible su certificado de situación de alta en el régimen general. Descárguelo en https://sede.seg-social.gob.es/empresa/altas,ham,legit-groq
+Cita de matrona en el centro de atención de prestaciones. Confirmada para el 05/10 a las 09:00. Info: https://sede.seg-social.gob.es/cita/matrona,ham,legit-groq
+Transferencia de la prestación por orfandad completada. Consulte el movimiento en https://sede.seg-social.gob.es/pago/orfandad,ham,legit-groq
+Notificación de cargo derivado de la reclamación de una prestación anterior. Detalle en https://sede.seg-social.gob.es/reclamaciones/cargo,ham,legit-groq
+Su solicitud de revalorización de pensión ha sido aprobada. La nueva cuantía se refleja en https://sede.seg-social.gob.es/pensiones/revalorizacion,ham,legit-groq
+Cita de orientación laboral vinculada a su prestación por desempleo. Asista con su DNI. Info: https://sede.seg-social.gob.es/cita/orientacion,ham,legit-groq
+Abono de la prestación por cuidado de hijo con discapacidad. Consulte la nómina en https://sede.seg-social.gob.es/prestaciones/cuidado,ham,legit-groq
+Su turno para la revisión médica de aptitudes ha sido actualizado. Nuevo horario: https://sede,ham,legit-groq
+Su factura de la luz de octubre ya está disponible. Consulte el detalle en https://iberdrola.com/clientes/factura/oct24,ham,legit-groq
+Lectura del contador realizada el 15/10. Verifique los datos en https://iberdrola.com/contador/verificacion/8892,ham,legit-groq
+Ya puede consultar su factura de noviembre en la app Iberdrola. Acceda en https://iberdrola.com/app/factura/nov24,ham,legit-groq
+Hemos realizado la lectura automática de su contador. Revise el importe en https://iberdrola.com/lectura/mes/24/11,ham,legit-groq
+Su factura de la luz de diciembre está lista. Descárguela en https://iberdrola.com/clientes/descargar/factura/dec24,ham,legit-groq
+Lectura registrada el 20/12. Consulte el desglose de consumo en https://iberdrola.com/contador/datos/lecuera1224,ham,legit-groq
+Acceda a su nueva factura de Iberdrola desde la web oficial: https://iberdrola.com/clientes/espacio/facturas,ham,legit-groq
+Se ha completado la lectura de su contador. Verifique los valores en https://iberdrola.com/verificar/lectura/2412,ham,legit-groq
+Ya puede ver su factura de la luz de enero. Inicie sesión en https://iberdrola.com/clientes/facturas/ene25,ham,legit-groq
+Lectura manual realizada por un técnico. Confirme el dato en https://iberdrola.com/contador/confirmar/lectura/2501,ham,legit-groq
+Su factura de enero ya está disponible para su revisión. Consulte en https://iberdrola.com/app/resumen/enero,ham,legit-groq
+Hemos registrado la lectura de su contador. Vea el detalle en https://iberdrola.com/clientes/lectura/auto/2501,ham,legit-groq
+Ya puede descargar su factura de la luz de febrero. Visite https://iberdrola.com/clientes/factura/feb25,ham,legit-groq
+Lectura del contador actualizada. Verifique el consumo en kWh en https://iberdrola.com/contador/datos/feb25,ham,legit-groq
+Su factura de febrero está lista. Inicie sesión para verla en https://iberdrola.com/clientes/espacio/area,ham,legit-groq
+Se ha realizado la lectura periódica de su contador. Confirme en https://iberdrola.com/verificar/lectura/2502,ham,legit-groq
+Acceda a su factura de la luz de marzo en la web: https://iberdrola.com/clientes/factura/mar25,ham,legit-groq
+Lectura registrada el 05/03. Consulte el importe estimado en https://iberdrola.com/contador/lectura/mar25,ham,legit-groq
+Ya puede consultar su factura de marzo. Descárguela en PDF desde https://iberdrola.com/app/factura/bajar/mar,ham,legit-groq
+Hemos completado la lectura de su contador. Revise el historial en https://iberdrola.com/clientes/contador/historial,ham,legit-groq
+Su factura de abril ya está disponible. Vea el detalle en https://iberdrola.com/clientes/factura/abr25,ham,legit-groq
+Lectura del contador realizada. Verifique los datos en https://iberdrola.com/contador/verificar/abr25,ham,legit-groq
+Ya puede ver su factura de la luz de mayo en la app. Acceso en https://iberdrola.com/app/clientes/factura/may,ham,legit-groq
+Se ha registrado la lectura de su contador. Consulte el estado en https://iberdrola.com/lectura/estado/may25,ham,legit-groq
+Su factura de mayo está lista. Inicie sesión para descargarse https://iberdrola.com/clientes/descargar/factura,ham,legit-groq
+Tu pedido #1234567890 ha sido enviado. Sigue su estado aquí: https://www.amazon.es/gp/aw/h/your-orders/ref=oh_yourorder_sm,ham,legit-groq
+Pedido #5432109876 entregado en tu dirección. Consulta la confirmación: https://www.amazon.es/gp/aw/h/your-orders/ref=oh_yourorder_sm,ham,legit-groq
+Tu paquete #9876543210 está en camino. Comprueba la entrega prevista: https://www.amazon.es/gp/aw/h/your-orders/ref=oh_yourorder_sm,ham,legit-groq
+Pedido #1122334455 entregado. Accede a los detalles del envío: https://www.amazon.es/gp/aw/h/your-orders/ref=oh_yourorder_sm,ham,legit-groq
+Tu paquete #6677889900 ha salido del centro de distribución. Sigue el rastro: https://www.amazon.es/gp/aw/h/your-orders/ref=oh_yourorder_sm,ham,legit-groq
+Pedido #2233445566 entregado por el repartidor. Revisa la información: https://www.amazon.es/gp/aw/h/your-orders/ref=oh_yourorder_sm,ham,legit-groq
+Tu paquete #8899001122 está siendo procesado para envío. Consulta el estado: https://www.amazon.es/gp/aw/h/your-orders/ref=oh_yourorder_sm,ham,legit-groq
+Pedido #3344556677 entregado en el punto de Pickup. Recógelo pronto: https://www.amazon.es/gp/aw/h/your-orders/ref=oh_yourorder_sm,ham,legit-groq
+Tu paquete #9900112233 ha sido enviado. Verifica la fecha de entrega: https://www.amazon.es/gp/aw/h/your-orders/ref=oh_yourorder_sm,ham,legit-groq
+Pedido #4455667788 entregado. Accede a la prueba de entrega: https://www.amazon.es/gp/aw/h/your-orders/ref=oh_yourorder_sm,ham,legit-groq
+Tu paquete #5566778899 está en tránsito. Consulta su posición: https://www.amazon.es/gp/aw/h/your-orders/ref=oh_yourorder_sm,ham,legit-groq
+Pedido #6677889900 entregado en tu buzón. Revisa el estado: https://www.amazon.es/gp/aw/h/your-orders/ref=oh_yourorder_sm,ham,legit-groq
+Tu paquete #7788990011 ha sido despachado. Sigue el envío: https://www.amazon.es/gp/aw/h/your-orders/ref=oh_yourorder_sm,ham,legit-groq
+Pedido #8899001122 entregado. Accede a los detalles del paquete: https://www.amazon.es/gp/aw/h/your-orders/ref=oh_yourorder_sm,ham,legit-groq
+Tu paquete #1212121212 está listo para la recogida. Consulta la ruta: https://www.amazon.es/gp/aw/h/your-orders/ref=oh_yourorder_sm,ham,legit-groq
+Pedido #1313131313 entregado. Comprueba la información de envío: https://www.amazon.es/gp/aw/h/your-orders/ref=oh_yourorder_sm,ham,legit-groq
+Tu paquete #1414141414 ha salido hacia su destino. Verifica el rastro: https://www.amazon.es/gp/aw/h/your-orders/ref=oh_yourorder_sm,ham,legit-groq
+Pedido #1515151515 entregado en la empresa. Accede a la confirmación: https://www.amazon.es/gp/aw/h/your-orders/ref=oh_your,ham,legit-groq
+Su cita en el Centro de Salud de Barajas el 12/04 a las 10:30. Confirme o cancele en https://salud.madrid.org/citas/confirmar/88421,ham,legit-groq
+Recordatorio: cita de revisión anual en el CHU La Paz el 15/05 a las 09:00. Gestione su asistencia en https://salud.madrid.org/gestion/73920,ham,legit-groq
+Cita de pediatría en el Centro de Salud de Vallecas programada para el 20/06 a las 12:15. Acceda a https://salud.madrid.org/citas/pediatra/55102,ham,legit-groq
+Recordatorio de su cita en el Centro de Salud de Tetuán el 18/09 a las 16:45. Confirme su presencia en https://salud.madrid.org/confirmar/99021,ham,legit-groq
+Su cita de vacunación en el CHU 12 de Octubre el 02/10 a las 11:30. Gestione el enlace en https://salud.madrid.org/vacunacion/44810,ham,legit-groq
+Recordatorio: cita de análisis de sangre en el Centro de Salud de Carabanchel el 10/11 a las 08:30. Confirme en https://salud.madrid.org/citas/analisis/33209,ham,legit-groq
+Cita de control de diabetes en el Centro de Salud de Hortaleza el 22/12 a las 10:00. Acceda a https://salud.madrid.org/diabetes/77120,ham,legit-groq
+Recordatorio de su cita en el CHU Gregorio Marañón el 05/01 a las 15:30. Gestionar cita: https://salud.madrid.org/gestion/11203,ham,legit-groq
+Su cita de fisioterapia en el Centro de Salud de Chamartín el 14/02 a las 17:00. Confirme en https://salud.madrid.org/citas/fisio/66012,ham,legit-groq
+Recordatorio: cita de ginecología en el Centro de Salud de Usera el 03/03 a las 09:45. Acceda a https://salud.madrid.org/ginecologia/88721,ham,legit-groq
+Cita de oftalmología en el CHU La Paz el 25/04 a las 11:15. Confirme su asistencia en https://salud.madrid.org/ofthalmologia/44310,ham,legit-groq
+Recordatorio de su cita en el Centro de Salud de Retiro el 12/05 a las 13:30. Gestione en https://salud.madrid.org/confirmar/22901,ham,legit-groq
+Su cita de traumatología en el Centro de Salud de Atocha el 30/06 a las 10:30. Acceda a https://salud.madrid.org/traumatologia/55412,ham,legit-groq
+Recordatorio: cita de otorrinolaringología en el CHU 12 de Octubre el 15/07 a las 16:00. Confirme en https://salud.madrid.org/orl/33109,ham,legit-groq
+Cita de control de tensión en el Centro de Salud de Ruzafa el 08/09 a las 09:15. Gestione su cita en https://salud.madrid.org/tension/77820,ham,legit-groq
+Pedido #4821 enviado. Rastreéalo aquí: https://farmacialozano.es/rastreo/LZ4821,ham,legit-groq
+Tu pedido #7392 está en camino. Consulta estado en https://farmacialozano.es/pedido/7392,ham,legit-groq
+Enviado tu medicación. Verifica envío en https://farmacialozano.es/envio/7392,ham,legit-groq
+Pedido #1045 despachado. Seguimiento: https://farmacialozano.es/rastreo/1045,ham,legit-groq
+Tu pedido #2210 salió de la farmacia. Info en https://farmacialozano.es/estado/2210,ham,legit-groq
+Pedido #5561 enviado a domicilio. Rastrea en https://farmacialozano.es/seguimiento/5561,ham,legit-groq
+Confirmamos envío de tu pedido #8834. Detalles: https://farmacialozano.es/pedido/8834,ham,legit-groq
+Tu pedido #3309 está en preparación final. Ver en https://farmacialozano.es/estado/3309,ham,legit-groq
+Pedido #9912 entregado al transportista. Rastreá: https://farmacialozano.es/rastreo/9912,ham,legit-groq
+Enviado pedido #6678. Consulta trazabilidad en https://farmacialozano.es/envio/6678,ham,legit-groq
+Tu pedido #1123 salió hoy. Verifica en https://farmacialozano.es/seguimiento/1123,ham,legit-groq
+Pedido #4450 en tránsito. Estado actual: https://farmacialozano.es/estado/4450,ham,legit-groq
+Hemos enviado tu pedido #7789. Rastrea en https://farmacialozano.es/rastreo/7789,ham,legit-groq
+Pedido #2245 despachado. Info de envío: https://farmacialozano.es/pedido/2245,ham,legit-groq
+Tu pedido #8891 está camino. Ver estado en https://farmacialozano.es/seguimiento/8891,ham,legit-groq
+Pedido #3310 enviado. Consulta ubicación en https://farmacialozano.es/envio/3310,ham,legit-groq
+Enviado pedido #5502. Rastrea paquete en https://farmacialozano.es/rastreo/5502,ham,legit-groq
+Tu pedido #9943 salió de almacén. Ver en https://farmacialozano.es/estado/9943,ham,legit-groq
+Pedido #6617 despachado. Seguimiento: https://farmacialozano.es/pedido/6617,ham,legit-groq
+Pedido #1180 enviado a tu dirección. Rastrea en https://farmacialozano.es/seguimiento/1180,ham,legit-groq
+Tu pedido #7723 está en ruta. Info: https://farmacialozano.es/envio/7723,ham,legit-groq
+Pedido #4491 enviado. Consulta trazabilidad en https://farmacialozano.es/rastreo/4491,ham,legit-groq
+Enviado tu pedido #2256. Ver estado en https://farmacialozano.es/estado/2256,ham,legit-groq
+Pedido #8830 despachado. Rastrea en https://farmacialozano.es/pedido/8830,ham,legit-groq
+Tu pedido #5584 salió hoy. Verifica en https://farmacialozano.es/seguimiento/5584,ham,legit-groq
+Confirmar o gestionar su cita dental del 14/10 https://clnicasanpablo.es/cita/8823,ham,legit-groq
+Le recordamos su revisión dental mañana a las 10:30. Gestíonela en https://clnicasanpablo.es/agenda/rev,ham,legit-groq
+Su cita de ortodoncia está programada para el 20/09. Verifique en https://clnicasanpablo.es/orto/verif,ham,legit-groq
+Recordatorio: limpieza dental el jueves a las 12:00. Detalles en https://clnicasanpablo.es/trat/limp,ham,legit-groq
+Confirmación requerida para su endodoncia el 05/11. Enlace: https://clnicasanpablo.es/endod/confirm,ham,legit-groq
+Su cita con el ortodoncista es el 15/12. Puede reprogramar en https://clnicasanpablo.es/ortodoncia,ham,legit-groq
+Recordatorio de su extracción el sábado 09:30. Gestionar en https://clnicasanpablo.es/period/extra,ham,legit-groq
+Le esperamos el 22/10 a las 11:00 para su implante. Confirmar: https://clnicasanpablo.es/impl/2210,ham,legit-groq
+Su revisión anual de dientes está el 01/01. Estado: https://clnicasanpablo.es/rev/annual,ham,legit-groq
+Recordatorio: blanqueamiento dental el 18/05. Link de gestión: https://clnicasanpablo.es/est/bla,ham,legit-groq
+Su cita de ortodoncia es el 25/06. Puede cancelar o cambiar en https://clnicasanpablo.es/orto/2506,ham,legit-groq
+Confirmación de su cita de endodoncia el 03/09. Acceder: https://clnicasanpablo.es/endod/0309,ham,legit-groq
+Le recordamos su limpieza el 11/08. Actualice sus datos en https://clnicasanpablo.es/limp/1108,ham,legit-groq
+Su cita con el cirujano dental es el 30/07. Infórmese en https://clnicasanpablo.es/cir/3007,ham,legit-groq
+Recordatorio: control de ortodoncia el 04/10. Enlace: https://clnicasanpablo.es/orto/control,ham,legit-groq
+Su implante dental es el 12/11. Confirmación: https://clnicasanpablo.es/implante/1211,ham,legit-groq
+Le esperamos el 19/09 a las 09:00 para su revisión. Gestionar: https://clnicasanpablo.es/rev/1909,ham,legit-groq
+Su cita de extracción está el 27/08. Detalles en https://clnicasanpablo.es/extra/2708,ham,legit-groq
+Recordatorio de su sesión de ortodoncia el 02/12. Link: https://clnicasanpablo.es/orto/ses,ham,legit-groq
+Confirmación de su limpieza dental el 14/01. Acceder: https://clnicasanpablo.es/limp/1401,ham,legit-groq
+Su cita de endodoncia es el 21/02. Puede modificar en https://clnicasanpablo.es/endod/2102,ham,legit-groq
+Le recordamos su implante el 08/03. Estado y gestión: https://clnicasanpablo.es/impl/0803,ham,legit-groq
+Su revisión de ortodoncia es el 15/04. Confirmar asistencia: https://clnicasanpablo.es/orto/1504,ham,legit-groq
+Nuevo contenido disponible: Módulo 5 de Gestión Ágil. Accede desde tu área de usuario en https://edupro.es/cursos/certificado/agil-m5,ham,legit-groq
+Tu título de Experto en Marketing Digital ya está listo. Descárgalo en PDF desde https://edupro.es/titulos/marketing-digital-2024,ham,legit-groq
+Hemos subido las diapositivas de la sesión anterior. Revísalas en https://edupro.es/clases/webdesign/diapositivas-sesion12,ham,legit-groq
+Nuevo examen final disponible para el curso de Programación Frontend. Entradas en https://edupro.es/examenes/frontend-final24,ham,legit-groq
+Material de audio complementario añadido a tu curso de Inglés B2. Escúchalo en https://edupro.es/recursos/ingles/audio-lect-08,ham,legit-groq
+Tu informe de progreso trimestral está listo. Consulta los detalles en https://edupro.es/perfil/informe-t3-2024,ham,legit-groq
+Nueva lección interactiva disponible en tu plan de Excel Avanzado. Ábrela aquí: https://edupro.es/cursos/excel/leccion-15,ham,legit-groq
+Hemos actualizado el temario de tu curso de Ciberseguridad. Verifica el cambio en https://edupro.es/cursos/ciber/temario-v2,ham,legit-groq
+Test de evaluación pendiente. Tienes acceso al formulario en https://edupro.es/evaluaciones/test-seguridad-basica,ham,legit-groq
+Nuevo vídeo tutorial sobre SEO técnico subido a tu biblioteca de recursos. Míralo en https://edupro.es/recursos/seo/video-tuto-45,ham,legit-groq
+Tu certificado de asistencia al taller de LinkedIn está disponible. Descárgalo en https://edupro.es/certificados/taller-linkedin,ham,legit-groq
+Material de estudio extra para la unidad de Contabilidad General añadido. Accede en https://edupro.es/unidades/contabilidad/materiales-u3,ham,legit-groq
+Nueva disposición de datos de mercado en tu dashboard de finanzas. Revísala en https://edupro.es/dashboard/finanzas/actualizacion,ham,legit-groq
+El foro de debate de la semana ya está abierto. Participa desde https://edupro.es/foros/marketing/datos-semanal,ham,legit-groq
+Tu progreso ha alcanzado el 50% en el curso de Python. Continúa donde lo dejaste en https://edupro.es/cursos/python/continuar,ham,legit-groq
+Nueva evaluación de competencias disponible para tu perfil de liderazgo. Complétala en https://edupro.es/evaluaciones/liderazgo-competencias,ham,legit-groq
+Hemos añadido nuevas plantillas de currículum a tu sección de empleo. Explóralas en https://edupro.es/recursos/empleo/plantillas-cv,ham,legit-groq
+Sesión en directo programada el viernes. Consulta la agenda actualizada en https://edupro.es/agenda/sesiones-vivo,ham,legit-groq
+Tu suscripción anual incluye acceso a la nueva masterclass de IA. Entradas en https://edupro.es/masterclasses/ia-introduccion,ham,legit-groq
+Actualización de software necesario para el laboratorio virtual. Descárgalo en https://edupro.es/lab/virtual-setup-v2,ham,legit-groq
+Nuevo cuestionario de repaso disponible para el módulo de Derecho Laboral. Resuélvelo en https://edupro.es/cuestionarios/derecho/modulo-4,ham,legit-groq
+Tu mentor ha subido una retroalimentación personal sobre tu proyecto final. Léela en https://edupro.es/mentoring/retro-proyecto-01,ham,legit-groq
+Nueva biblioteca de casos de estudio añadida a tu curso de Estrategia. Revisa en https://edupro.es/recursos/estrategia/casos-2024,ham,legit-groq
+Tu cuenta de estudiante tiene una nueva notificación del sistema. Siéntela en https://edupro.es/notificaciones/sistema-info,ham,legit-groq
+Tu pedido MOD-8821 ha salido de la tienda. Sigue el envío aquí: https://modalia.es/rastrear/pedido8821,ham,legit-groq
+Pedido RM-452 listo para recoger en Calle Serrano 12. Consulta detalles: https://modalia.es/retirada/RM452,ham,legit-groq
+Tu paquete de Modalia ya está en ruta. Estado actualizado: https://modalia.es/envios/seg-9921,ham,legit-groq
+Nuevo envío de tu compra en Modalia. Pulsa para ver el seguimiento: https://modalia.es/seguimiento/ord778,ham,legit-groq
+Tu pedido MOD-1122 sale hoy. Rastrea el paquete aquí: https://modalia.es/rastreo/MOD1122,ham,legit-groq
+Pedido listo en tienda Modalia de Madrid. Recógelo en 5 días: https://modalia.es/retirada/es-madrid,ham,legit-groq
+Tu compra en Modalia ha sido enviada. Consulta el estado: https://modalia.es/envios/estado-ord44,ham,legit-groq
+Pedido MOD-3344 entregado. Revisa la confirmación aquí: https://modalia.es/entrega/confirmad-3344,ham,legit-groq
+Tu paquete Modalia sigue su curso. Último dato: https://modalia.es/rastrear/ultimo-998,ham,legit-groq
+Pedido RM-778 disponible. Lleva tu DNI a la tienda: https://modalia.es/retirada/RM778,ham,legit-groq
+Envío de tu nueva ropa en Modalia iniciado. Seguimiento: https://modalia.es/seguimiento/envio55,ham,legit-groq
+Tu pedido MOD-991 ha salido del almacén. Info: https://modalia.es/rastreo/MOD991,ham,legit-groq
+Pedido listo para recoger en Modalia Barcelona. Web: https://modalia.es/retirada/bcn-rm2,ham,legit-groq
+Compra en Modalia procesada. Rastrea tu paquete aquí: https://modalia.es/envios/rastreo-ord12,ham,legit-groq
+Tu paquete de vestidos en ruta. Estado: https://modalia.es/seguimiento/vest-441,ham,legit-groq
+Pedido MOD-556 listo. Recógelo en nuestro local: https://modalia.es/retirada/MOD556,ham,legit-groq
+Nuevo envío de Modalia asignado. Consulta detalles: https://modalia.es/envios/asignado-77,ham,legit-groq
+Tu pedido de comprados en Modalia ha partido. Datos: https://modalia.es/rastrear/pedido-88,ham,legit-groq
+Pedido RM-221 en tránsito. Sigue el envío aquí: https://modalia.es/seguimiento/RM221,ham,legit-groq
+Tu paquete Modalia casi llega. Estado actual: https://modalia.es/rastreo/casi-llega-91,ham,legit-groq
+Pedido listo en tienda. Confirma tu recogida: https://modalia.es/retirada/confirmar-rm3,ham,legit-groq
+Envío de tu pedido MOD-443 iniciado. Info: https://modalia.es/envios/MOD443,ham,legit-groq
+Tu compra en Modalia ya tiene estafeta. Rastrea: https://modalia.es/seguimiento/estafeta-ord2,ham,legit-groq
+Pedido RM-667 disponible para recogida. Web: https://modalia.es/retirada/RM667,ham,legit-groq
+Tu paquete de Modalia ha salido de la tienda. Seguimiento: https://modalia.es/rastrear/pedido-77,ham,legit-groq
+Su DNI renovado ya está disponible para descarga en su área cliente. Acceda aquí: https://gestoriamarin.es/area/documentos,ham,legit-groq
+Reciba la liquidación del ejercicio fiscal 2023. Puede consultarla y descargarla en: https://gestoriamarin.es/area/fiscal,ham,legit-groq
+Su certificado digital de firma electrónica ha sido emitido correctamente. Descárguelo en: https://gestoriamarin.es/area/certificado,ham,legit-groq
+La justificación de gastos sanitarios del trimestre está lista en su portal privado. Vea en: https://gestoriamarin.es/area/gastos,ham,legit-groq
+Su solicitud de empadronamiento ha sido aprobada. El documento oficial está disponible en: https://gestoriamarin.es/area/empadronamiento,ham,legit-groq
+Puede descargar su póliza de seguro de hogar actualizada desde el área de cliente: https://gestoriamarin.es/area/seguro,ham,legit-groq
+El acta de notificación de subvención municipal está lista para su revisión. Acceda en: https://gestoriamarin.es/area/subvenciones,ham,legit-groq
+Su contrato laboral digitalizado ha sido actualizado. Puede descargar la copia en: https://gestoriamarin.es/area/contratos,ham,legit-groq
+La declaración de impuestos de sucesiones y donaciones está preparada. Descárguela en: https://gestoriamarin.es/area/sucesiones,ham,legit-groq
+Su permiso de trabajo temporal ha sido renovado. El documento oficial está en: https://gestoriamarin.es/area/trabajo,ham,legit-groq
+Reciba el justificante de pago de la comunidad de propietarios de noviembre. Vea en: https://gestoriamarin.es/area/pagos,ham,legit-groq
+Su solicitud de tarjeta sanitaria familiar ha sido tramitada. Descargue el alta en: https://gestoriamarin.es/area/salud,ham,legit-groq
+El informe de situación urbanística de su finca está disponible. Acceda aquí: https://gestoriamarin.es/area/urbanismo,ham,legit-groq
+Su resolución de concesión de ayudas a alquiler está lista. Descárguela en: https://gestoriamarin.es/area/ayudas,ham,legit-groq
+La certificación de residencia fiscal actualizada está en su área personal. Vea en: https://gestoriamarin.es/area/residencia,ham,legit-groq
+Puede descargar el recibo de la tasa de basuras del último trimestre. Acceda en: https://gestoriamarin.es/area/tasas,ham,legit-groq
+Su solicitud de reagrupamiento familiar ha tenido resolución favorable. El acta está en: https://gestoriamarin.es/area/familia,ham,legit-groq
+El documento de inicio de expediente de vivienda protegida está disponible. Descárguelo en: https://gestoriamarin.es/area/vivienda,ham,legit-groq
+Su informe de auditoría contable anual ha sido finalizado. Puede verlo en: https://gestoriamarin.es/area/auditoria,ham,legit-groq
+La justificación de la deducción por hijo a cargo está lista. Acceda aquí: https://gestoriamarin.es/area/deducciones,ham,legit-groq
+Su permiso de conducir renovado digitalmente está disponible para descarga. Vea en: https://gestoriamarin.es/area/conducir,ham,legit-groq
+El acta de conciliación bancaria trimestral está lista en su portal. Descárguela en: https://gestoriamarin.es/area/conciliacion,ham,legit-groq
+Su solicitud de licencia de actividad comercial ha sido aprobada. El título está en: https://gestoriamarin.es/area/actividad,ham,legit-groq
+Puede descargar su extracto regularizado de la Seguridad Social. Acceda en: https://gestoriamarin.es/area/social,ham,legit-groq
+Su certificado de empadronamiento histórico está disponible. Descárguelo aquí: https://gestoriamarin.es/area/empadronamiento-h,ham,legit-groq

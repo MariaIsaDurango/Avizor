@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 from src.classifier.data import LABEL2ID
 from src.classifier.thresholds import (
-    MIN_THRESHOLD,
+    DEFAULT_THRESHOLD,
     calibrate_fraud_threshold,
     fraud_recall,
     predict_with_threshold,
@@ -46,6 +46,20 @@ def test_calibration_returns_highest_threshold_meeting_target():
     assert calibrate_fraud_threshold(probs, y_true, 0.5) == pytest.approx(0.5)
 
 
-def test_calibration_falls_back_to_minimum():
+def test_calibration_keeps_default_when_lowering_does_not_help():
     probs = np.array([[0.98, 0.0, 0.02]])
-    assert calibrate_fraud_threshold(probs, np.array([FRAUD]), 1.0) == MIN_THRESHOLD
+    threshold = calibrate_fraud_threshold(probs, np.array([FRAUD]), 1.0)
+    assert threshold == DEFAULT_THRESHOLD
+
+
+def test_without_target_keeps_highest_threshold_with_best_recall():
+    probs = np.array(
+        [
+            [0.1, 0.1, 0.8],  # fraud, caught at any threshold
+            [0.7, 0.0, 0.3],  # fraud, caught with threshold <= 0.3
+            [0.99, 0.0, 0.01],  # fraud, never caught
+            [0.9, 0.0, 0.1],  # none: flagged only with threshold <= 0.1
+        ]
+    )
+    y_true = np.array([FRAUD, FRAUD, FRAUD, NONE])
+    assert calibrate_fraud_threshold(probs, y_true, 0.95) == pytest.approx(0.3)

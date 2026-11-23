@@ -48,7 +48,7 @@ GROQ_API_KEY=sk-... python scripts/generate_smishing.py \
 
 ## Formato de salida
 
-CSV con columnas `text`, `label`, `source`, compatible con `load_spamspa()`:
+CSV con columnas `text`, `label`, `source`. Se carga con `load_synthetic()` (`ml/src/classifier/data.py`):
 
 ```
 text,label,source
@@ -72,10 +72,43 @@ Antes de incorporar al entrenamiento, revisar al menos el 20% de la muestra (≥
 
 ## Integración en el entrenamiento
 
-Una vez revisado manualmente, añadir `smishing_groq.csv` como fuente extra en `04_finetune_colab.ipynb`:
+Los SMS sintéticos se usan **solo para entrenar**. Validación y test siguen siendo
+los datos reales (SpaPhish y SpamSpa), con los mismos splits de siempre, para que
+los resultados se puedan comparar con el modelo anterior sin inflarlos.
 
-```python
-smishing = load_spamspa("data/raw/smishing_groq.csv")
-frames = [spaphish, spamspa, smishing]
-data = prepare(frames)
+```bash
+python -m src.classifier.train \
+    --spaphish "data/raw/spaphish/Spaphish dataset - DiB.csv" \
+    --spamspa data/raw/spamspa/train.csv \
+    --review data/raw/spamspa/spamspa_review.csv \
+    --synthetic data/raw/smishing_groq.csv \
+    --synthetic data/raw/smishing_no_link_groq.csv \
+    --synthetic data/raw/legit_links_groq.csv \
+    --real-test data/raw/smishing_real_test.csv \
+    --out models/avizor-3c
 ```
+
+El notebook `04_finetune_colab.ipynb` ya lo incluye. `export.py` necesita el mismo
+`--synthetic` para reconstruir los splits.
+
+Riesgo vigilado: todos los SMS sintéticos llevan enlace y los SMS reales de SpamSpa
+no. En el primer entrenamiento solo con `smishing_groq.csv` (estafas), 96 de 118 SMS
+reales normales o de publicidad pasaron a `fraud` solo por añadirles un enlace. Por eso
+se añadió `legit_links_groq.csv` (etiqueta `ham` = `none`). Con 222 SMS legítimos el
+atajo desapareció (0 de 118), pero el modelo no mejoró en los SMS reales. Segunda versión:
+
+- `legit_links_groq.csv` ampliado a 593 SMS legítimos con enlace, incluidos dominios
+  poco conocidos (clínicas, farmacias, gestorías, tiendas), para que el modelo no
+  aprenda "dominio desconocido = estafa".
+- `smishing_no_link_groq.csv`: 247 estafas **sin enlace** (premios, herencias, cuenta
+  bloqueada, códigos OTP, "hijo en apuros", Hacienda), del mismo estilo que las de
+  SpamSpa. `metrics.json` incluye `link_probe`: cuántos SMS reales normales o de publicidad
+pasan a `fraud` solo por añadirles un enlace neutro.
+
+## Medición aparte
+
+- El 20 % de los SMS sintéticos (por fuente y etiqueta) no se usa para entrenar: queda en
+  `synthetic_test` para medir avisos legítimos con enlace y estafas modernas.
+- `smishing_real_test.csv` (25 estafas escritas a mano por Majo a partir de los patrones de INCIBE y OSI; no son SMS reales recibidos)
+  solo se usa para medir (`--real-test`), nunca para entrenar.
+- Ambos resultados aparecen en `metrics.json` → `extra_tests`.

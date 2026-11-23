@@ -34,7 +34,15 @@ from tokenizers import Tokenizer
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
 from src.classifier.anonymize import NER_MODEL_VERSION
-from src.classifier.data import LABELS, load_spamspa, load_spaphish, prepare, split
+from src.classifier.data import (
+    LABEL2ID,
+    LABELS,
+    build_splits,
+    load_spamspa,
+    load_spaphish,
+    load_synthetic,
+    prepare,
+)
 from src.classifier.metrics import (
     FRAUD_RECALL_TARGET,
     class_metrics,
@@ -166,12 +174,32 @@ def evaluate(frame, predictions: np.ndarray) -> dict:
     }
 
 
+def extra_test(frame, probs: np.ndarray, threshold: float) -> dict:
+    """ES: Estafas detectadas y legítimos marcados como estafa, con umbral.
+    EN: Scams detected and legitimate messages flagged as scam, with threshold.
+    """
+    predictions = predict_with_threshold(probs, threshold)
+    y_true = frame["label_id"].to_numpy()
+    fraud, none = LABEL2ID["fraud"], LABEL2ID["none"]
+    return {
+        "messages": len(frame),
+        "by_label": frame["label"].value_counts().to_dict(),
+        "fraud_detected": int(((y_true == fraud) & (predictions == fraud)).sum()),
+        "legit_flagged_as_fraud": int(
+            ((y_true == none) & (predictions == fraud)).sum()
+        ),
+    }
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--model-dir", type=Path, required=True)
     parser.add_argument("--spaphish", type=Path, required=True)
     parser.add_argument("--spamspa", type=Path, required=True)
     parser.add_argument("--review", type=Path, default=None)
+    # ES: SMS sintéticos (#146), solo para entrenar. EN: Synthetic SMS, train only.
+    parser.add_argument("--synthetic", type=Path, action="append", default=[])
+    parser.add_argument("--real-test", type=Path, action="append", default=[])
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--target-recall", type=float, default=FRAUD_RECALL_TARGET)
     args = parser.parse_args()
@@ -180,12 +208,13 @@ def main() -> None:
     training = json.loads((args.model_dir.parent / "metrics.json").read_text("utf-8"))
     max_length = training["max_length"]
 
-    parts = split(
-        prepare([load_spaphish(args.spaphish), load_spamspa(args.spamspa, args.review)])
+    parts = build_splits(
+        [load_spaphish(args.spaphish), load_spamspa(args.spamspa, args.review)],
+        [load_synthetic(path) for path in args.synthetic],
     )
     if {k: len(v) for k, v in parts.items()} != training["sizes"]:
         raise SystemExit(
-            "Los splits no coinciden con el entrenamiento: revisa los CSV."
+            "Los splits no coinciden con el entrenamiento: revisa los CSV y --synthetic."
         )
 
     expected = export_onnx(args.model_dir, args.out, max_length)
@@ -249,6 +278,18 @@ def main() -> None:
             "int8": int8.latency_ms(sample),
         },
     }
+    extra = {}
+    if "synthetic_test" in parts:
+        frame = parts["synthetic_test"]
+        extra["synthetic_test"] = extra_test(
+            frame, int8.probabilities(frame["text"].tolist()), threshold
+        )
+    if args.real_test:
+        frame = prepare([load_synthetic(path) for path in args.real_test])
+        extra["real_test"] = extra_test(
+            frame, int8.probabilities(frame["text"].tolist()), threshold
+        )
+    report["extra_tests_threshold_int8"] = extra
     (args.out / ONNX_FP32).unlink()  # ES: solo se despliega int8 / EN: only int8 ships
     (args.out / CONFIG_FILE).write_text(json.dumps(config, indent=2), "utf-8")
     (args.out / "metrics_onnx.json").write_text(
