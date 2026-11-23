@@ -46,16 +46,17 @@ propuesta inicial era 5 reportes o más.
 
 Cómo está aplicado:
 
-1. La vista `v_indicator_ranking` (migración 0001) solo devuelve indicadores
-   con `report_count >= 5`, ordenados de más a menos reportes, y el endpoint
-   limita a 100 filas.
+1. La vista `v_indicator_ranking` (`migrations/versions/0001_initial_schema.py`)
+   solo devuelve indicadores con `report_count >= 5`, ordenados de más a menos
+   reportes, y el endpoint (`api/v1/stats.py`) limita a 100 filas.
 2. Los teléfonos se publican solo en formato enmascarado (`public_value`); el
    valor real se guarda como HMAC (`value_hash`) y nunca sale del backend.
 3. El mismo umbral de 5 marca un remitente como RED en la vía rápida
    (`REPORTS_RED = 5` en `services/detection/decision.py`), y 1 reporte lo
    marca como AMBER.
 4. Los indicadores sin reportes en 12 meses se borran en la purga de
-   retención (si no tienen casos asociados).
+   retención, si no tienen casos asociados (`INDICATOR_RETENTION =
+   timedelta(days=365)` en `services/retention.py`).
 
 ---
 
@@ -63,10 +64,17 @@ Cómo está aplicado:
 
 - El ranking puede tardar en llenarse durante las pruebas: hacen falta 5
   detecciones del mismo indicador.
-- Riesgo aceptado para el MVP: varias detecciones en el mismo Sénior cuentan
-  como reportes distintos. Mejora futura (opción C): contar Sénior distintos
-  antes de publicar, sin guardar quién es cada uno (por ejemplo, un HMAC del
-  `senior_id` por indicador).
+- **El umbral de 5 detecciones no garantiza k-anonimato.** Varias
+  detecciones en el mismo Sénior cuentan como reportes distintos: cinco
+  mensajes recibidos por una sola persona pueden publicar un teléfono o un
+  dominio en el ranking. El riesgo de reidentificación y de falsos positivos
+  se mantiene en el MVP.
+- La publicación de indicadores que puedan referirse a personas (teléfonos)
+  requiere validación de privacidad antes de abrir el ranking al público.
+- Mejora futura (opción C): contar Sénior distintos antes de publicar. Un
+  HMAC del `senior_id` por indicador sería un dato **seudonimizado**, no
+  anónimo: sigue siendo dato personal según el RGPD, así que necesitaría
+  clave protegida, retención limitada y su propia validación de privacidad.
 - Cambiar el umbral solo requiere una migración que recree la vista y ajustar
   `REPORTS_RED` si se quiere mantener igual en la detección.
 

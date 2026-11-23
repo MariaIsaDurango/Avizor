@@ -55,8 +55,11 @@ Cómo funciona hoy en el backend:
 3. **Alertas:** se crea una alerta para cada Tutor con vinculación activa
    (`services/analysis.py`).
 4. **Desbloqueos:** cualquier Tutor con vinculación activa puede resolverlos.
-   La fila se bloquea con `SELECT ... FOR UPDATE`: el primero que responde
-   decide y el segundo recibe `409` ("Esta solicitud ya no está pendiente").
+   La fila se bloquea con `SELECT ... FOR UPDATE`
+   (`services/unlocks.py`): el primero que responde decide y el segundo
+   recibe `409` ("Esta solicitud ya no está pendiente"). Hoy solo está
+   probado el caso secuencial (`test_cannot_resolve_twice` en
+   `tests/test_unlocks.py`); falta un test con dos respuestas simultáneas.
 5. **Desvincular:** solo desactiva la vinculación del Tutor que lo pide. Si el
    Sénior se queda sin ningún Tutor activo, se le da de baja (`deleted_at`) y
    su token deja de valer (#117).
@@ -84,6 +87,9 @@ Cómo funciona hoy en el backend:
   activar varios Tutores, el consentimiento tiene que indicar a qué Tutor
   autoriza (o pedirse de nuevo para cada uno, al Sénior o a su tutor legal), y
   el Sénior debe poder ver quién recibe sus alertas y retirar a cualquiera.
+- **Requisito obligatorio:** no se habilita un segundo Tutor sin ese
+  consentimiento por Tutor y sin el test de respuestas simultáneas a un
+  desbloqueo.
 
 ---
 
