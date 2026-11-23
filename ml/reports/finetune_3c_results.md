@@ -113,6 +113,6 @@ Lectura:
 | SMS reales: recall de sospechosos | 0.91 | **0.94** |
 | Email: recall / precisión de fraud | 0.927 / **0.953** | **0.936** / 0.944 |
 
-**Estado:** pendiente de decidir con el equipo. Recomendación: exportar la cuarta versión, calibrar su umbral y repetir estas mediciones con el modelo ONNX antes de sustituir el de producción. Mientras tanto sigue en producción `beto-3c-20261121-onnx-int8`. Se conservan el código (`load_synthetic`, `build_splits`, `--synthetic`, `link_probe`) y los dos CSV.
+**Estado:** aprobado por el equipo (Majo) y desplegado en Railway el 23/11/2026. Producción usa `beto-3c-20261123-onnx-int8` con umbral 0.30 (release `model-beto-3c-20261123`, SHA-256 `8c1e2cb0…3f0701`). Vuelta atrás: release `model-beto-3c-20261121`. Se conservan el código (`load_synthetic`, `build_splits`, `--synthetic`, `--real-test`, `link_probe`) y los CSV sintéticos.
 
-**Mejoras propuestas:** un conjunto de test con smishing **real** (por ejemplo, los textos de estafas citados en los avisos de INCIBE y OSI del corpus del RAG) para medir si los SMS sintéticos mejoran la detección de campañas reales.
+**Mejoras propuestas:** conseguir SMS legítimos **reales** (anonimizados) para medir falsos positivos fuera del generador sintético, y revisar con Majo las filas truncadas y duplicadas de los CSV.
