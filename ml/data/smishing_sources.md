@@ -84,6 +84,7 @@ python -m src.classifier.train \
     --synthetic data/raw/smishing_groq.csv \
     --synthetic data/raw/smishing_no_link_groq.csv \
     --synthetic data/raw/legit_links_groq.csv \
+    --real-test data/raw/smishing_real_test.csv \
     --out models/avizor-3c
 ```
 
@@ -103,3 +104,11 @@ atajo desapareció (0 de 118), pero el modelo no mejoró en los SMS reales. Segu
   bloqueada, códigos OTP, "hijo en apuros", Hacienda), del mismo estilo que las de
   SpamSpa. `metrics.json` incluye `link_probe`: cuántos SMS reales normales o de publicidad
 pasan a `fraud` solo por añadirles un enlace neutro.
+
+## Medición aparte
+
+- El 20 % de los SMS sintéticos (por fuente y etiqueta) no se usa para entrenar: queda en
+  `synthetic_test` para medir avisos legítimos con enlace y estafas modernas.
+- `smishing_real_test.csv` (25 estafas reconstruidas a partir de avisos de INCIBE y OSI)
+  solo se usa para medir (`--real-test`), nunca para entrenar.
+- Ambos resultados aparecen en `metrics.json` → `extra_tests`.

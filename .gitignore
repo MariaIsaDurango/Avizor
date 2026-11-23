@@ -30,6 +30,7 @@ ml/data/processed/*
 !ml/data/raw/smishing_groq.csv
 !ml/data/raw/legit_links_groq.csv
 !ml/data/raw/smishing_no_link_groq.csv
+!ml/data/raw/smishing_real_test.csv
 ml/models/*
 !ml/models/.gitkeep
 *.pt

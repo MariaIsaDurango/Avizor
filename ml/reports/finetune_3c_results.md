@@ -53,21 +53,23 @@ Fecha: 2026-11-23 · Mismos datos reales, mismos splits de validación y test, m
 
 **Prueba de enlaces (`link_probe`):** de los 118 SMS reales normales o de publicidad del test, cuántos se clasifican como `fraud` sin enlace y al añadirles un enlace neutro (`https://www.ejemplo.es/info`). Detecta si el modelo aprendió "SMS con enlace = estafa".
 
-| Métrica (test, datos reales) | Modelo en producción | + 247 estafas sintéticas | + 247 estafas y 222 legítimos con enlace |
-|---|---|---|---|
-| Prueba de enlaces (sin → con enlace) | no medida | 1 → **96** | 2 → **0** |
-| SMS: recall de fraud | **0.667** | 0.444 | 0.444 |
-| SMS: precisión de fraud | 0.667 | 0.800 | 0.667 |
-| SMS: recall de sospechosos | **0.91** | 0.91 | 0.881 |
-| SMS: macro F1 | **0.827** | 0.801 | 0.780 |
-| Email: recall de fraud | 0.927 | 0.945 | 0.936 |
-| Email: precisión de fraud | **0.953** | 0.928 | 0.927 |
+| Métrica (test, datos reales) | Modelo en producción | + 247 estafas sintéticas | + 247 estafas y 222 legítimos con enlace | + 494 estafas (con y sin enlace) y 593 legítimos |
+|---|---|---|---|---|
+| Prueba de enlaces (sin → con enlace) | no medida | 1 → **96** | 2 → **0** | 2 → **0** |
+| SMS: recall de fraud | **0.667** | 0.444 | 0.444 | 0.444 |
+| SMS: precisión de fraud | 0.667 | 0.800 | 0.667 | 0.667 |
+| SMS: recall de sospechosos | **0.91** | 0.91 | 0.881 | 0.896 |
+| SMS: macro F1 | **0.827** | 0.801 | 0.780 | 0.780 |
+| Email: recall de fraud | 0.927 | 0.945 | 0.936 | 0.927 |
+| Email: precisión de fraud | **0.953** | 0.928 | 0.927 | **0.953** |
 
 **Conclusiones**
 
 - Solo con estafas sintéticas, el modelo aprendió el atajo del enlace: 96 de 118 SMS reales legítimos pasaban a `fraud` con un enlace. Ese modelo se descartó.
 - Con los SMS legítimos con enlace (`legit_links_groq.csv`), el atajo desaparece (0 de 118).
 - Aun así, en los SMS reales de SpamSpa ninguna de las dos versiones mejora al modelo en producción: el recall de estafas baja de 6 a 4 de las 9 estafas del test. Con tan pocas estafas la diferencia es pequeña, pero no hay evidencia de mejora.
+- Tercera versión (`smishing_no_link_groq.csv` y `legit_links_groq.csv` ampliado a 593): sin atajo del enlace y el email queda igual que el modelo en producción. En SMS sigue en 4 de 9.
+- El test solo tiene 9 estafas reales por SMS, casi todas sorteos y concursos ("Participa en nuestro concurso y gana premios increíbles", "Gana un iPhone gratis participando en este sorteo") cuya frontera entre publicidad y estafa es difusa. El primer entrenamiento sin sintéticos (peso de fraud 2.0) también dio 4 de 9, así que la diferencia entre 4 y 6 de 9 está dentro de la variación normal entre entrenamientos: este test no permite saber si los sintéticos mejoran o empeoran.
 - Causa probable: las estafas de SpamSpa son mensajes cortos sin enlace ("Haz clic para reclamar tu premio") y las sintéticas imitan campañas reales con entidad y enlace. Este test no mide bien ese segundo tipo.
 
 **Estado:** pendiente de decidir con Majo. Mientras tanto sigue en producción `beto-3c-20261121-onnx-int8`. Se conservan el código (`load_synthetic`, `build_splits`, `--synthetic`, `link_probe`) y los dos CSV.

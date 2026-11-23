@@ -43,6 +43,7 @@ from src.classifier.data import (
     load_spamspa,
     load_spaphish,
     load_synthetic,
+    prepare,
 )
 from src.classifier.metrics import class_metrics, confusion, meets_targets
 
@@ -144,6 +145,38 @@ def link_probe(trainer: Trainer, test: pd.DataFrame, tokenizer, max_length: int)
     }
 
 
+def evaluate_frame(trainer: Trainer, frame: pd.DataFrame, tokenizer, max_length):
+    predictions = predict(trainer, to_dataset(frame, tokenizer, max_length))
+    y_true = frame["label_id"].to_numpy()
+    fraud, none = LABEL2ID["fraud"], LABEL2ID["none"]
+    return {
+        "messages": len(frame),
+        "by_label": frame["label"].value_counts().to_dict(),
+        "fraud_detected": int(((y_true == fraud) & (predictions == fraud)).sum()),
+        "legit_flagged_as_fraud": int(
+            ((y_true == none) & (predictions == fraud)).sum()
+        ),
+        "metrics": class_metrics(y_true, predictions),
+    }
+
+
+def extra_tests(trainer, tokenizer, max_length, parts, real_test_paths):
+    """ES: Mediciones aparte del test principal: el 20 % de los sintéticos y
+    los tests de smishing real (--real-test). Nunca se entrena con ellos.
+    EN: Measurements apart from the main test: the synthetic 20 % and the real
+    smishing tests (--real-test). Never trained on.
+    """
+    results = {}
+    if "synthetic_test" in parts:
+        results["synthetic_test"] = evaluate_frame(
+            trainer, parts["synthetic_test"], tokenizer, max_length
+        )
+    if real_test_paths:
+        real = prepare([load_synthetic(path) for path in real_test_paths])
+        results["real_test"] = evaluate_frame(trainer, real, tokenizer, max_length)
+    return results
+
+
 def measure_latency(model, tokenizer, texts: list[str], max_length: int) -> float:
     """ES: Milisegundos por mensaje en CPU, de uno en uno (como en la API).
     EN: Milliseconds per message on CPU, one at a time (like the API).
@@ -168,6 +201,8 @@ def main() -> None:
     parser.add_argument("--review", type=Path, default=None)
     # ES: SMS sintéticos (#146), solo para entrenar. EN: Synthetic SMS, train only.
     parser.add_argument("--synthetic", type=Path, action="append", default=[])
+    # ES: Test extra con smishing real (solo se mide). EN: Extra real test, eval only.
+    parser.add_argument("--real-test", type=Path, action="append", default=[])
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--model", default=None)
     parser.add_argument("--epochs", type=int, default=5)
@@ -186,13 +221,14 @@ def main() -> None:
     )
     for name, frame in parts.items():
         frame.to_csv(args.out / f"{name}.csv", index=False)
+    parts_for_training = {k: parts[k] for k in ("train", "val", "test")}
     # ES: Los sintéticos solo aparecen en train. EN: Synthetic rows only in train.
     print(pd.crosstab(parts["train"]["source"], parts["train"]["label"]))
 
     base_name, tokenizer, model = load_base_model(args.model)
     datasets = {
         name: to_dataset(frame, tokenizer, args.max_length)
-        for name, frame in parts.items()
+        for name, frame in parts_for_training.items()
     }
 
     weights = torch.ones(len(LABELS))
@@ -266,6 +302,9 @@ def main() -> None:
         "test_by_source": by_source,
         "confusion_test": confusion(test["label_id"], predictions),
         "link_probe": link_probe(trainer, test, tokenizer, args.max_length),
+        "extra_tests": extra_tests(
+            trainer, tokenizer, args.max_length, parts, args.real_test
+        ),
         "targets": meets_targets(by_source),
         "cpu_latency_ms_median": measure_latency(
             trainer.model, tokenizer, sample.tolist(), args.max_length

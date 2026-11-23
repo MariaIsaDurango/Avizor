@@ -255,9 +255,12 @@ def test_synthetic_rows_go_to_train_only_and_real_splits_do_not_change(tmp_path)
     for name in ("val", "test"):
         assert parts[name].equals(baseline[name])
         assert (parts[name]["source"] != "groq").all()
+    # ES: 10 sintéticos únicos: 8 a train y 2 a synthetic_test (20 %).
     added = parts["train"][parts["train"]["source"] == "groq"]
-    assert len(added) == 10
-    assert len(parts["train"]) == len(baseline["train"]) + 10
+    assert len(added) == 8
+    assert len(parts["train"]) == len(baseline["train"]) + 8
+    assert len(parts["synthetic_test"]) == 2
+    assert not set(parts["synthetic_test"]["text"]) & set(parts["train"]["text"])
 
 
 def test_load_synthetic_reads_ham_as_none(tmp_path):

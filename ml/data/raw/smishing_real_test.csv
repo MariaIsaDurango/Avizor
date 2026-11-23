@@ -1,0 +1,26 @@
+text,label,source
+"Su paquete ha sido retenido en aduana. Abone 1,99€ de gestión para recibirlo: https://correos-envios.com/pkg/AB1234",fraud,manual-incibe-osi
+CORREOS: Intento fallido de entrega. Reprogramar envío en 24h o devuelto al remitente: https://correos-seguimiento.net/reprog,fraud,manual-incibe-osi
+"Su pedido está retenido. Pague la tasa de aduana (2,50€) antes del viernes: https://correos-aduanas.com/pago/XZ8821",fraud,manual-incibe-osi
+AEAT: Tiene una devolución de 348€ pendiente de tramitar. Acceda antes del 30/11: https://aeat-devolucion.com/claim,fraud,manual-incibe-osi
+Agencia Tributaria: Se ha detectado un error en su declaración. Regularice su situación: https://hacienda-online.net/regularizar,fraud,manual-incibe-osi
+HACIENDA: Tiene un reembolso de 215€ a su favor. Solicítelo aquí: https://aeat-reembolsos.com/solicitar,fraud,manual-incibe-osi
+Banco Santander: Hemos bloqueado su tarjeta por actividad inusual. Verifique su identidad: https://santander-seguridad.com/verify,fraud,manual-incibe-osi
+SANTANDER: Acceso no autorizado detectado en su cuenta. Confirme que es usted: https://santander-acceso.net/confirmar,fraud,manual-incibe-osi
+BBVA: Su cuenta ha sido limitada temporalmente. Restaure el acceso ahora: https://bbva-acceso.com/unlock,fraud,manual-incibe-osi
+BBVA Alerta: Movimiento sospechoso de 450€. Si no ha sido usted bloquéelo: https://bbva-seguridad.net/bloquear,fraud,manual-incibe-osi
+CaixaBank: Hemos detectado un inicio de sesión desde un dispositivo nuevo. Verifique: https://caixabank-online.net/verificar,fraud,manual-incibe-osi
+CAIXABANK: Su cuenta será suspendida en 24h si no confirma sus datos: https://caixabank-acceso.com/confirmar,fraud,manual-incibe-osi
+DGT: Tiene una multa de 95€ sin abonar. Evite recargos pagando antes del lunes: https://dgt-multas.net/pago/DGT2024,fraud,manual-incibe-osi
+Dirección General de Tráfico: Su vehículo tiene una sanción pendiente. Consulte: https://dgt-sanciones.com/consulta,fraud,manual-incibe-osi
+Seguridad Social: Su prestación está retenida. Confirme sus datos para liberarla: https://segsocial-verificar.com/datos,fraud,manual-incibe-osi
+SEG-SOCIAL: Tiene una notificación urgente en su expediente. Acceda: https://seguridadsocial-online.net/expediente,fraud,manual-incibe-osi
+Iberdrola: Su factura de octubre está impagada. Evite el corte de suministro: https://iberdrola-pagos.com/factura,fraud,manual-incibe-osi
+IBERDROLA: Último aviso antes del corte. Regularice su deuda de 87€: https://iberdrola-online.net/pago,fraud,manual-incibe-osi
+Amazon: No hemos podido entregar su pedido. Actualice su dirección de envío: https://amazon-entregas.com/actualizar,fraud,manual-incibe-osi
+Su pedido de Amazon está retenido en almacén. Confirme sus datos para entregarlo: https://amazon-es-envio.com/confirmar,fraud,manual-incibe-osi
+POLICÍA NACIONAL: Su DNI está siendo utilizado fraudulentamente. Bloquéelo: https://policia-dni.com/bloquear,fraud,manual-incibe-osi
+Ha ganado un premio de 500€ en el sorteo de su operadora. Reclámelo antes de las 24h: https://premio-movil.net/reclamar,fraud,manual-incibe-osi
+Su tarjeta Visa ha sido utilizada en una compra de 299€. Si no ha sido usted llame al 900 123 456,fraud,manual-incibe-osi
+Hola mamá soy yo cambié de número este es el nuevo. ¿Puedes hacerme una transferencia de 200€? Urgente,fraud,manual-incibe-osi
+Trabajo desde casa ganando 1.200€/semana. Sin experiencia. Plazas limitadas: https://trabajo-facil.net/unirse,fraud,manual-incibe-osi
