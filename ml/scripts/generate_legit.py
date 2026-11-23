@@ -68,6 +68,7 @@ _SCAM_WORDS = re.compile(
     r"último aviso|impago|deuda|cancelar.{0,15}cuenta)\b",
     re.I,
 )
+_CJK = re.compile(r"[一-鿿㐀-䶿]")
 
 
 def _is_valid(line: str) -> bool:
@@ -76,7 +77,11 @@ def _is_valid(line: str) -> bool:
     lower = line.lower()
     if "i'm sorry" in lower or "i cannot" in lower or "i can't" in lower:
         return False
+    if _CJK.search(line):
+        return False
     if not re.search(r"https?://", line, re.IGNORECASE):
+        return False
+    if len(re.sub(r"https?://\S+", "", line).strip()) < 15:
         return False
     if _SHORTENERS.search(line):
         return False

@@ -89,6 +89,7 @@ SYSTEM_NO_LINK = (
 
 _REAL_SHORTENERS = re.compile(r"amzn\.to|bit\.ly|t\.co|goo\.gl|ow\.ly|tinyurl\.com")
 _OFFICIAL_DOMAINS = re.compile(r"\.(gov|gob)\.es|seg-social\.es")
+_CJK = re.compile(r"[一-鿿㐀-䶿]")
 
 
 def load_corpus(chroma_path: Path) -> list[str]:
@@ -129,9 +130,13 @@ def _is_valid(line: str, require_url: bool = True) -> bool:
     lower = line.lower()
     if "i'm sorry" in lower or "i cannot" in lower or "i can't" in lower:
         return False
+    if _CJK.search(line):
+        return False
     if require_url and not re.search(r"https?://", line, re.IGNORECASE):
         return False
     if not require_url and re.search(r"https?://", line, re.IGNORECASE):
+        return False
+    if require_url and len(re.sub(r"https?://\S+", "", line).strip()) < 15:
         return False
     if _REAL_SHORTENERS.search(line):
         return False
