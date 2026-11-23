@@ -64,7 +64,7 @@ export default function TutorAccountScreen({ navigation }: Props) {
     setPhoneSaving(true);
     setPhoneError('');
     try {
-      await updateMe(displayName, phone.trim() || null);
+      await updateMe(originalName, phone.trim() || null);
       setOriginalPhone(phone.trim());
     } catch (e) {
       setPhoneError(e instanceof Error ? e.message : 'Error al guardar.');

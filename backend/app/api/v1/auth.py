@@ -5,7 +5,7 @@ Guardian sign-up and login endpoints.
 import uuid
 
 from fastapi import APIRouter, BackgroundTasks, Response, status
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 
 from app.api.deps import CurrentToken, DbSession, GuardianToken
@@ -13,7 +13,7 @@ from app.core.config import settings
 from app.core.email import send_password_reset_email, send_verification_email
 from app.core.errors import ApiError
 from app.core.security import create_access_token, hash_password, verify_password
-from app.models.user import User
+from app.models.user import Pairing, User
 from app.schemas.auth import (
     ChangePasswordRequest,
     ForgotPasswordRequest,
@@ -176,6 +176,11 @@ def update_me(body: UpdateMeRequest, token: GuardianToken, db: DbSession) -> Use
     user.display_name = body.display_name
     if "phone" in body.model_fields_set:
         user.phone = body.phone
+        db.execute(
+            update(Pairing)
+            .where(Pairing.guardian_id == token.sub, Pairing.active.is_(True))
+            .values(guardian_phone=body.phone)
+        )
     db.commit()
     return UserRead.model_validate(user, from_attributes=True)
 
