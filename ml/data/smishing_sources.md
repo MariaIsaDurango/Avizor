@@ -109,6 +109,6 @@ pasan a `fraud` solo por añadirles un enlace neutro.
 
 - El 20 % de los SMS sintéticos (por fuente y etiqueta) no se usa para entrenar: queda en
   `synthetic_test` para medir avisos legítimos con enlace y estafas modernas.
-- `smishing_real_test.csv` (25 estafas reconstruidas a partir de avisos de INCIBE y OSI)
+- `smishing_real_test.csv` (25 estafas escritas a mano por Majo a partir de los patrones de INCIBE y OSI; no son SMS reales recibidos)
   solo se usa para medir (`--real-test`), nunca para entrenar.
 - Ambos resultados aparecen en `metrics.json` → `extra_tests`.

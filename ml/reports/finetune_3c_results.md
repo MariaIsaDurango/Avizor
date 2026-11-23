@@ -77,7 +77,7 @@ Fecha: 2026-11-23 · Mismos datos reales, mismos splits de validación y test, m
 Datasets actualizados por Majo y dos mediciones nuevas que **nunca** se usan para entrenar:
 
 - `synthetic_test`: el 20 % de los SMS sintéticos (69 legítimos con enlace y 96 estafas modernas), separado por fuente y etiqueta.
-- `real_test`: `smishing_real_test.csv`, 25 estafas reconstruidas a partir de avisos de INCIBE y OSI.
+- `real_test`: `smishing_real_test.csv`, 25 estafas escritas a mano por Majo a partir de los patrones de los avisos de INCIBE y OSI. No son SMS reales recibidos: el nombre `real_test` indica que no salen del generador Groq.
 
 El modelo en producción se midió con los mismos mensajes (ONNX int8, umbral 0.36).
 
@@ -85,7 +85,7 @@ El modelo en producción se midió con los mismos mensajes (ONNX int8, umbral 0.
 |---|---|---|
 | Legítimos con enlace marcados como estafa (synthetic_test) | **43 de 69** | **1 de 69** |
 | Estafas modernas detectadas (synthetic_test) | 89 de 96 | **95 de 96** |
-| Smishing real detectado (real_test) | 24 de 25 | **25 de 25** |
+| Smishing manual detectado (real_test) | 24 de 25 | **25 de 25** |
 | Prueba de enlaces (SMS reales, sin → con enlace) | no medida | 3 → 0 |
 | SMS reales: recall / precisión de fraud | 0.667 / 0.667 | 0.667 / 0.667 |
 | SMS reales: precisión de spam | 0.912 | **0.945** |
@@ -96,7 +96,7 @@ Lectura:
 
 - El modelo en producción marca como estafa la mayoría de los avisos legítimos con enlace (bancos, Correos, AEAT...). Lo aprendió de los correos de phishing de SpaPhish, que llevan enlaces. El test principal no lo detectaba porque SpamSpa no tiene SMS con enlace.
 - La cuarta versión corrige ese problema y detecta igual o mejor las estafas, sin empeorar en SMS reales. En email la precisión baja ligeramente (unos 2 mensajes de 200).
-- Limitaciones: `synthetic_test` sale del mismo generador que los datos de entrenamiento, así que puede ser optimista; `real_test` solo tiene estafas (no mide falsos positivos con SMS legítimos reales). Los resultados de la cuarta versión son sin umbral; falta exportarla a ONNX y calibrar su umbral.
+- Limitaciones: `synthetic_test` sale del mismo generador que los datos de entrenamiento, así que puede ser optimista; `real_test` son 25 estafas escritas a mano, no SMS reales recibidos, y solo tiene estafas (no mide falsos positivos con SMS legítimos reales). Los resultados de la cuarta versión son sin umbral; falta exportarla a ONNX y calibrar su umbral.
 
 ### Cuarta versión exportada a ONNX int8
 
@@ -108,7 +108,7 @@ Lectura:
 |---|---|---|
 | Legítimos con enlace marcados como estafa (synthetic_test) | 43 de 69 | **1 de 69** |
 | Estafas modernas detectadas (synthetic_test) | 89 de 96 | **95 de 96** |
-| Smishing real detectado (real_test) | 24 de 25 | **25 de 25** |
+| Smishing manual detectado (real_test) | 24 de 25 | **25 de 25** |
 | SMS reales: recall / precisión de fraud | 0.667 / 0.667 | **0.778 / 0.700** |
 | SMS reales: recall de sospechosos | 0.91 | **0.94** |
 | Email: recall / precisión de fraud | 0.927 / **0.953** | **0.936** / 0.944 |
