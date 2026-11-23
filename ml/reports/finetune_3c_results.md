@@ -72,6 +72,47 @@ Fecha: 2026-11-23 · Mismos datos reales, mismos splits de validación y test, m
 - El test solo tiene 9 estafas reales por SMS, casi todas sorteos y concursos ("Participa en nuestro concurso y gana premios increíbles", "Gana un iPhone gratis participando en este sorteo") cuya frontera entre publicidad y estafa es difusa. El primer entrenamiento sin sintéticos (peso de fraud 2.0) también dio 4 de 9, así que la diferencia entre 4 y 6 de 9 está dentro de la variación normal entre entrenamientos: este test no permite saber si los sintéticos mejoran o empeoran.
 - Causa probable: las estafas de SpamSpa son mensajes cortos sin enlace ("Haz clic para reclamar tu premio") y las sintéticas imitan campañas reales con entidad y enlace. Este test no mide bien ese segundo tipo.
 
-**Estado:** pendiente de decidir con Majo. Mientras tanto sigue en producción `beto-3c-20261121-onnx-int8`. Se conservan el código (`load_synthetic`, `build_splits`, `--synthetic`, `link_probe`) y los dos CSV.
+### Cuarta versión: medición con mensajes no vistos (2026-11-23)
+
+Datasets actualizados por Majo y dos mediciones nuevas que **nunca** se usan para entrenar:
+
+- `synthetic_test`: el 20 % de los SMS sintéticos (69 legítimos con enlace y 96 estafas modernas), separado por fuente y etiqueta.
+- `real_test`: `smishing_real_test.csv`, 25 estafas reconstruidas a partir de avisos de INCIBE y OSI.
+
+El modelo en producción se midió con los mismos mensajes (ONNX int8, umbral 0.36).
+
+| Medición | Modelo en producción | Cuarta versión |
+|---|---|---|
+| Legítimos con enlace marcados como estafa (synthetic_test) | **43 de 69** | **1 de 69** |
+| Estafas modernas detectadas (synthetic_test) | 89 de 96 | **95 de 96** |
+| Smishing real detectado (real_test) | 24 de 25 | **25 de 25** |
+| Prueba de enlaces (SMS reales, sin → con enlace) | no medida | 3 → 0 |
+| SMS reales: recall / precisión de fraud | 0.667 / 0.667 | 0.667 / 0.667 |
+| SMS reales: precisión de spam | 0.912 | **0.945** |
+| SMS reales: macro F1 | 0.827 | **0.838** |
+| Email: recall / precisión de fraud | 0.927 / **0.953** | 0.927 / 0.944 |
+
+Lectura:
+
+- El modelo en producción marca como estafa la mayoría de los avisos legítimos con enlace (bancos, Correos, AEAT...). Lo aprendió de los correos de phishing de SpaPhish, que llevan enlaces. El test principal no lo detectaba porque SpamSpa no tiene SMS con enlace.
+- La cuarta versión corrige ese problema y detecta igual o mejor las estafas, sin empeorar en SMS reales. En email la precisión baja ligeramente (unos 2 mensajes de 200).
+- Limitaciones: `synthetic_test` sale del mismo generador que los datos de entrenamiento, así que puede ser optimista; `real_test` solo tiene estafas (no mide falsos positivos con SMS legítimos reales). Los resultados de la cuarta versión son sin umbral; falta exportarla a ONNX y calibrar su umbral.
+
+### Cuarta versión exportada a ONNX int8
+
+`beto-3c-20261123-onnx-int8`: ONNX coincide con torch (diferencia 3e-9), int8 coincide con fp32 en el 98,8 % de las predicciones, 111 MB y 35 ms por mensaje en CPU.
+
+**Umbral de fraud:** con este modelo ningún umbral llega al 95 % de recall en validación (máximo 112 de 118). La calibración elegía entonces el mínimo (0.05), que añade falsos positivos sin detectar más estafas. Se corrigió `calibrate_fraud_threshold`: si no se alcanza el objetivo, devuelve el umbral más alto con el mejor recall posible. Resultado: **0.30**. Con el modelo en producción la calibración no cambia (0.36).
+
+| Medición (int8 con su umbral) | Producción (0.36) | Cuarta versión (0.30) |
+|---|---|---|
+| Legítimos con enlace marcados como estafa (synthetic_test) | 43 de 69 | **1 de 69** |
+| Estafas modernas detectadas (synthetic_test) | 89 de 96 | **95 de 96** |
+| Smishing real detectado (real_test) | 24 de 25 | **25 de 25** |
+| SMS reales: recall / precisión de fraud | 0.667 / 0.667 | **0.778 / 0.700** |
+| SMS reales: recall de sospechosos | 0.91 | **0.94** |
+| Email: recall / precisión de fraud | 0.927 / **0.953** | **0.936** / 0.944 |
+
+**Estado:** pendiente de decidir con el equipo. Recomendación: exportar la cuarta versión, calibrar su umbral y repetir estas mediciones con el modelo ONNX antes de sustituir el de producción. Mientras tanto sigue en producción `beto-3c-20261121-onnx-int8`. Se conservan el código (`load_synthetic`, `build_splits`, `--synthetic`, `link_probe`) y los dos CSV.
 
 **Mejoras propuestas:** un conjunto de test con smishing **real** (por ejemplo, los textos de estafas citados en los avisos de INCIBE y OSI del corpus del RAG) para medir si los SMS sintéticos mejoran la detección de campañas reales.
