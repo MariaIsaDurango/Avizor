@@ -82,7 +82,8 @@ def load_synthetic(path: Path) -> pd.DataFrame:
     missing = {"text", "label"} - set(raw.columns)
     if missing:
         raise ValueError(f"Faltan columnas en {path.name}: {sorted(missing)}")
-    labels = raw["label"].astype(str).str.strip().str.lower()
+    # ES: "ham" (como en SpamSpa) equivale a "none". EN: "ham" means "none".
+    labels = raw["label"].astype(str).str.strip().str.lower().replace("ham", "none")
     invalid = set(labels.unique()) - set(LABELS)
     if invalid:
         raise ValueError(f"Etiquetas no válidas en {path.name}: {invalid}")

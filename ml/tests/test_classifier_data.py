@@ -258,3 +258,8 @@ def test_synthetic_rows_go_to_train_only_and_real_splits_do_not_change(tmp_path)
     added = parts["train"][parts["train"]["source"] == "groq"]
     assert len(added) == 10
     assert len(parts["train"]) == len(baseline["train"]) + 10
+
+
+def test_load_synthetic_reads_ham_as_none(tmp_path):
+    path = write_synthetic(tmp_path, [["Su cita es mañana https://x.es", "ham", "legit"]])
+    assert load_synthetic(path).loc[0, "label"] == "none"

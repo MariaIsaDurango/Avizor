@@ -1,0 +1,223 @@
+text,label,source
+Su paquete A1B2C3 ha sido entregado en el buzón. Consulte el seguimiento en https://correos.es/seguimiento/A1B2C3,ham,legit-groq
+Paquete X9Y8Z7 entregado en su buzón. Verifique el estado en https://correos.es/seguimiento/X9Y8Z7,ham,legit-groq
+Está listo para recoger su envío en la oficina. Más info: https://correos.es/entrega/P456,ham,legit-groq
+Su paquete ha quedado a disposición en la oficina. Acceda a detalles: https://correos.es/entrega/R789,ham,legit-groq
+Entrega completada en buzón. Compruebe el estado en https://correos.es/seguimiento/ABC123,ham,legit-groq
+Su paquete pendio de recogida en oficina. Consulte aquí: https://correos.es/entrega/DEF456,ham,legit-groq
+El envío G7H8I9 ha sido depositado en su buzón. Ver rastreo: https://correos.es/seguimiento/G7H8I9,ham,legit-groq
+Paquete listo para recoger en la oficina. Información en https://correos.es/entrega/J1K2,ham,legit-groq
+Su paquete M3N4O5 se ha entregado en el buzón. Detalles: https://correos.es/seguimiento/M3N4O5,ham,legit-groq
+Entrega en buzón confirmada. Revise el seguimiento en https://correos.es/seguimiento/P6Q7,ham,legit-groq
+Su envío R8S9T1 está pendiente de recogida. Más datos: https://correos.es/entrega/R8S9T1,ham,legit-groq
+Paquete entregado en su buzón. Compruebe el estado: https://correos.es/seguimiento/U2V3,ham,legit-groq
+Estando a disposición su paquete en oficina. Verificar: https://correos.es/entrega/W4X5,ham,legit-groq
+El envío Y6Z7A8 ha quedado en el buzón. Rastreo: https://correos.es/seguimiento/Y6Z7A8,ham,legit-groq
+Su paquete B9C0D1 es recogible en oficina. Info: https://correos.es/entrega/B9C0D1,ham,legit-groq
+Entrega efectuada en buzón. Consulte seguimiento: https://correos.es/seguimiento/E2F3,ham,legit-groq
+Paquete G4H5I6 disponible en oficina para recogida. Ver: https://correos.es/entrega/G4H5I6,ham,legit-groq
+Su envío J7K8L9 ha sido entregado en el buzón. Detalles: https://correos.es/seguimiento/J7K8L9,ham,legit-groq
+Listo para recoger su paquete en la oficina. Más info: https://correos.es/entrega/M0N1,ham,legit-groq
+El paquete O2P3Q4 está en su buzón. Ver estado: https://correos.es/seguimiento/O2P3Q4,ham,legit-groq
+Su paquete R5S6T7 pendiente de recogida en oficina. Ver: https://correos.es/entrega/R5S6T7,ham,legit-groq
+Entrega en buzón realizada. Compruebe rastreo: https://correos.es/seguimiento/U8V9,ham,legit-groq
+Paquete W0X1Y2 a disposición en oficina. Detalles: https://correos.es/entrega/W0X1Y2,ham,legit-groq
+Su envío Z3A4B5 ha sido depositado en el buzón. Ver: https://correos.es/seguimiento/Z3A4B5,ham,legit-groq
+Está recogible su paquete C6D7E8 en la oficina. Info: https://correos.es/entrega/C6D7E8,ham,legit-groq
+"Transferencia recibida de 450,00€. Consulte detalles en https://www.santander.com/movimientos/88231",ham,legit-groq
+"Ha recibido una transferencia de 1.250,00€. Compruebe el detalle en https://www.santander.com/consultar/99120",ham,legit-groq
+"Hemos procesado la transferencia de 200,00€ a su destinatario. Vea estado en https://www.santander.com/estado/4581",ham,legit-groq
+"Se ha cargado un cargo recurrente de 29,90€. Verifique en https://www.santander.com/cargos/11223",ham,legit-groq
+Confirmamos la gestión de su transferencia nacional. Acceda a https://www.santander.com/gestion/77889,ham,legit-groq
+Ha realizado una transferencia a cuenta externa. Revise el justificante en https://www.santander.com/justificante/33456,ham,legit-groq
+"Movimiento de 50,00€ en su cuenta principal. Más info en https://www.santander.com/movimiento/66778",ham,legit-groq
+"Su transferencia inmediata de 150,00€ se ha completado. Ver saldo en https://www.santander.com/saldo/99001",ham,legit-groq
+"Alerta de cargo por comisiones por 3,50€. Detalle en https://www.santander.com/comisiones/22334",ham,legit-groq
+"Hemos recibido el ingreso de 3.000,00€. Confirme la recepción en https://www.santander.com/ingreso/55667",ham,legit-groq
+Transferencia enviada a España desde el extranjero. Compruebe el tipo de cambio en https://www.santander.com/fx/11223,ham,legit-groq
+Se ha devuelto una transferencia por cuenta inexistente. Consultar causa en https://www.santander.com/devolucion/44556,ham,legit-groq
+Confirmamos la baja de la orden de transferencia periódica. Ver histórico en https://www.santander.com/historico/77889,ham,legit-groq
+"Ha realizado una transferencia interbancaria de 75,00€. Ver detalle en https://www.santander.com/interbancaria/11990",ham,legit-groq
+"Cargamos el pago de su factura de gas por 120,50€. Justificante en https://www.santander.com/pagos/33221",ham,legit-groq
+"Su transferencia SEPA a Italia de 200,00€ está en proceso. Estado en https://www.santander.com/sepa/55443",ham,legit-groq
+"Alerta de movimiento: retención en cuenta de 10,00€. Motivo en https://www.santander.com/retencion/88776",ham,legit-groq
+"Ha aprobado una transferencia segura de 500,00€. Verificar beneficiario en https://www.santander.com/segura/11332",ham,legit-groq
+"Ingreso por transferencia de 15,00€. Consulte el abono en https://www.santander.com/abono/99887",ham,legit-groq
+"Se ha realizado un pago por Bizum de 25,00€. Detalle de la operación en https://www.santander.com/bizum/44223",ham,legit-groq
+Transferencia de fondos a cuenta de ahorro completada. Ver saldo en https://www.santander.com/ahorro/66554,ham,legit-groq
+"Ha recibido un reembolso de 89,90€. Confirme el importe en https://www.santander.com/reembolso/11445",ham,legit-groq
+"Movimiento por débito directo de 15,00€. Verificar cargo en https://www.santander.com/debito/77665",ham,legit-groq
+"Confirmamos la ejecución de su transferencia nacional de 990,00€. Ver comprobante en https://www.santander.com/comprobante/22110",ham,legit-groq
+Pago de 45.00€ realizado a Enagasa. Ver detalle en https://www.bbva.es/app/extracto/oct24,ham,legit-groq
+Tu extracto de octubre ya está disponible en tu banca online. Accede en https://www.bbva.es/app/estado/cuenta1,ham,legit-groq
+Hemos procesado tu transferencia a favor de Iberia por 120.00€. Consulta en https://www.bbva.es/app/movimientos,ham,legit-groq
+Pago domiciliado de 65.20€ a Endesa. Revisa el estado en https://www.bbva.es/app/domiciliations,ham,legit-groq
+Tu resumen mensual de gastos de noviembre está listo. Descárgalo en https://www.bbva.es/app/resumen/nov24,ham,legit-groq
+Confirmamos el pago de 32.00€ al Hospital La Paz. Detalle en https://www.bbva.es/app/recibo/4582,ham,legit-groq
+Se ha generado tu factura de noviembre de 40.00€. Vela en https://www.bbva.es/app/factura/nov24,ham,legit-groq
+Operación de pago de 15.50€ a supermercado Dia completada. Ver en https://www.bbva.es/app/compras,ham,legit-groq
+Tu extracto de la tarjeta Gold está disponible. Consulta en https://www.bbva.es/app/tarjeta/gold,ham,legit-groq
+Pago realizado de 89.90€ a Movistar. Revisa el comprobante en https://www.bbva.es/app/detalle/9921,ham,legit-groq
+Confirmamos el abono de 55.00€ en tu cuenta por transferencia. Ver en https://www.bbva.es/app/ingresos,ham,legit-groq
+Tu estado de cuenta de diciembre está listo para descargar. Accede en https://www.bbva.es/app/estado/dec24,ham,legit-groq
+Pago de 28.45€ a la comunidad de propietarios realizado. Detalle en https://www.bbva.es/app/operaciones,ham,legit-groq
+Hemos emitido tu factura bancaria de 0.00€ por servicio. Vela en https://www.bbva.es/app/servicios,ham,legit-groq
+Transferencia de 200.00€ a tu cuenta de ahorro confirmada. Ver en https://www.bbva.es/app/ahorro,ham,legit-groq
+Tu extracto de cuentas vinculado está disponible. Revisa en https://www.bbva.es/app/multicuenta,ham,legit-groq
+Pago de 12.50€ a Renfe realizado correctamente. Consulta en https://www.bbva.es/app/tickets/renfe,ham,legit-groq
+Se ha realizado el cargo de 35.00€ por servicio de tarjeta. Ver en https://www.bbva.es/app/cargos,ham,legit-groq
+Tu resumen anual de movimientos de 2024 está listo. Accede en https://www.bbva.es/app/anual/2024,ham,legit-groq
+Confirmamos el pago de 77.30€ a Vodafone. Detalle en https://www.bbva.es/app/domiciliacion/vod,ham,legit-groq
+Tu factura de la luz de enero está disponible. Descárgala en https://www.bbva.es/app/factura/ene25,ham,legit-groq
+Pago de 45.00€ a la universidad realizado. Revisa el recibo en https://www.bbva.es/app/educacion,ham,legit-groq
+Se ha procesado tu pago de 150.00€ por alquiler. Ver en https://www.bbva.es/app/inmobiliaria,ham,legit-groq
+Tu extracto de la cuenta de nómina está disponible. Consulta en https://www.bbva.es/app/nominas,ham,legit-groq
+Confirmamos el cargo de 9.99€ por suscripción de streaming. Ver en https://www.bbva.es/app/suscripciones,ham,legit-groq
+Nueva factura disponible en tu app CaixaBank. Consulta los detalles en https://caixabank.com/app/facturas/AB12,ham,legit-groq
+Tu pago domiciliado ha sido realizado con éxito. Verifica el estado en https://caixabank.com/app/pagos/CD34,ham,legit-groq
+Historial actualizado. Accede a tus movimientos en https://caixabank.com/app/extracto/EF56,ham,legit-groq
+Has recibido una notificación de cargo. Revisa los detalles en https://caixabank.com/app/carga/GH78,ham,legit-groq
+Factura pendiente de liquidación. Gestiona tu cuenta en https://caixabank.com/app/pago/IJ90,ham,legit-groq
+Disponible nuevo estado de cuenta. Consulta el resumen en https://caixabank.com/app/estado/KL12,ham,legit-groq
+Operación de transferencia completada. Verifica el detalle en https://caixabank.com/app/transfer/34MN,ham,legit-groq
+Tu carta de pago está lista. Descárgala desde https://caixabank.com/app/carta/OP56,ham,legit-groq
+Pago de cuota recibida. Consulta el justificante en https://caixabank.com/app/justif/QR78,ham,legit-groq
+Notificación de débito domiciliado. Revisa la info en https://caixabank.com/app/debito/ST90,ham,legit-groq
+Factura mensual generada. Accede a tu perfil en https://caixabank.com/app/factura/UV12,ham,legit-groq
+Movimiento bancario registrado. Consulta el detalle en https://caixabank.com/app/mov/WX34,ham,legit-groq
+Liquidación de tarjeta actualizada. Ver en https://caixabank.com/app/tarjeta/YZ56,ham,legit-groq
+Nuevo documento fiscal disponible. Gestiona en https://caixabank.com/app/fiscal/AB78,ham,legit-groq
+Pago de recibo procesado. Estado en https://caixabank.com/app/recibo/CD90,ham,legit-groq
+Extracto trimestral listo. Consulta en https://caixabank.com/app/extracto/EF12,ham,legit-groq
+Operación de ingreso confirmada. Ver en https://caixabank.com/app/ingreso/GH34,ham,legit-groq
+Factura de servicios disponible. Accede en https://caixabank.com.app/factura/IJ56,ham,legit-groq
+Notificación de cargo no autorizado. Reporta en https://caixabank.com/app/seguridad/KL78,ham,legit-groq
+Tu pago pendiente ha sido liquidado. Ver en https://caixabank.com/app/pago/MN90,ham,legit-groq
+Nuevo estado de cuenta disponible. Consulta en https://caixabank.com/app/estado/OP12,ham,legit-groq
+Movimiento de dividendos registrado. Ver en https://caixabank.com/app/dividendos/QR34,ham,legit-groq
+Factura provisional emitida. Revisa en https://caixabank.com/app/factura/ST56,ham,legit-groq
+Pago de hipoteca procesado. Estado en https://caixabank.com/app/hipoteca/UV78,ham,legit-groq
+Notificación de baja efectiva. Confirma en https://caixabank.com/app/baja/WX90,ham,legit-groq
+Sede electrónica AEAT: Su declaración de la renta 2023 está disponible para su revisión. Acceda en https://sede.agenciatributaria.gob.es/renta,ham,legit-groq
+AEAT: Hemos finalizado el cálculo de su IRPF 2024. Consulte el resultado en su sede electrónica: https://sede.agenciatributaria.gob.es,ham,legit-groq
+Agencia Tributaria: Nueva notificación en su buzón de la sede electrónica. Revise el estado de su declaración: https://sede.agenciatributaria.gob.es,ham,legit-groq
+AEAT: Su borrador de la renta 2023 ha sido actualizado. Verifique los datos en https://sede.agenciatributaria.gob.es/renta,ham,legit-groq
+Sede AEAT: Disponibilidad de su borrador de IRPF 2024. Acceda para revisar o firmar: https://sede.agenciatributaria.gob.es,ham,legit-groq
+AEAT: Su declaración de la renta ha sido presentada correctamente. Reciba su justificante en https://sede.agenciatributaria.gob.es,ham,legit-groq
+Sede electrónica AEAT: Estado de su solicitud de devolución de IRPF 2023. Consulte el detalle en https://sede.agenciatributaria.gob.es,ham,legit-groq
+AEAT: Tenga en cuenta que su borrador de renta 2024 está listo. Revise los importes en https://sede.agenciatributaria.gob.es/renta,ham,legit-groq
+Agencia Tributaria: Nueva comunicación de la AEAT disponible en su cuenta. Acceda para leerla: https://sede.agenciatributaria.gob.es,ham,legit-groq
+AEAT: Su borrador de IRPF 2023 ha sido validado. Puede descargar el PDF desde https://sede.agenciatributaria.gob.es,ham,legit-groq
+Sede AEAT: Le recordamos que puede consultar su declaración de la renta 2024 en https://sede.agenciatributaria.gob.es/renta,ham,legit-groq
+Agencia Tributaria: Hemos recibido su solicitud de gestión de la renta. Estado actual en https://sede.agenciatributaria.gob.es,ham,legit-groq
+AEAT: Su borrador de la renta 2024 incluye nuevas deducciones. Revise el detalle en https://sede.agenciatributaria.gob.es,ham,legit-groq
+Sede electrónica: Notificación sobre el estado de su IRPF 2023 pendiente de actuar. Acceso: https://sede.agenciatributaria.gob.es,ham,legit-groq
+AEAT: Su declaración de la renta 2023 ha sido modificada. Consulte los cambios en https://sede.agenciatributaria.gob.es/renta,ham,legit-groq
+Agencia Tributaria: Disponible su borrador de IRPF 2024 para firma digital. Acceda en https://sede.agenciatributaria.gob.es,ham,legit-groq
+AEAT: Nueva notificación en su sede electrónica relativa a su declaración de la renta 2023. Revise: https://sede.agenciatributaria.gob.es,ham,legit-groq
+Sede AEAT: puede consultar el estado de su solicitud de devolución del IRPF 2024 en https://sede.agenciatributaria.gob.es,ham,legit-groq
+Agencia Tributaria: Su borrador de la renta 2023 está disponible. Acceda para verificar los datos: https://sede.agenciatributaria.gob.es/renta,ham,legit-groq
+AEAT: Le informamos de que su declaración de la renta 2024 ha sido aceptada. Justificante en https://sede.agenciatributaria.gob.es,ham,legit-groq
+Sede electrónica AEAT: Nueva comunicación sobre su IRPF 2023 pendiente de consulta. Acceda: https://sede.agenciatributaria.gob.es,ham,legit-groq
+AEAT: Su borrador de renta 2024 ha sido generado. Revise los importes en https://sede.agenciatributaria.gob.es/renta,ham,legit-groq
+Agencia Tributaria: Tenga en cuenta la nueva notificación en su buzón de la sede electrónica. Consulte: https://sede.agenciatributaria.gob.es,ham,legit-groq
+AEAT: Su declaración de la renta 2023 está disponible para su descarga en https://sede.agenciatributaria.gob.es/renta,ham,legit-groq
+Su cita para renovar el permiso de conducir está confirmada para el día 15/10/2024 a las 10:30. Presente DNI y documentación. https://sede.dgt.gob.es/citas,ham,legit-groq
+Recordatorio: su cita de reconocimiento médico para el permiso de conducir es mañana. Puede consultar el estado en https://sede.dgt.gob.es/medicos,ham,legit-groq
+Su solicitud de duplicado del permiso de conducir ha sido aprobada. Retire el documento en la oficina indicada. https://sede.dgt.gob.es/duplicado,ham,legit-groq
+Notificación DGT: ha sido asignado un centro de reconocimiento para su cita de renovación. Verifique sus datos en https://sede.dgt.gob.es/datos,ham,legit-groq
+Su cita para la entrega del nuevo permiso de conducir está programada. Lleve el justificante de ingreso. https://sede.dgt.gob.es/entrega,ham,legit-groq
+Aviso DGT: su solicitud de cambio de domicilio ha completado el trámite. Puede descargar el certificado en https://sede.dgt.gob.es/certificado,ham,legit-groq
+Recordatorio: debe retirar su permiso de conducir antes del 30/11/2024. Estado del trámite en https://sede.dgt.gob.es/retiro,ham,legit-groq
+Su cita para la prueba psicotécnica del permiso de conducir ha sido confirmada. Inicie sesión para ver la dirección. https://sede.dgt.gob.es/psicotecnico,ham,legit-groq
+Notificación: su solicitud de baja voluntaria del permiso de conducir ha sido registrada. Información en https://sede.dgt.gob.es/baja,ham,legit-groq
+Su cita de renovación ha sido reprogramada por aforo. Consulte la nueva fecha disponible en https://sede.dgt.gob.es/reprogramacion,ham,legit-groq
+Aviso DGT: su solicitud de duplicado por robo está en fase de emisión. Consulte el estado actual en https://sede.dgt.gob.es/emision,ham,legit-groq
+Recordatorio: su cita para la renovación del permiso profesional es el próximo viernes. Acceda a su área personal. https://sede.dgt.gob.es/permisos,ham,legit-groq
+Notificación: ha finalizado el trámite de su nuevo permiso de conducir. Retírelo en cualquier oficina de atención. https://sede.dgt.gob.es/retiro,ham,legit-groq
+Su cita para la inspección técnica de la cámara de seguridad del vehículo está confirmada. Detalle en https://sede.dgt.gob.es/itv,ham,legit-groq
+Aviso DGT: su solicitud de tarjeta europea de conducir ha sido tramitada. Estado del pedido en https://sede.dgt.gob.es/tarjeta,ham,legit-groq
+Recordatorio: debe actualizar sus datos biométricos según la normativa vigente. Realice la cita en https://sede.dgt.gob.es/biometria,ham,legit-groq
+Su cita para la renovación del permiso de conducir mediante cita previa ha quedado registrada. Confirme en https://sede.dgt.gob.es/confirmar,ham,legit-groq
+Notificación: su solicitud de exención de la prueba psicotécnica ha sido aceptada. Documentación en https://sede.dgt.gob.es/exencion,ham,legit-groq
+Su cita para la entrega del permiso de conducir ha sido cancelada por la entidad. Re Programe en https://sede.dgt.gob.es/nueva-cita,ham,legit-groq
+Aviso DGT: su solicitud de duplicado del permiso de conducir ha sido archivada por inactividad. Revise https://sede.dgt.gob.es/archivo,ham,legit-groq
+Recordatorio: su cita para la renovación del permiso de conducir está a punto de caducar. Acceda en https://sede.dgt.gob.es/renovacion,ham,legit-groq
+Notificación: se ha emitido un comunicado sobre la nueva normativa de permisos. Léalo completo en https://sede.dgt.gob.es/normativa,ham,legit-groq
+Aviso DGT: su solicitud de permiso provisional ha sido aprobada. Retire el documento en 72 horas. https://sede.dgt.gob.es/provisional,ham,legit-groq
+Recordatorio: su cita para la renovación del permiso de conducir profesional está pendiente de confirmación. Ver en https://sede.dgt.gob.es/profesional,ham,legit-groq
+Tu cita médica en el centro de salud de Madrid ha sido confirmada para el 15/10 a las 10:30. Gestiona tu cita en https://sede.seg-social.gob.es/cita,ham,legit-groq
+Has solicitado información sobre tu pensión de jubilación. Consulta el estado en https://sede.seg-social.gob.es/pensiones,ham,legit-groq
+Tu solicitud de incapacidad temporal ha sido registrada. Revisa el resultado en https://sede.seg-social.gob.es/itu,ham,legit-groq
+Confirmamos la recepción de tu documentación para la prestación por desempleo. Acceso: https://sede.seg-social.gob.es/par,ham,legit-groq
+Tu cita con el médico de cabecera queda fijada para el 20/11 a las 09:15. Detalles en https://sede.seg-social.gob.es/cita,ham,legit-groq
+Notificación de abono mensual de la pensión de viudedad. Verifica el importe en https://sede.seg-social.gob.es/pagos,ham,legit-groq
+Tu solicitud de baja voluntaria ha sido tramitada. Consulta el certificado en https://sede.seg-social.gob.es/bajas,ham,legit-groq
+Recordatorio: tu revisión de salud maternal está programada para mañana. Confirmación en https://sede.seg-social.gob.es/salud,ham,legit-groq
+Se ha emitido tu boletín de situación laboral. Descárgalo desde https://sede.seg-social.gob.es/boletin,ham,legit-groq
+Tu cita odontológica en la Seguridad Social se confirma para el 05/12 a las 12:00. Info en https://sede.seg-social.gob.es/odonto,ham,legit-groq
+Has actualizado tus datos personales. Verifica los cambios realizados en https://sede.seg-social.gob.es/datos,ham,legit-groq
+Tu prestación por cese de actividad ha sido aprobada. Consulta el detalle en https://sede.seg-social.gob.es/cesead,ham,legit-groq
+Confirmamos tu solicitud de certificado de empresa. Estado pendiente en https://sede.seg-social.gob.es/empresas,ham,legit-groq
+Tu cita de vacunación está confirmada para hoy a las 17:30. Acude con el documento de identidad. https://sede.seg-social.gob.es/vax,ham,legit-groq
+Se ha generado tu informe de vida laboral. Acceso exclusivo en https://sede.seg-social.gob.es/vida laboral,ham,legit-groq
+Tu solicitud de turno de oficio médico ha sido aceptada. Datos en https://sede.seg-social.gob.es/turno,ham,legit-groq
+Notificación de cambio de dirección de correo electrónico. Verifica identidad en https://sede.seg-social.gob.es/seguridad,ham,legit-groq
+Tu cita de fisioterapia se confirma para el 10/01 a las 11:15. Gestión en https://sede.seg-social.gob.es/fisio,ham,legit-groq
+Has solicitado una copia digital de tu contrato laboral. Disponible en https://sede.seg-social.gob.es/contratos,ham,legit-groq
+Confirmamos el pago de tu recompensa por donación de sangre. Verificación en https://sede.seg-social.gob.es/donacion,ham,legit-groq
+Tu solicitud de informe médico para licencia de conducir ha sido completada. Recógelo en https://sede.seg-social.gob.es/informe,ham,legit-groq
+Notificación de liquidación de cuotas sociales pendientes. Detalle en https://sede.seg-social.gob.es/liquidacion,ham,legit-groq
+Tu cita con el psicólogo del centro de salud queda fijada para el 25/01 a las 16:45. Info en https://sede.seg-social.gob.es/psi,ham,legit-groq
+Has solicitado el subsidio por desempleo por incapacidad. Estado actualizado en https://sede.seg-social.gob.es/subsidi,ham,legit-groq
+Tu certificado de residencia se ha emitido correctamente. Descárgalo en https://sede.seg-social.gob.es/residencia,ham,legit-groq
+Tu factura de Iberdrola de octubre ya está disponible. Accede y consúltala en https://factura.iberdrola.es/1024,ham,legit-groq
+Lectura del contador registrada el 15/11. Consulta el detalle en https://lectura.iberdrola.es/confirmar,ham,legit-groq
+Tu recibo de luz de noviembre está listo para descargar. Visítalo en https://factura.iberdrola.es/1124,ham,legit-groq
+Hemos realizado una nueva lectura automática de tu contador. Verifícala en https://lectura.iberdrola.es/auto,ham,legit-groq
+Disponible tu factura de gas de diciembre. Accede desde https://factura.iberdrola.es/gas1224,ham,legit-groq
+Nueva lectura del contador detectada. Revisa los datos en https://lectura.iberdrola.es/verificacion,ham,legit-groq
+Tu factura de electricidad de enero está en línea. Consúltala en https://factura.iberdrola.es/0125,ham,legit-groq
+Lectura manual del contador completada. Confirma la cantidad en https://lectura.iberdrola.es/manual,ham,legit-groq
+Ya puedes descargar tu boletín de pagos de febrero. Encontralo en https://factura.iberdrola.es/febrero,ham,legit-groq
+Registramos la lectura de tu contador. Verifica el importe en https://lectura.iberdrola.es/abril,ham,legit-groq
+Tu factura de marzo de Iberdrola está disponible. Accede en https://factura.iberdrola.es/0325,ham,legit-groq
+Lectura del contador actualizada. Revisa el detalle en https://lectura.iberdrola.es/actualizada,ham,legit-groq
+Tu recibo de gas de abril ya está listo. Descárgalo en https://factura.iberdrola.es/gas0425,ham,legit-groq
+Hemos tomado una lectura nueva de tu contador. Complétala en https://lectura.iberdrola.es/nueva,ham,legit-groq
+Tu factura de electricidad de mayo está disponible online. Visítala en https://factura.iberdrola.es/0525,ham,legit-groq
+Lectura del contador validada. Accede al detalle en https://lectura.iberdrola.es/validada,ham,legit-groq
+Tu boletín de pagos de junio ya está disponible. Descárgalo en https://factura.iberdrola.es/junio,ham,legit-groq
+Nueva lectura automática registrada. Verifica los datos en https://lectura.iberdrola.es/autojun,ham,legit-groq
+Tu factura de gas de julio está lista. Consúltala en https://factura.iberdrola.es/gas0725,ham,legit-groq
+Lectura del contador completada. Revisa el importe en https://lectura.iberdrola.es/completada,ham,legit-groq
+Tu factura de electricidad de agosto está en línea. Accede en https://factura.iberdrola.es/0825,ham,legit-groq
+Lectura manual del contador realizada. Confirma la cifra en https://lectura.iberdrola.es/manualago,ham,legit-groq
+Tu recibo de luz de septiembre ya está disponible. Visítalo en https://factura.iberdrola.es/0925,ham,legit-groq
+Registramos una nueva lectura de tu contador. Verifícala en https://lectura.iberdrola.es/nueva09,ham,legit-groq
+Tu factura de gas de octubre está lista. Descárgala en https://factura.iberdrola.es/gas1025,ham,legit-groq
+Su cita del 15/10 a las 10:30 en Urgencias está confirmada. Revise y gestione en https://sede.saludmadrid.org/citas/XK92,ham,legit-groq
+Recordamos consulta con el Dr. García el 20/11 a las 09:00. Confirme asistencia en https://sede.catsalut.es/personal/A77B,ham,legit-groq
+Su turno para vacunación en el CE Sant Adrià es mañana a las 11:00. Detalles en https://sede.gencat.cat/salud/VAX12,ham,legit-groq
+Cita odontológica programada para el 05/12 a las 12:15. Modifique su agenda en https://sede.ibs.lg.es/citas/OD34,ham,legit-groq
+Le recordamos su revisión anual el día 18 a las 16:30. Verifique lista de espera en https://sede.salud.es/agenda/REV5,ham,legit-groq
+Confirmamos su cita con el especialista en el día 22 a las 09:45. Gestiones aquí https://sede.scsur.es/citas/ESP21,ham,legit-groq
+Su turno para analíticas es el jueves a las 08:00. Acceda a resultados en https://sede.ics.es/resultados/ANL44,ham,legit-groq
+Recordatorio: revisión pediátrica el 10/01 a las 10:00. Gestione su cita en https://sede.salud.es/pediatria/PE78,ham,legit-groq
+Cita con enfermería para curas programada el 12/01 a las 11:30. Confirme en https://sede.saludmadrid.org/enf/EC90,ham,legit-groq
+Su turno para electrocardiograma es el 15/01 a las 14:00. Revise disponibilidad en https://sede.ics.es/ecg/ECG12,ham,legit-groq
+Recordamos su consulta de nutrición el 18/01 a las 12:30. Actualice sus datos en https://sede.catsalut.es/nut/NU55,ham,legit-groq
+Cita confirmada para revisión de diabetes el 20/01 a las 09:30. Gestión de faltas en https://sede.ibs.lg.es/diab/DI88,ham,legit-groq
+Su turno para revisión oftalmológica es el 22/01 a las 10:15. Detalles en https://sede.salud.es/oftal/OF34,ham,legit-groq
+Recordatorio: cita con el URPS el 25/01 a las 15:00. Confirme asistencia en https://sede.scsur.es/urps/UR12,ham,legit-groq
+Su turno para rehabilitación es el 27/01 a las 08:30. Gestione horarios en https://sede.ics.es/rehab/RE99,ham,legit-groq
+Cita con ginecología programada el 29/01 a las 11:00. Revise su historial en https://sede.saludmadrid.org/gin/GI67,ham,legit-groq
+Recordamos su revisión de hipertensión el 02/02 a las 09:00. Acceda a la web en https://sede.catsalut.es/hip/HI45,ham,legit-groq
+Su turno para revisión de próstata es el 05/02 a las 13:30. Confirme en https://sede.ibs.lg.es/uro/UR32,ham,legit-groq
+Cita con el psicólogo confirmada para el 07/02 a las 16:00. Gestión de cita en https://sede.salud.es/psic/PS78,ham,legit-groq
+Recordatorio: revisión de alergias el 09/02 a las 10:45. Modifique su horario en https://sede.scsur.es/aler/AL12,ham,legit-groq
+Su turno para revisión de piel es el 12/02 a las 12:00. Detalles en https://sede.ics.es/derm/DE56,ham,legit-groq
+Cita con el traumatólogo programada el 14/02 a las 09:15. Revise su agenda en https://sede.saludmadrid.org/trau/TR89,ham,legit-groq
+Recordamos su revisión de vista el 16/02 a las 11:30. Confirme asistencia en https://sede.catsalut.es/vis/VI43,ham,legit-groq
+Su turno para revisión de oído es el 19/02 a las 14:45. Gestión de turno en https://sede.ibs.lg.es/oto/OT21,ham,legit-groq
+Cita con el reumatólogo confirmada para el 21/02 a las 10:30. Acceda a la web en https://sede.salud.es/reum/RU67,ham,legit-groq
