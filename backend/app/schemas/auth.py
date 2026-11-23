@@ -2,7 +2,15 @@
 Guardian sign-up and login schemas.
 
 ES: No están en el Contrato v1.0.0: es un añadido MINOR (campos y rutas nuevas).
+    Cambios MINOR incluidos:
+    - GET  /auth/me  → UserRead ahora incluye phone (str | None)
+    - PATCH /auth/me → UpdateMeRequest acepta phone opcional; al cambiar,
+      se propaga a guardian_phone en las vinculaciones activas.
 EN: Not in Contract v1.0.0: a MINOR addition (new fields and routes).
+    MINOR changes included:
+    - GET  /auth/me  → UserRead now includes phone (str | None)
+    - PATCH /auth/me → UpdateMeRequest accepts optional phone; on change,
+      it propagates to guardian_phone in active pairings.
 """
 
 from typing import Literal

@@ -4,6 +4,8 @@ Guardian account phone tests (need PostgreSQL).
 
 import uuid
 
+from sqlalchemy import select
+
 from app.models.user import Pairing
 
 ME = "/api/v1/auth/me"
@@ -69,9 +71,7 @@ def test_patch_me_phone_updates_active_pairing(
         headers=guardian_headers,
     )
     pairing = db_session.scalar(
-        __import__("sqlalchemy", fromlist=["select"])
-        .select(Pairing)
-        .where(Pairing.guardian_id == guardian.id, Pairing.active.is_(True))
+        select(Pairing).where(Pairing.guardian_id == guardian.id, Pairing.active.is_(True))
     )
     assert pairing.guardian_phone == "+34600000002"
 
