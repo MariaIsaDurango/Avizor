@@ -1,0 +1,248 @@
+text,label,source
+URGENTE: Tu paquete con código 123456 está retenido en Aduanas. Accede y paga la multa en https://correos-aduana.com/pago para evitar devolución.,fraud,smishing-groq
+AVISO: Se ha bloqueado tu cuenta de Correos por actividad sospechosa. Verifícala aquí https://cuenta-correos.com/seguridad antes de que la cierren.,fraud,smishing-groq
+MULTA: Tienes una sanción pendiente de 45 € por envío no declarado. Págala ya en https://multas-correos.net/pagar para evitar recargos.,fraud,smishing-groq
+PAQUETE RETENIDO: El envío con referencia AB12CD está en espera. Autoriza la entrega en https://entrega-paq.com/autorizacion antes de 24 h.,fraud,smishing-groq
+ALERTA DE FRAUDE: Se ha detectado intento de suplantación con tu número. Cambia tu PIN en https://seguridad-correos.com/pin y protege tu cuenta.,fraud,smishing-groq
+INCIDENCIA: Tu envío urgente no pudo entregarse. Reprograma la hora aquí https://reprograma-correos.net/hora para evitar devolución.,fraud,smishing-groq
+NOTIFICACIÓN: Tienes un sobre certificado sin firmar. Firma digitalmente en https://firma-correos.com/online y recibe tu documento.,fraud,smishing-groq
+PREMIO: Has sido seleccionado para ganar 200 € en vales de Correos. Reclámalo en https://premios-correos.net/reclamar antes del 30/11.,fraud,smishing-groq
+ACTUALIZACIÓN: Cambia tus datos de contacto en https://actualiza-correos.com/datos para seguir recibiendo envíos sin interrupción.,fraud,smishing-groq
+VERIFICACIÓN: Necesitamos confirmar tu dirección para una entrega express. Hazlo en https://verifica-direccion-correos.com ahora.,fraud,smishing-groq
+ALERTA: Se ha detectado un intento de entrega fraudulenta a tu domicilio. Bloquéalo en https://bloquea-entrega-correos.com y protege tu buzón.,fraud,smishing-groq
+MULTA POR RETRASO: Tu envío llegó fuera de plazo y genera una multa de 30 €. Págala en https://retraso-correos.com/pagar.,fraud,smishing-groq
+"CUENTA SUSPENDIDA: Por falta de verificación, tu cuenta está inactiva. Restáurala en https://reactiva-correos.com/usuario antes de 48 h.",fraud,smishing-groq
+ENTREGA IMPACTADA: El transportista informa que el paquete está dañado. Acepta la compensación en https://compensacion-correos.net.,fraud,smishing-groq
+RECLAMO: Tienes un reclamo abierto de 15 € por entrega fallida. Resuélvelo en https://reclamos-correos.com/gestionar.,fraud,smishing-groq
+AVISO DE SEGURIDAD: Se ha detectado acceso no autorizado a tu buzón virtual. Cambia la clave en https://seguridad-buzon-correos.com.,fraud,smishing-groq
+Su cuenta está bloqueada por actividad sospechosa. Verifique ahora en https://banco-santander-alerta.com/seguridad,fraud,smishing-groq
+Multa de tráfico pendiente. Pague antes de 24h en https://banco-santander-multas.net/pago,fraud,smishing-groq
+Su paquete de Santander está retenido. Autorice la entrega aquí https://banco-santander-envio.com/confirmar,fraud,smishing-groq
+Intento de fraude detectado. Cambie su PIN en https://banco-santander-protege.com/pin,fraud,smishing-groq
+Alerta: transferencia no autorizada. Revísela en https://banco-santander-revisa.com/transferencia,fraud,smishing-groq
+Su tarjeta ha sido desactivada por falta de pago. Reactívela en https://banco-santander-activacion.com/tarjeta,fraud,smishing-groq
+Pago pendiente de comisión. Regularice en https://banco-santander-comision.net/pagar,fraud,smishing-groq
+Su cuenta presenta saldo negativo. Solucione en https://banco-santander-saldo.com/ajuste,fraud,smishing-groq
+Ha ganado un premio Santander. Reclámelo en https://banco-santander-premio.com/reclamar,fraud,smishing-groq
+Se detectó un acceso no reconocido. Cierre sesión en https://banco-santander-acceso.com/cerrar,fraud,smishing-groq
+Su seguro de hogar está caducado. Renueve en https://banco-santander-segurohogar.com/renovar,fraud,smishing-groq
+Intento de phishing bloqueado. Verifique su seguridad en https://banco-santander-firma.com/chequeo,fraud,smishing-groq
+Error de verificación de identidad. Complete datos en https://banco-santander-verifica.com/datos,fraud,smishing-groq
+Su número de cliente está en lista negra. Solucione en https://banco-santander-lista.com/limpiar,fraud,smishing-groq
+Se ha superado el límite de consultas. Restablezca en https://banco-santander-limite.com/restaurar,fraud,smishing-groq
+Notificación de fraude: revise sus movimientos en https://banco-santander-movimientos.com/revisar,fraud,smishing-groq
+Su cuenta está a punto de ser cerrada. Evite la suspensión en https://banco-santander-cierre.com/evitar,fraud,smishing-groq
+Pago de impuestos atrasado. Regularice en https://banco-santander-impuestos.net/pago,fraud,smishing-groq
+Su tarjeta virtual ha expirado. Renueve aquí https://banco-santander-virtual.com/renovar,fraud,smishing-groq
+Alerta de malware en su app bancaria. Descargue parche en https://banco-santander-parche.com/descarga,fraud,smishing-groq
+Se ha detectado un intento de suplantación. Confirme su identidad en https://banco-santander-supplantacion.com/confirmar,fraud,smishing-groq
+Su línea de crédito está suspendida. Reactívela en https://banco-santander-credito.com/reactivar,fraud,smishing-groq
+Pago de comisión por transferencia internacional pendiente. Pague en https://banco-santander-intl.com/pago,fraud,smishing-groq
+Su cuenta de ahorros está bloqueada por irregularidad. Desbloquee en https://banco-santander-ahorros.com/desbloqueo,fraud,smishing-groq
+Notificación de cargo duplicado. Revíselo en https://banco-santander-duplicado.com/revisar,fraud,smishing-groq
+Su dispositivo no está autorizado para operar. Autorícelo en https://banco-santander-dispositivo.com/autorizar,fraud,smishing-groq
+Tu cuenta BBVA está bloqueada por actividad sospechosa. Verifícala ahora o se cerrará: https://bbva-alertas.com/seguridad,fraud,smishing-groq
+Multa de tráfico pendiente de 120 €. Paga antes de 24h o se enviará a cobro judicial: https://bbva-multas.com/pagar,fraud,smishing-groq
+"Paquete internacional retenido en aduana, necesita autorización BBVA. Accede y autoriza: https://bbva-envio.com/autoriza",fraud,smishing-groq
+Se ha detectado un intento de transferencia no autorizada de 500 €. Recházala aquí: https://bbva-transfers.com/rechazar,fraud,smishing-groq
+Premio de 500 € en tu tarjeta BBVA. Reclámalo antes de que caduque: https://bbva-premios.com/reclamar,fraud,smishing-groq
+Actualiza tus datos de contacto para evitar suspensión de la cuenta: https://bbva-actualiza.com/datos,fraud,smishing-groq
+Alerta: intento de acceso fraudulento a tu banca online BBVA. Confirma identidad: https://bbva-seguridad.com/confirma,fraud,smishing-groq
+"Pago pendiente de 45 € en tu cuenta. Si no lo liquidas, se aplicará recargo: https://bbva-pagos.com/liquidar",fraud,smishing-groq
+Tu tarjeta BBVA ha sido bloqueada por sospecha de fraude. Desbloquéala aquí: https://bbva-fraude.com/desbloqueo,fraud,smishing-groq
+Se ha intentado cambiar tu PIN sin autorización. Revísalo ahora: https://bbva-pin.com/revisar,fraud,smishing-groq
+Notificación de cargo desconocido de 80 € en tu cuenta. Rechaza o confirma: https://bbva-cargos.com/revisar,fraud,smishing-groq
+Se ha detectado un intento de phishing usando tu número. Cambia tus credenciales: https://bbva-protege.com/cambio,fraud,smishing-groq
+Tu préstamo BBVA está en riesgo de cancelación por falta de pago. Regulariza aquí: https://bbva-prestamo.com/regulariza,fraud,smishing-groq
+Reembolso pendiente de 30 € por compra anulada. Reclama antes de que expire: https://bbva-reembolso.com/recibir,fraud,smishing-groq
+Aviso: tu cuenta BBVA ha superado el límite de operaciones diarias. Verifica aquí: https://bbva-limite.com/verificar,fraud,smishing-groq
+Se ha detectado un uso no autorizado de tu tarjeta en el extranjero. Bloquéala: https://bbva-extranjero.com/bloquear,fraud,smishing-groq
+Tu código de verificación BBVA ha expirado. Genera uno nuevo: https://bbva-codigo.com/nuevo,fraud,smishing-groq
+Incumplimiento de condiciones de la cuenta premium BBVA. Regulariza para evitar suspensión: https://bbva-premium.com/regulariza,fraud,smishing-groq
+Se ha enviado un cheque sin cobertura a tu nombre. Cancela aquí: https://bbva-cheques.com/cancelar,fraud,smishing-groq
+"Tu seguro BBVA está próximo a caducar, renueva antes de perder cobertura: https://bbva-seguro.com/renovar",fraud,smishing-groq
+Alerta de fraude: se ha intentado usar tu número para registro de SIM. Bloquea aquí: https://bbva-sim.com/bloquear,fraud,smishing-groq
+"Descuentos de 15 % en compras con tu tarjeta BBVA, activa la oferta: https://bbva-ofertas.com/activar",fraud,smishing-groq
+Se ha detectado una anomalía en tu historial crediticio BBVA. Revisa datos: https://bbva-historial.com/revisar,fraud,smishing-groq
+Tu cuenta BBVA está marcada por actividad sospechosa de lavado de dinero. Confirma origen fondos: https://bbva-lavado.com/confirma,fraud,smishing-groq
+Tu cuenta de CaixaBank está bloqueada por actividad sospechosa. Verifícala ya en https://caixa-bloqueo.com/seguridad y evita la suspensión.,fraud,smishing-groq
+Tienes una multa pendiente de 150 € por impago de comisión. Págala ahora en https://caixa-multas.com/pago‑urgente o se iniciará el embargo.,fraud,smishing-groq
+Se ha retenido tu paquete en la oficina de Correos por falta de pago. Autoriza el abono en https://caixa-envios.com/confirmar‑paquete.,fraud,smishing-groq
+Alerta: intento de fraude detectado en tu tarjeta CaixaBank. Confirma la transacción en https://caixa-fraude.com/validar‑alerta antes de que se bloquee.,fraud,smishing-groq
+¡Premio inesperado! Has ganado 500 € en la promo CaixaBank. Reclama el importe en https://caixa-premios.com/recoge‑dinero antes de que expire.,fraud,smishing-groq
+Tu cuenta de ahorro está a punto de cerrarse por falta de actividad. Reactívala en https://caixa-activacion.com/reabrir‑cuenta en 24 h.,fraud,smishing-groq
+Se ha detectado un intento de transferencia no autorizada desde tu cuenta. Deténla en https://caixa-transferencias.com/stop‑ahora.,fraud,smishing-groq
+Necesitamos validar tu identificación para mantener activo tu crédito. Hazlo en https://caixa-id.com/validar‑identidad antes de 2 h.,fraud,smishing-groq
+Has superado el límite de tu tarjeta y se ha bloqueado. Reactiva el límite en https://caixa-limite.com/ajustar‑limite urgentemente.,fraud,smishing-groq
+Aviso de seguridad: tu PIN ha sido comprometido. Cámbialo ya en https://caixa-pin.com/cambio‑seguro para evitar fraudes.,fraud,smishing-groq
+Se ha generado una alerta por pago internacional sospechoso. Autoriza o rechaza en https://caixa-internacional.com/accion‑rapida.,fraud,smishing-groq
+Tu solicitud de préstamo está pendiente de confirmación. Completa los datos en https://caixa-prestamo.com/finaliza‑solicitud.,fraud,smishing-groq
+Se ha suspendido tu acceso a la banca online por actividad irregular. Restáuralo en https://caixa-online.com/reactivar‑acceso.,fraud,smishing-groq
+¡Última oportunidad! Tu tarjeta está a punto de caducar. Renueva en https://caixa-renovacion.com/nueva‑tarjeta antes de mañana.,fraud,smishing-groq
+Se ha detectado un cargo desconocido de 200 € en tu cuenta. Revisa y disputa en https://caixa-reclamo.com/gestiona‑cargo.,fraud,smishing-groq
+Tu plan de seguros con CaixaBank está a punto de caducar. Renueva ahora en https://caixa-seguros.com/renovacion‑urgente.,fraud,smishing-groq
+Alerta de phishing: alguien intentó robar tus datos. Cambia tus credenciales en https://caixa-security.com/actualiza‑clave.,fraud,smishing-groq
+Se ha generado una comisión extra de 30 € por sobregiro. Págala en https://caixa-sobregiro.com/pago‑inmediato o se bloqueará tu cuenta.,fraud,smishing-groq
+Tu número de cliente ha sido marcado por actividad fraudulenta. Verifícalo en https://caixa-fraud.com/chequeo‑cliente.,fraud,smishing-groq
+Has recibido una devolución de 75 € por un pago erróneo. Reclámala en https://caixa-devolucion.com/recibe‑dinero antes de 48 h.,fraud,smishing-groq
+Se ha intentado acceder a tu cuenta desde una ubicación desconocida. Confirma tu identidad en https://caixa-ubicacion.com/validar‑acceso.,fraud,smishing-groq
+Tu cuenta de inversión ha sido bloqueada por incumplir los términos. Desbloquéala en https://caixa-inversion.com/desbloqueo‑rapido.,fraud,smishing-groq
+Aviso: tu tarjeta ha sido desactivada por sospecha de clonación. Reactiva la nueva en https://caixa-clonacion.com/activar‑nueva.,fraud,smishing-groq
+Se ha generado una factura pendiente de 120 € en tu servicio de hogar. Págala en https://caixa-factura.com/pago‑urgente para evitar corte.,fraud,smishing-groq
+Tu código de verificación ha expirado. Obtén uno nuevo en https://caixa-codigo.com/nuevo‑codigo y sigue con la operación.,fraud,smishing-groq
+Alerta de cuenta: se detectó un intento de cambio de datos personales. Revisa y confirma en https://caixa-datos.com/confirmar‑cambio.,fraud,smishing-groq
+Se ha bloqueado tu línea de crédito por impago. Regulariza en https://caixa-credito.com/pago‑inmediato o se enviará a cobro judicial.,fraud,smishing-groq
+Tienes una multa de 150 € pendiente por irregularidades en tu declaración. Paga ya o se procederá al embargo: https://aeat-multas.com/pagar,fraud,smishing-groq
+Deuda tributaria de 300 € no saldada. Regulariza antes de 24 h o bloquearemos tu cuenta bancaria: https://hacienda-pago.com/regulariza,fraud,smishing-groq
+Se ha detectado una anomalía en tu IRPF. Confirma datos para evitar sanción de 500 €: https://aeat-alerta.com/verificar,fraud,smishing-groq
+Tu devolución de 200 € está retenida por falta de información. Envíala aquí para liberarla: https://reembolso-hacienda.com/solicitar,fraud,smishing-groq
+Auditoría fiscal urgente: revisa tus últimos ingresos o se iniciará proceso sancionador: https://auditoria-fiscal.com/revisar,fraud,smishing-groq
+Notificación de recaudación: 250 € pendientes. Abona antes de mañana o se iniciará proceso judicial: https://recaudacion-urgente.com/pago,fraud,smishing-groq
+Se ha bloqueado el acceso a tu certificado digital por irregularidad. Restáuralo aquí: https://certificado-hacienda.com/restaurar,fraud,smishing-groq
+Aviso: tu NIF está bajo investigación por posible fraude. Aporta datos en 12 h o se archivará el caso: https://investigacion-fiscal.com/aporta,fraud,smishing-groq
+Multa por presentación fuera de plazo. Paga 120 € y evita intereses: https://multas-hacienda.com/pagar,fraud,smishing-groq
+Retención de 180 € en tu cuenta por declaración incompleta. Regulariza ya: https://declaracion-incompleta.com/solucionar,fraud,smishing-groq
+Se ha generado una sanción de 400 € por omisión de ingresos. Paga antes de que se envíe a cobro judicial: https://sancion-fiscal.com/pago,fraud,smishing-groq
+Alerta: tu cuenta bancaria será bloqueada por impago de 350 €. Regulariza ahora: https://bloqueo-cuenta.com/regulariza,fraud,smishing-groq
+Tienes una deuda de 500 € con la Agencia. Evita embargo pagando aquí: https://deuda-urgente.com/pagar,fraud,smishing-groq
+Incumplimiento detectado en tu autoliquidación. Corrige antes de 48 h o se aplicará multa: https://autoliquidacion-hacienda.com/corregir,fraud,smishing-groq
+Tu reembolso de 250 € ha sido retenido por discrepancia. Resuelve en 24 h: https://reembolso-retenido.com/resolver,fraud,smishing-groq
+Se ha detectado un error en tu declaración de IVA. Corrige o se impondrá sanción de 600 €: https://error-iva.com/corregir,fraud,smishing-groq
+Notificación de embargo inminente por 300 € impagados. Salda la deuda ya: https://embargo-hacienda.com/saldar,fraud,smishing-groq
+Alerta de fraude: actividad sospechosa en tu NIF. Verifica datos para evitar bloqueo: https://fraude-nif.com/verificar,fraud,smishing-groq
+Se ha activado una retención de 200 € por declaración tardía. Paga antes de que se aplique recargo: https://retencion-fiscal.com/pagar,fraud,smishing-groq
+Multa administrativa de 180 € por incumplir plazos de presentación. Pago inmediato: https://multa-administrativa.com/pago,fraud,smishing-groq
+Tu certificado de retenciones está suspendido. Reactívalo aquí: https://certificado-retenciones.com/reactivar,fraud,smishing-groq
+Se ha generado una sanción de 450 € por omitir ingresos de alquiler. Abona ya: https://sancion-alquiler.com/pagar,fraud,smishing-groq
+Aviso de auditoría sorpresa: revisa tus facturas o se impondrá multa: https://auditoria-sorpresa.com/revisar,fraud,smishing-groq
+Deuda de 320 € por no presentar el modelo 130. Regulariza antes de 48 h: https://modelo130-hacienda.com/pagar,fraud,smishing-groq
+Se ha bloqueado tu acceso a la sede electrónica por irregularidad. Desbloquéalo: https://acceso-bloqueado.com/desbloquear,fraud,smishing-groq
+Multa de 250 € por no declarar ganancias de juego. Paga antes de que se envíe a cobro: https://ganancias-juego.com/pagar,fraud,smishing-groq
+Retención de 190 € en tu nómina por falta de información. Resuelve aquí: https://retencion-nomina.com/solucionar,fraud,smishing-groq
+Multa pendiente por exceso de velocidad. Paga antes de 24h en https://dgt-pago-urgente.com/multa para evitar recargo.,fraud,smishing-groq
+Tu coche está retenido por falta de ITV. Libéralo ahora en https://dgt-revision-rapida.net/solicita con tu número de matrícula.,fraud,smishing-groq
+Se ha detectado un intento de fraude en tu cuenta DGT. Verifícala inmediatamente en https://dgt-seguridad-alerta.com/login.,fraud,smishing-groq
+Tienes una sanción de tráfico sin pagar. Regularízala en https://dgt-multa-immediata.es/pagar antes de que se bloquee tu licencia.,fraud,smishing-groq
+El número de tu permiso de conducir está a punto de ser anulado. Confirma datos en https://dgt-verifica-datos.net/actualiza.,fraud,smishing-groq
+Alerta: tu vehículo ha sido multado por circular en zona prohibida. Paga en https://dgt-zona-prohibida.com/pago antes de 48h.,fraud,smishing-groq
+Se ha detectado una infracción por estacionamiento indebido. Resuélvela en https://dgt-estacionamiento-urgente.es/pagar.,fraud,smishing-groq
+Tu licencia está suspendida por impago de multas. Reactívala en https://dgt-licencia-activa.com/recupera antes de mañana.,fraud,smishing-groq
+Incidencia: tu matrícula aparece en una lista de vehículos robados. Consulta en https://dgt-robo-vehiculo.net/info.,fraud,smishing-groq
+Aviso de retención de paquete en oficina de correos por falta de pago de tasas de tráfico. Resuelve en https://dgt-paquete-retenido.com/pagar.,fraud,smishing-groq
+Se ha bloqueado tu cuenta DGT por actividad sospechosa. Desbloquéala en https://dgt-cuenta-bloqueada.net/recuperar.,fraud,smishing-groq
+Multa por exceso de puntos en tu carnet. Paga el recargo en https://dgt-puntos-excedidos.com/pago para evitar embargo.,fraud,smishing-groq
+Tu coche está sujeto a embargo por impago de multas. Evita la retención en https://dgt-embargo-evita.com/pagar.,fraud,smishing-groq
+Se ha generado una multa por uso de móvil al volante. Líbrate de ella en https://dgt-movil-al-volante.es/pago.,fraud,smishing-groq
+Alerta de seguridad: intento de acceso no autorizado a tu historial de sanciones. Confirma en https://dgt-historial-seguro.com/login.,fraud,smishing-groq
+El registro de tu vehículo está incompleto. Regularízalo en https://dgt-registro-incompleto.net/actualiza.,fraud,smishing-groq
+Tienes una multa de velocidad no pagada. Págala en https://dgt-velocidad-no-pagada.com/pagar antes de que se apliquen intereses.,fraud,smishing-groq
+Se ha detectado una infracción por circular sin seguro. Regularízala en https://dgt-sin-seguro.es/pago para evitar sanción mayor.,fraud,smishing-groq
+Tu permiso de conducción está a punto de caducar. Renueva ahora en https://dgt-renovacion-urgente.com/solicita.,fraud,smishing-groq
+Se ha bloqueado el acceso a tu certificado digital DGT. Restáuralo en https://dgt-certificado-bloqueado.net/recuperar.,fraud,smishing-groq
+Multa por circular en carril bus sin autorización. Págala en https://dgt-carril-bus.com/pago para evitar multa adicional.,fraud,smishing-groq
+Tu vehículo ha sido multado por exceso de emisiones. Paga en https://dgt-emisiones-exceso.es/pago antes de 72h.,fraud,smishing-groq
+Se ha detectado una infracción por no usar el cinturón. Regulariza en https://dgt-cinturon-obligatorio.com/pago.,fraud,smishing-groq
+Alerta: tu coche está retenido por falta de pago de peaje. Libéralo en https://dgt-peaje-pendiente.net/pagar.,fraud,smishing-groq
+Tu historial de puntos está a cero. Recupéralo con pago urgente en https://dgt-puntos-cero.com/pago.,fraud,smishing-groq
+Multa por circular sin luces en zona nocturna. Págala ya en https://dgt-luces-noches.com/pago para evitar recargo.,fraud,smishing-groq
+Se ha detectado un intento de suplantación de tu identidad DGT. Verifícala en https://dgt-identidad-segura.net/confirmar.,fraud,smishing-groq
+Seguridad Social: tu nómina está retenida por irregularidad. Verifícala ahora o se bloqueará tu cuenta: https://seguridadsocial-alerta.com/verif,fraud,smishing-groq
+Seguridad Social: has superado el límite de cotización y hay multa pendiente. Paga antes de 24h o se suspenderá el acceso: https://seguridadsocial-multa.es/pago,fraud,smishing-groq
+Seguridad Social: se ha detectado un intento de fraude en tu expediente. Confirma datos para evitar bloqueo: https://seguridadsocial-fraude.net/confirmar,fraud,smishing-groq
+Seguridad Social: tu tarjeta sanitaria está inactiva por falta de actualización. Reactívala aquí: https://seguridadsocial-actualiza.com/tarjeta,fraud,smishing-groq
+"Seguridad Social: aviso urgente, tu pensión será recortada si no regularizas la deuda en 48h: https://seguridadsocial-deuda.es/solucion",fraud,smishing-groq
+Seguridad Social: hemos bloqueado tu cuenta por actividad sospechosa. Desbloquéala ahora: https://seguridadsocial-bloqueo.com/desbloqueo,fraud,smishing-groq
+Seguridad Social: tu número de afiliación está en revisión. Acepta la verificación para evitar sanción: https://seguridadsocial-verifica.es/afiliacion,fraud,smishing-groq
+"Seguridad Social: alerta de fraude, tu cuenta bancaria vinculada está en riesgo. Cambia la clave aquí: https://seguridadsocial-cambio.com/clave",fraud,smishing-groq
+Seguridad Social: tu solicitud de prestaciones está pendiente por falta de datos. Completa el formulario ya: https://seguridadsocial-datos.es/completar,fraud,smishing-groq
+Seguridad Social: se ha generado una retención de 200 € por supuesta deuda. Págala para evitar embargo: https://seguridadsocial-embargo.com/pagar,fraud,smishing-groq
+Seguridad Social: tu número de la Seguridad Social será suspendido si no confirmas tu identidad: https://seguridadsocial-identidad.es/confirmar,fraud,smishing-groq
+Seguridad Social: tienes una multa de 150 € por no presentar el certificado de vida. Págala antes de mañana: https://seguridadsocial-multas.com/pago,fraud,smishing-groq
+Seguridad Social: se ha detectado una actividad irregular en tu cuenta. Verifícala para evitar cierre: https://seguridadsocial-actividad.net/verifica,fraud,smishing-groq
+Seguridad Social: tu certificado de discapacidad está en proceso de revocación. Revisa los datos aquí: https://seguridadsocial-discapacidad.com/revisa,fraud,smishing-groq
+Seguridad Social: tu expediente está bloqueado por falta de firma digital. Firma ahora: https://seguridadsocial-firma.com/firmar,fraud,smishing-groq
+Seguridad Social: se ha detectado un sobrepago en tu pensión. Devuélvelo antes de 48h para evitar sanción: https://seguridadsocial-sobrepago.es/devolver,fraud,smishing-groq
+Seguridad Social: tu número de afiliado está a punto de ser desactivado. Reactívalo aquí: https://seguridadsocial-reactivar.com/afiliado,fraud,smishing-groq
+Seguridad Social: se ha emitido una orden de retención de ingresos. Resuelve antes de que se aplique el recorte: https://seguridadsocial-orden.com/resuelve,fraud,smishing-groq
+Seguridad Social: tu certificado de alta laboral expiró. Renueva ahora o se suspenderá el beneficio: https://seguridadsocial-alta.com/renovar,fraud,smishing-groq
+"Seguridad Social: aviso de fraude, tu cuenta está comprometida. Cambia la contraseña inmediatamente: https://seguridadsocial-cambio-clave.es/actualiza",fraud,smishing-groq
+Seguridad Social: se ha detectado una discrepancia en tu cotización mensual. Aclara antes de que te multemos: https://seguridadsocial-discrepancia.es/aclarar,fraud,smishing-groq
+Seguridad Social: tu pensión será reducida por falta de actualización de datos. Actualízalos ya: https://seguridadsocial-actualiza-datos.com/actualiza,fraud,smishing-groq
+Seguridad Social: se ha generado una alerta de impago. Salda la deuda en 24h o se iniciará proceso judicial: https://seguridadsocial-impago.es/saldar,fraud,smishing-groq
+Iberdrola: Tu suministro está bloqueado por una deuda pendiente. Paga ya en https://iberdrola-pago-urgente.com/solventar,fraud,smishing-groq
+Iberdrola: Se ha detectado un consumo anómalo. Verifica tu cuenta en https://iberdrola-alertas.com/consulta antes de que te multen,fraud,smishing-groq
+Iberdrola: Aviso de corte inminente por impago. Regulariza en 12h en https://iberdrola-urgente.net/pagar,fraud,smishing-groq
+Iberdrola: Tu factura de este mes supera el límite habitual. Revisa y corrige en https://iberdrola-factura.com/ajuste,fraud,smishing-groq
+Iberdrola: Se ha retenido un paquete de equipos de medición. Reclámalo aquí https://iberdrola-envio.com/recoger,fraud,smishing-groq
+Iberdrola: Hemos detectado actividad sospechosa en tu contrato. Confirma datos en https://iberdrola-seguridad.com/validar,fraud,smishing-groq
+Iberdrola: Multa por consumo excesivo sin notificación previa. Paga antes de mañana en https://iberdrola-multa.com/pagar,fraud,smishing-groq
+Iberdrola: Tu número de cliente será desactivado por falta de actualización. Actualiza en https://iberdrola-datos.com/actualizar,fraud,smishing-groq
+Iberdrola: Se ha generado una orden de embargo por impago. Evítala abonando en https://iberdrola-embargo.com/pago,fraud,smishing-groq
+Iberdrola: Tu cuenta está bajo revisión por posible fraude. Verifícala ahora en https://iberdrola-fraude.com/chequeo,fraud,smishing-groq
+Iberdrola: Aviso de recargo por retraso en el pago de la última factura. Límpialo ya en https://iberdrola-recargo.com/pagar,fraud,smishing-groq
+Iberdrola: Se ha suspendido el suministro por irregularidades. Reactiva en 6h en https://iberdrola-reactivar.com/urgente,fraud,smishing-groq
+Iberdrola: Tu contrato expiró y está a punto de ser cancelado. Renueva en https://iberdrola-renovar.com/online,fraud,smishing-groq
+Iberdrola: Se ha detectado un sobreconsumo que genera sanción. Aclara el caso en https://iberdrola-sancion.com/revisar,fraud,smishing-groq
+Iberdrola: Notificación de ajuste tarifario inesperado. Revisa la modificación en https://iberdrola-tarifa.com/consulta,fraud,smishing-groq
+Iberdrola: Tu suministro será cortado por falta de documentación. Sube los documentos en https://iberdrola-docs.com/subir,fraud,smishing-groq
+Iberdrola: Se ha activado un cargo extra por uso fuera de horario. Anula el cargo en https://iberdrola-cargo.com/anular,fraud,smishing-groq
+Iberdrola: Tu número de referencia está bloqueado por irregularidad. Desbloquéalo aquí https://iberdrola-bloqueo.com/desbloquear,fraud,smishing-groq
+Iberdrola: Aviso de multa por consumo no declarado. Paga antes de 24h en https://iberdrola-multa2.com/pagar,fraud,smishing-groq
+Iberdrola: Se ha retenido tu factura electrónica por error. Descárgala en https://iberdrola-factura2.com/descargar,fraud,smishing-groq
+Iberdrola: Tu suministro será cortado por falta de pago de la última cuota. Evita el corte en https://iberdrola-ultimo.com/pago,fraud,smishing-groq
+Iberdrola: Se ha detectado un intento de fraude con tu número de cliente. Confirma tu identidad en https://iberdrola-anti-fraude.com/validar,fraud,smishing-groq
+Iberdrola: Tu cuenta presenta un saldo negativo que provocará corte. Regulariza en https://iberdrola-saldo.com/cobrar,fraud,smishing-groq
+Iberdrola: Se ha programado una inspección técnica por irregularidad. Aplázala aquí https://iberdrola-inspeccion.com/reprogramar,fraud,smishing-groq
+Iberdrola: Tu número de cliente está a punto de ser eliminado por inactividad. Reactívalo en https://iberdrola-activar.com/online,fraud,smishing-groq
+Iberdrola: Aviso de recarga automática fallida. Soluciona el pago en https://iberdrola-recarga.com/solucionar,fraud,smishing-groq
+"Policía Nacional: tu DNI está bloqueado por sospecha de fraude, verifica ya en https://policia-nacional-alerta.com/validar",fraud,smishing-groq
+"Policía Nacional: multa de 200€ pendiente, paga antes de 24h en https://policia-nacional-pago.com/multa123",fraud,smishing-groq
+"Policía Nacional: se ha retenido un paquete en tu domicilio, recoge en https://policia-nacional-envio.com/recoger",fraud,smishing-groq
+"Policía Nacional: actividad sospechosa en tu cuenta bancaria, confirma datos en https://policia-nacional-seguro.com/confirmar",fraud,smishing-groq
+"Policía Nacional: alerta de suplantación, tu número está implicado, revisa en https://policia-nacional-alerta.com/revisar",fraud,smishing-groq
+"Policía Nacional: denuncia por robo de coche, necesita tu testimonio, accede a https://policia-nacional-investigacion.com/testimonio",fraud,smishing-groq
+"Policía Nacional: se detectó un virus en tu móvil, desactívalo en https://policia-nacional-movil.com/desinfectar",fraud,smishing-groq
+"Policía Nacional: tu licencia de conducir está suspendida, regulariza en https://policia-nacional-licencia.com/regulariza",fraud,smishing-groq
+"Policía Nacional: sanción por exceso de velocidad, paga en https://policia-nacional-multa.com/pago123",fraud,smishing-groq
+"Policía Nacional: se ha emitido una orden de captura, verifica tu situación en https://policia-nacional-orden.com/verificar",fraud,smishing-groq
+"Policía Nacional: tu tarjeta está bloqueada por intento de fraude, desbloquéala en https://policia-nacional-tarjeta.com/desbloqueo",fraud,smishing-groq
+"Policía Nacional: se ha detectado un intento de acceso no autorizado a tu correo, revisa en https://policia-nacional-correo.com/seguridad",fraud,smishing-groq
+"Policía Nacional: multa por ruido nocturno, paga antes de que se añada recargo en https://policia-nacional-ruido.com/pagar",fraud,smishing-groq
+"Policía Nacional: se ha retenido tu paquete de la tienda online, recoge en https://policia-nacional-paqueteria.com/entrega",fraud,smishing-groq
+"Policía Nacional: tu número está en lista negra, regulariza en https://policia-nacional-listanegra.com/solucion",fraud,smishing-groq
+"Policía Nacional: se ha detectado un fraude de tarjetas, confirma tus datos en https://policia-nacional-fraude.com/confirmar",fraud,smishing-groq
+"Policía Nacional: sanción por estacionamiento indebido, paga 50€ en https://policia-nacional-estacionamiento.com/pago",fraud,smishing-groq
+"Policía Nacional: tu cuenta de redes sociales está bajo investigación, colabora en https://policia-nacional-redes.com/colabora",fraud,smishing-groq
+"Policía Nacional: se ha emitido una orden de embargo, revisa tus bienes en https://policia-nacional-embargo.com/revisar",fraud,smishing-groq
+"Policía Nacional: se detectó un intento de phishing usando tu número, verifica en https://policia-nacional-phishing.com/verifica",fraud,smishing-groq
+"Policía Nacional: multa por no portar casco, paga 80€ en https://policia-nacional-casco.com/pago",fraud,smishing-groq
+"Policía Nacional: se ha bloqueado tu cuenta de PayPal por actividad sospechosa, desbloquéala en https://policia-nacional-paypal.com/accion",fraud,smishing-groq
+"Policía Nacional: se detectó un robo de identidad, confirma tu identidad en https://policia-nacional-identidad.com/confirma",fraud,smishing-groq
+"Policía Nacional: multa por basura tirada en vía pública, paga antes de 48h en https://policia-nacional-basura.com/pago",fraud,smishing-groq
+"Policía Nacional: se ha retenido tu coche por infracción, recógelo en https://policia-nacional-coche.com/recoger",fraud,smishing-groq
+Tu cuenta Amazon está bloqueada por actividad sospechosa. Verifícala ahora o se cerrará: https://amazon-es-seguro.com/accion,fraud,smishing-groq
+"Pago pendiente de 49,99 € en tu Amazon. Cancelaremos el pedido si no lo regularizas: https://amazon-es-pagos.com/urgente",fraud,smishing-groq
+Tu paquete con número 12345678 está retenido en aduana. Desbloquéalo aquí: https://amazon-es-aduana.com/liberar,fraud,smishing-groq
+Alerta: intento de fraude en tu tarjeta vinculada a Amazon. Confirma datos para protegerla: https://amazon-es-fraude.com/alerta,fraud,smishing-groq
+Has ganado un premio Amazon de 200 €. Reclama antes de 24 h: https://amazon-es-premio.com/reclamar,fraud,smishing-groq
+Se ha detectado un intento de acceso no autorizado a tu perfil Amazon. Cambia la contraseña ya: https://amazon-es-cambio.com/seguro,fraud,smishing-groq
+Tu método de envío ha fallado y el pedido será devuelto. Reprograma envío aquí: https://amazon-es-envio.com/reprogramar,fraud,smishing-groq
+Multa de 75 € por incumplir políticas de venta en Amazon Marketplace. Págala ahora: https://amazon-es-multa.com/pagar,fraud,smishing-groq
+Tu suscripción Prime está a punto de expirar. Renueva para evitar interrupciones: https://amazon-es-prime.com/renovar,fraud,smishing-groq
+Error de facturación: el importe de tu última compra no se ha cobrado. Regulariza en 2 h: https://amazon-es-factura.com/corregir,fraud,smishing-groq
+Se ha detectado un virus en tu cuenta Amazon. Escanea y limpia ahora: https://amazon-es-virus.com/limpiar,fraud,smishing-groq
+Tu devolución ha sido rechazada por falta de documentación. Sube el comprobante: https://amazon-es-devolucion.com/subir,fraud,smishing-groq
+Alerta de seguridad: intento de cambio de email en tu Amazon. Confirma o bloquea el cambio: https://amazon-es-email.com/confirma,fraud,smishing-groq
+Tu método de pago ha sido desactivado por sospecha de fraude. Reactívalo aquí: https://amazon-es-activacion.com/reactivar,fraud,smishing-groq
+Se ha detectado un cargo duplicado en tu cuenta Amazon. Revísalo y solicita reembolso: https://amazon-es-reembolso.com/revisar,fraud,smishing-groq
+Tu cuenta Amazon está en riesgo de ser suspendida por incumplir los Términos. Acepta los nuevos términos: https://amazon-es-terminos.com/aceptar,fraud,smishing-groq
+Paquete enviado a dirección desconocida. Confirma la entrega para evitar pérdida: https://amazon-es-direccion.com/confirmar,fraud,smishing-groq
+Tu número de identificación fiscal está incompleto en Amazon. Actualízalo ya: https://amazon-es-fiscal.com/actualiza,fraud,smishing-groq
+Se ha generado una alerta de phishing en tu cuenta Amazon. Verifica tu identidad: https://amazon-es-phishing.com/verifica,fraud,smishing-groq
+Has superado el límite de compras sin verificación. Completa KYC para seguir: https://amazon-es-kyc.com/completar,fraud,smishing-groq
+Tu cuenta está marcada como inactiva. Reactiva antes de 48 h o se eliminará: https://amazon-es-inactiva.com/reactivar,fraud,smishing-groq
+Se ha detectado un intento de uso de tu tarjeta en compras Amazon fuera de España. Bloquea ahora: https://amazon-es-bloqueo.com/accion,fraud,smishing-groq
+Tu envío urgente está retrasado por falta de datos de contacto. Proporciona número de teléfono: https://amazon-es-contacto.com/actualiza,fraud,smishing-groq
+Error crítico: tu perfil Amazon no cumple con la normativa de datos. Corrige en 30 min: https://amazon-es-datos.com/corregir,fraud,smishing-groq
+Tu cuenta ha sido vinculada a una actividad de lavado de dinero. Revisa el informe: https://amazon-es-lavado.com/revisar,fraud,smishing-groq
+Se ha generado una multa de 120 € por infracción de derechos de autor en Amazon. Págala ya: https://amazon-es-derechos.com/pagar,fraud,smishing-groq
