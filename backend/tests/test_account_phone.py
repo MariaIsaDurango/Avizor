@@ -71,7 +71,9 @@ def test_patch_me_phone_updates_active_pairing(
         headers=guardian_headers,
     )
     pairing = db_session.scalar(
-        select(Pairing).where(Pairing.guardian_id == guardian.id, Pairing.active.is_(True))
+        select(Pairing).where(
+            Pairing.guardian_id == guardian.id, Pairing.active.is_(True)
+        )
     )
     assert pairing.guardian_phone == "+34600000002"
 
