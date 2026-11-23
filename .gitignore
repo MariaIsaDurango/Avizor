@@ -27,6 +27,7 @@ htmlcov/
 ml/data/raw/*
 ml/data/processed/*
 !ml/data/**/.gitkeep
+!ml/data/raw/smishing_groq.csv
 ml/models/*
 !ml/models/.gitkeep
 *.pt
