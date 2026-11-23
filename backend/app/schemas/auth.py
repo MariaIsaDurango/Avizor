@@ -74,6 +74,7 @@ class ResetPasswordRequest(ContractModel):
 
 class UpdateMeRequest(ContractModel):
     display_name: str = Field(min_length=1, max_length=50)
+    phone: str | None = Field(default=None, max_length=30)
 
     @field_validator("display_name")
     @classmethod
@@ -82,6 +83,12 @@ class UpdateMeRequest(ContractModel):
         if not value:
             raise ValueError("El nombre no puede estar vacío.")
         return value
+
+    @field_validator("phone")
+    @classmethod
+    def check_phone(cls, value: str | None) -> str | None:
+        from app.schemas.pairing import normalize_phone  # noqa: PLC0415
+        return normalize_phone(value)
 
 
 class ChangePasswordRequest(ContractModel):
@@ -108,3 +115,4 @@ class UserRead(ContractModel):
     role: UserRole
     display_name: str
     email: str | None = None
+    phone: str | None = None

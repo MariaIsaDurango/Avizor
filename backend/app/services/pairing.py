@@ -56,6 +56,8 @@ def create_pairing(
     else:
         raise ApiError(500, ErrorCode.INTERNAL_ERROR, "No se pudo generar el código.")
 
+    guardian = db.get(User, guardian_id)
+    guardian_phone = body.guardian_phone or (guardian.phone if guardian else None)
     pairing = Pairing(
         guardian_id=guardian_id,
         code=code,
@@ -65,7 +67,7 @@ def create_pairing(
             if body.senior_accessibility_profile
             else None
         ),
-        guardian_phone=body.guardian_phone,
+        guardian_phone=guardian_phone,
         expires_at=now + timedelta(minutes=settings.PAIRING_CODE_EXPIRE_MINUTES),
     )
     db.add(pairing)

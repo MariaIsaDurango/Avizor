@@ -222,7 +222,7 @@
         <button class="btn btn--primary" id="btn-save-name" style="width:100%;">Guardar nombre</button>
         <p class="modal-feedback" id="name-feedback"></p>
 
-        <div id="phone-section" style="display:none; margin-top:1rem;">
+        <div id="phone-section" style="margin-top:1rem;">
           <div class="field-group">
             <label class="field-label" for="account-phone-input">
               Tu teléfono
@@ -320,7 +320,7 @@
       document.getElementById('account-name-input').value = currentName;
       document.getElementById('account-current-pwd').value = '';
       document.getElementById('account-new-pwd').value = '';
-      document.getElementById('phone-section').style.display = 'none';
+      document.getElementById('account-phone-input').value = '';
       ['name-feedback', 'pwd-feedback', 'phone-feedback', 'unlink-feedback'].forEach(id => {
         const el = document.getElementById(id);
         el.textContent = '';
@@ -331,11 +331,10 @@
 
       try {
         const token = localStorage.getItem('avizor_token');
-        const res = await fetch('/api/v1/senior', { headers: { Authorization: `Bearer ${token}` } });
+        const res = await fetch('/api/v1/auth/me', { headers: { Authorization: `Bearer ${token}` } });
         if (res.ok) {
-          const senior = await res.json();
-          document.getElementById('account-phone-input').value = senior.guardian_phone ?? '';
-          document.getElementById('phone-section').style.display = 'block';
+          const me = await res.json();
+          document.getElementById('account-phone-input').value = me.phone ?? '';
         }
       } catch {}
     }
@@ -383,10 +382,10 @@
       btn.disabled = true; btn.textContent = 'Guardando…';
       try {
         const token = localStorage.getItem('avizor_token');
-        const res = await fetch('/api/v1/senior/phone', {
+        const res = await fetch('/api/v1/auth/me', {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ guardian_phone: phone || null }),
+          body: JSON.stringify({ display_name: _currentDisplayName, phone: phone || null }),
         });
         if (res.ok) {
           fb.textContent = 'Teléfono actualizado.';

@@ -49,6 +49,11 @@ class User(Base):
     # ES: Solo Sénior (migración 0005). Ver schemas/accessibility.py.
     # EN: Senior only (migration 0005). See schemas/accessibility.py.
     accessibility_profile: Mapped[dict | None] = mapped_column(JSONB)
+    # ES: Teléfono del Tutor (migración 0008). Fallback en pairings nuevos y en
+    #     GET /senior cuando pairing.guardian_phone es NULL.
+    # EN: Guardian phone (migration 0008). Fallback for new pairings and in
+    #     GET /senior when pairing.guardian_phone is NULL.
+    phone: Mapped[str | None] = mapped_column(Text)
 
 
 class Device(Base):

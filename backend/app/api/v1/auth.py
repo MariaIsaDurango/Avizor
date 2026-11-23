@@ -169,9 +169,13 @@ def _active_guardian(db: DbSession, guardian_id: uuid.UUID) -> User:
 
 @router.patch("/me")
 def update_me(body: UpdateMeRequest, token: GuardianToken, db: DbSession) -> UserRead:
-    """ES: El Tutor cambia su nombre. EN: The guardian changes their name."""
+    """ES: El Tutor cambia su nombre y/o teléfono.
+    EN: The guardian updates their name and/or phone.
+    """
     user = _active_guardian(db, token.sub)
     user.display_name = body.display_name
+    if "phone" in body.model_fields_set:
+        user.phone = body.phone
     db.commit()
     return UserRead.model_validate(user, from_attributes=True)
 

@@ -76,6 +76,11 @@ def get_senior(db: DbSession, token: GuardianToken) -> SeniorRead:
         raise ApiError(404, ErrorCode.NOT_FOUND, NO_SENIOR)
 
     pairing, device, senior = row
+    guardian_phone = pairing.guardian_phone
+    if guardian_phone is None:
+        guardian = db.get(User, token.sub)
+        if guardian:
+            guardian_phone = guardian.phone
     return SeniorRead(
         senior_display_name=pairing.senior_display_name,
         platform=device.platform if device else None,
@@ -83,7 +88,7 @@ def get_senior(db: DbSession, token: GuardianToken) -> SeniorRead:
         last_seen_at=device.last_seen_at if device else None,
         paired_since=pairing.redeemed_at,
         accessibility_profile=senior.accessibility_profile,
-        guardian_phone=pairing.guardian_phone,
+        guardian_phone=guardian_phone,
     )
 
 
@@ -101,12 +106,15 @@ def get_my_profile(db: DbSession, token: SeniorToken) -> SeniorProfileRead:
     )
     if senior is None:
         raise ApiError(404, ErrorCode.NOT_FOUND, "Dispositivo no encontrado.")
-    guardian_phone = db.scalar(
-        select(Pairing.guardian_phone)
+    row = db.execute(
+        select(Pairing.guardian_phone, User.phone)
+        .join(User, User.id == Pairing.guardian_id)
         .where(Pairing.senior_id == senior.id, Pairing.active.is_(True))
         .order_by(Pairing.redeemed_at.desc())
         .limit(1)
-    )
+    ).first()
+    pairing_phone, guardian_user_phone = row if row else (None, None)
+    guardian_phone = pairing_phone or guardian_user_phone
     return SeniorProfileRead(
         display_name=senior.display_name,
         accessibility_profile=senior.accessibility_profile,
