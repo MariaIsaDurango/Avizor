@@ -11,7 +11,7 @@ EN: Creates authentic SMS examples (confirmations, notices, appointments) that
 Uso / Usage:
     GROQ_API_KEY=sk-... python scripts/generate_legit.py \\
         --out data/raw/legit_links_groq.csv \\
-        [--per-entity 25] [--model gemma2-9b-it]
+        [--per-entity 25] [--model qwen/qwen3.8-27b]
 """
 
 import argparse
@@ -20,6 +20,7 @@ import os
 import re
 import sys
 import time
+from pathlib import Path
 
 ENTITIES = [
     ("Correos de España", "aviso de paquete listo para recoger o entregado en buzón"),
@@ -38,6 +39,19 @@ ENTITIES = [
     ("Academia online EduPro", "nuevo curso o material disponible en la plataforma"),
     ("Tienda de ropa Modalia", "pedido enviado o listo para recoger, enlace de seguimiento"),
 ]
+
+# Fragmentos de dominio válidos por entidad. Las entidades pequeñas no tienen dominio fijo.
+_ENTITY_DOMAINS: dict[str, list[str]] = {
+    "Correos de España": ["correos.es"],
+    "Banco Santander": ["santander.es", "bancosantander.es"],
+    "BBVA": ["bbva.es", "bbva.com"],
+    "CaixaBank": ["caixabank.es", "caixabank.com"],
+    "Agencia Tributaria (AEAT)": ["agenciatributaria.es", "agenciatributaria.gob.es"],
+    "Dirección General de Tráfico (DGT)": ["dgt.es", "dgt.gob.es"],
+    "Seguridad Social": ["seg-social.es", "sede.seg-social.gob.es", "seguridadsocial.gob.es"],
+    "Iberdrola": ["iberdrola.es", "iberdrola.com"],
+    "Amazon España": ["amazon.es"],
+}
 
 SYSTEM = (
     "Eres un generador de datos de entrenamiento para un detector de fraude por SMS. "
@@ -71,8 +85,8 @@ _SCAM_WORDS = re.compile(
 _CJK = re.compile(r"[一-鿿㐀-䶿]")
 
 
-def _is_valid(line: str) -> bool:
-    if not (20 <= len(line) <= 200):
+def _is_valid(line: str, allowed_domains: list[str] | None = None) -> bool:
+    if not (20 <= len(line) <= 160):
         return False
     lower = line.lower()
     if "i'm sorry" in lower or "i cannot" in lower or "i can't" in lower:
@@ -89,10 +103,18 @@ def _is_valid(line: str) -> bool:
         return False
     if _SCAM_WORDS.search(line):
         return False
+    if allowed_domains:
+        url_match = re.search(r"https?://([^\s/]+)", line, re.IGNORECASE)
+        if url_match:
+            domain = url_match.group(1).lower()
+            if not any(d in domain for d in allowed_domains):
+                return False
     return True
 
 
-def generate_for_entity(client, model: str, entity: str, description: str, count: int) -> list[str]:
+def generate_for_entity(
+    client, model: str, entity: str, description: str, count: int
+) -> list[str]:
     user_msg = (
         f"Genera exactamente {count} SMS legítimos distintos enviados por: {entity}\n"
         f"Tipo de mensaje: {description}"
@@ -108,12 +130,13 @@ def generate_for_entity(client, model: str, entity: str, description: str, count
     )
     raw = response.choices[0].message.content.strip()
     lines = [line.strip() for line in raw.splitlines() if line.strip()]
-    return [line for line in lines if _is_valid(line)]
+    allowed = _ENTITY_DOMAINS.get(entity) or None
+    return [line for line in lines if _is_valid(line, allowed_domains=allowed)]
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Genera SMS legítimos con enlace usando Groq")
-    parser.add_argument("--out", type=str, required=True, help="CSV de salida")
+    parser.add_argument("--out", type=Path, required=True, help="CSV de salida")
     parser.add_argument("--per-entity", type=int, default=25, help="SMS por entidad")
     parser.add_argument("--model", default="qwen/qwen3.8-27b", help="Modelo Groq")
     parser.add_argument("--append", action="store_true", help="Añadir al CSV sin sobreescribir")
@@ -129,16 +152,13 @@ def main() -> None:
     except ImportError:
         sys.exit("Instala groq: pip install groq>=0.9")
 
-    from pathlib import Path
-
-    out = Path(args.out)
-    out.parent.mkdir(parents=True, exist_ok=True)
+    args.out.parent.mkdir(parents=True, exist_ok=True)
 
     groq_client = Groq(api_key=api_key)
     total = 0
     mode = "a" if args.append else "w"
 
-    with out.open(mode, newline="", encoding="utf-8") as f:
+    with args.out.open(mode, newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=["text", "label", "source"])
         if not args.append:
             writer.writeheader()
@@ -158,7 +178,7 @@ def main() -> None:
             except Exception as e:
                 print(f"  Error con {entity}: {e}", file=sys.stderr)
 
-    print(f"\nTotal: {total} SMS guardados en {out}")
+    print(f"\nTotal: {total} SMS guardados en {args.out}")
     print("Revisa una muestra manualmente antes de añadir al entrenamiento.")
 
 
