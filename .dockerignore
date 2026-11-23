@@ -1,0 +1,22 @@
+# ES: Contexto de la imagen del backend (se construye desde la raíz).
+# EN: Build context for the backend image (built from the repo root).
+.git
+.github
+**/.env
+**/.env.*
+!.env.example
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+**/.ruff_cache
+**/.venv
+**/venv
+**/node_modules
+mobile
+ml
+docs
+backend/tests
+rag/tests
+rag/data/raw
+rag/data/processed
+rag/data/samples

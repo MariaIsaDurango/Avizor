@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="{% block meta_description %}Panel de control Avizor{% endblock %}" />
+  <title>{% block title %}Avizor{% endblock %} - Portal</title>
+
+  <link rel="preconnect" href="https://unpkg.com" />
+  <link rel="stylesheet" href="{{ url_for('web_static', path='css/main.css') }}" />
+  <style>
+    /* ── Shared buttons ──────────────────────────────────────── */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      gap: 0.4rem; padding: 0.65rem 1.5rem; border-radius: var(--radius-sm);
+      font-family: var(--font-family); font-size: var(--font-size-base);
+      font-weight: 600; cursor: pointer; border: none;
+      transition: background 0.15s, opacity 0.15s; text-decoration: none;
+    }
+    .btn:disabled { opacity: 0.65; cursor: not-allowed; }
+    .btn--primary { background: var(--color-primary); color: var(--color-white); }
+    .btn--primary:hover:not(:disabled) { background: var(--color-primary-light); color: var(--color-white); text-decoration: none; }
+    .btn--outline {
+      background: transparent; color: var(--color-primary);
+      border: 1.5px solid var(--color-primary);
+    }
+    .btn--outline:hover:not(:disabled) { background: rgba(22,78,85,0.06); text-decoration: none; }
+    .btn--danger {
+      background: transparent; color: var(--color-alert);
+      border: 1.5px solid var(--color-alert);
+    }
+    .btn--danger:hover:not(:disabled) { background: rgba(217,56,56,0.06); text-decoration: none; }
+
+    /* ── Shared form fields ──────────────────────────────────── */
+    .field-group { margin-bottom: 0.75rem; }
+    .field-label {
+      display: block; font-size: var(--font-size-sm);
+      font-weight: 600; color: var(--color-text); margin-bottom: 0.3rem;
+    }
+    .field-input {
+      width: 100%; padding: 0.625rem 0.875rem;
+      border: 1.5px solid var(--color-border); border-radius: var(--radius-sm);
+      font-family: var(--font-family); font-size: var(--font-size-base);
+      color: var(--color-text); background: var(--color-white); outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .field-input:focus {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(22, 78, 85, 0.1);
+    }
+    .field-input--error { border-color: var(--color-alert); }
+    .field-error {
+      font-size: 0.8125rem; color: var(--color-alert);
+      display: none; margin-top: 0.25rem;
+    }
+    .field-error--visible { display: block; }
+
+    /* ── User menu dropdown ──────────────────────────────────── */
+    .user-menu-wrap { position: relative; }
+    .user-menu-btn {
+      display: flex; align-items: center; gap: 0.35rem;
+      background: none; border: none; cursor: pointer; padding: 0.4rem 0.625rem;
+      border-radius: var(--radius-sm); transition: background 0.15s;
+      font-size: var(--font-size-sm); font-weight: 600;
+      color: var(--color-white); font-family: var(--font-family);
+      white-space: nowrap;
+    }
+    .user-menu-btn:hover { background: rgba(255,255,255,0.12); }
+    .user-menu-btn svg { width: 1rem; height: 1rem; }
+    .user-menu-btn svg:last-child { opacity: 0.65; width: 0.85rem; height: 0.85rem; }
+    .user-dropdown {
+      position: absolute; right: 0; top: calc(100% + 0.5rem);
+      background: var(--color-white); border-radius: var(--radius-md);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.12); min-width: 220px;
+      border: 1px solid var(--color-border); z-index: 90;
+    }
+    .user-dropdown__item {
+      display: flex; align-items: center; gap: 0.5rem;
+      width: 100%; padding: 0.75rem 1rem;
+      background: none; border: none; cursor: pointer;
+      font-size: var(--font-size-sm); font-family: var(--font-family);
+      font-weight: 600; color: var(--color-primary);
+      text-align: left; transition: background 0.1s;
+    }
+    .user-dropdown__item:hover { background: rgba(22,78,85,0.05); }
+    .user-dropdown__item + .user-dropdown__item { border-top: 1px solid var(--color-border); }
+    .user-dropdown__item--danger { color: var(--color-alert); }
+    .user-dropdown__item--danger:hover { background: rgba(217,56,56,0.05); }
+
+    /* ── Account modal ───────────────────────────────────────── */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.45); z-index: 100;
+      align-items: center; justify-content: center; padding: 1rem;
+    }
+    .modal-overlay--open { display: flex; }
+    .modal-box {
+      background: var(--color-white); border-radius: var(--radius-lg);
+      padding: 1.5rem; width: 100%; max-width: 440px;
+      max-height: 90vh; overflow-y: auto;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    }
+    .modal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1.25rem;
+    }
+    .modal-title { font-size: var(--font-size-lg); font-weight: 700; color: var(--color-primary); }
+    .modal-close {
+      background: none; border: none; cursor: pointer; padding: 0.25rem;
+      color: var(--color-text-muted); line-height: 1;
+    }
+    .modal-section { margin-bottom: 1.5rem; }
+    .modal-section:last-child { margin-bottom: 0; }
+    .modal-section-title {
+      font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.05em; color: var(--color-text-muted);
+      margin-bottom: 0.75rem;
+    }
+    .modal-feedback {
+      font-size: var(--font-size-sm); margin-top: 0.5rem; display: none;
+    }
+    .modal-feedback--error { color: var(--color-alert); display: block; }
+    .modal-feedback--success { color: var(--color-success); display: block; }
+  </style>
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+  <nav class="navbar" aria-label="Navegación principal">
+    <a href="{{ url_for('dashboard') }}" class="navbar__brand">
+      <img
+        src="{{ url_for('web_static', path='img/logo-web.png') }}"
+        alt=""
+        class="navbar__logo"
+      >
+      <span class="navbar__brand-name">Avizor</span>
+    </a>
+    <ul class="navbar__nav">
+      <li>
+        <a href="{{ url_for('dashboard') }}"
+           id="nav-home-link"
+           class="navbar__link {% if active_page == 'dashboard' or active_page == 'panel' %}navbar__link--active{% endif %}">
+          <i data-lucide="home" aria-hidden="true"></i>
+          <span class="nav-label">Inicio</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('indicators') }}"
+           class="navbar__link {% if active_page == 'indicators' %}navbar__link--active{% endif %}">
+          <i data-lucide="trending-up" aria-hidden="true"></i>
+          <span class="nav-label">Indicadores</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('support') }}"
+           class="navbar__link {% if active_page == 'support' %}navbar__link--active{% endif %}">
+          <i data-lucide="life-buoy" aria-hidden="true"></i>
+          <span class="nav-label">Soporte</span>
+        </a>
+      </li>
+    </ul>
+    <div id="nav-auth">
+      <a href="/register" class="navbar__register" id="nav-register">
+        <i data-lucide="user-plus" aria-hidden="true"></i>
+        <span class="nav-label">Registrarse / Iniciar sesión</span>
+      </a>
+      <div class="navbar__user" id="nav-user" style="display:none;" aria-label="Menú de usuario">
+        <div class="user-menu-wrap">
+          <button class="user-menu-btn" id="nav-user-btn"
+                  aria-expanded="false" aria-haspopup="true" aria-label="Menú de usuario">
+            <i data-lucide="user" aria-hidden="true"></i>
+            <span id="nav-username"></span>
+            <i data-lucide="chevron-down" aria-hidden="true"></i>
+          </button>
+          <div class="user-dropdown" id="user-dropdown" hidden>
+            <button class="user-dropdown__item" id="nav-open-account">
+              <i data-lucide="settings" aria-hidden="true"></i>
+              Configuración de la cuenta
+            </button>
+            <button class="user-dropdown__item user-dropdown__item--danger" id="nav-logout">
+              <i data-lucide="log-out" aria-hidden="true"></i>
+              Cerrar sesión
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="main-content" id="main-content">
+    {% block content %}{% endblock %}
+  </main>
+
+  <a href="/download" class="download-fab" id="download-fab" aria-label="Descarga la app Avizor">
+    <img src="{{ url_for('web_static', path='img/logo-web.png') }}" alt="">
+    Descarga la app
+  </a>
+
+  <footer class="footer">
+    <p>
+      &copy; {{ year }} Avizor - Protegemos a quienes más quieres
+    </p>
+  </footer>
+
+  <!-- Account settings modal (available on all pages) -->
+  <div class="modal-overlay" id="account-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-box">
+      <div class="modal-header">
+        <span class="modal-title" id="modal-title">Ajustes de cuenta</span>
+        <button class="modal-close" id="modal-close-btn" aria-label="Cerrar">
+          <i data-lucide="x" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <!-- Nombre y teléfono -->
+      <div class="modal-section">
+        <p class="modal-section-title">Perfil</p>
+        <div class="field-group">
+          <label class="field-label" for="account-name-input">Nombre</label>
+          <input class="field-input" type="text" id="account-name-input" maxlength="50" autocomplete="name">
+        </div>
+        <button class="btn btn--primary" id="btn-save-name" style="width:100%;">Guardar nombre</button>
+        <p class="modal-feedback" id="name-feedback"></p>
+
+        <div id="phone-section" style="margin-top:1rem;">
+          <div class="field-group">
+            <label class="field-label" for="account-phone-input">
+              Tu teléfono
+              <span style="font-weight:400;color:var(--color-text-muted);">(para llamadas del Sénior)</span>
+            </label>
+            <input class="field-input" type="tel" id="account-phone-input" placeholder="+34 600 000 000" autocomplete="tel">
+          </div>
+          <button class="btn btn--outline" id="btn-save-phone" style="width:100%;">Guardar teléfono</button>
+          <p class="modal-feedback" id="phone-feedback"></p>
+        </div>
+      </div>
+
+      <!-- Contraseña -->
+      <div class="modal-section">
+        <p class="modal-section-title">Seguridad</p>
+        <div class="field-group">
+          <label class="field-label" for="account-current-pwd">Contraseña actual</label>
+          <input class="field-input" type="password" id="account-current-pwd" autocomplete="current-password">
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="account-new-pwd">Nueva contraseña <span style="font-weight:400;color:var(--color-text-muted);">(mín. 10 caracteres)</span></label>
+          <input class="field-input" type="password" id="account-new-pwd" autocomplete="new-password">
+        </div>
+        <button class="btn btn--outline" id="btn-change-pwd" style="width:100%;">Cambiar contraseña</button>
+        <p class="modal-feedback" id="pwd-feedback"></p>
+      </div>
+
+      <!-- Zona de peligro -->
+      <div class="modal-section">
+        <p class="modal-section-title">Zona de peligro</p>
+        <button class="btn btn--danger" id="btn-unlink-senior" style="width:100%;">Desvincular sénior</button>
+        <p class="modal-feedback" id="unlink-feedback"></p>
+      </div>
+    </div>
+  </div>
+
+  {% block extra_scripts %}{% endblock %}
+  <script src="{{ url_for('web_static', path='js/lucide.min.js') }}"></script>
+  <script>
+    lucide.createIcons();
+
+    let _currentDisplayName = '';
+
+    (async () => {
+      const token = localStorage.getItem('avizor_token');
+      if (!token) return;
+
+      try {
+        const res = await fetch('/api/v1/auth/me', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) { localStorage.removeItem('avizor_token'); return; }
+
+        const user = await res.json();
+        _currentDisplayName = user.display_name;
+        document.getElementById('nav-register').style.display = 'none';
+        document.getElementById('nav-username').textContent = user.display_name;
+        document.getElementById('nav-user').style.display = 'flex';
+        document.getElementById('nav-home-link').href = '/panel';
+        document.querySelector('.navbar__nav').style.display = 'none';
+        document.getElementById('nav-auth').style.marginLeft = 'auto';
+        document.getElementById('download-fab').style.display = 'none';
+        lucide.createIcons();
+      } catch {}
+    })();
+
+    // ── User dropdown toggle ─────────────────────────────────
+    document.getElementById('nav-user-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      const dropdown = document.getElementById('user-dropdown');
+      const btn = document.getElementById('nav-user-btn');
+      const willOpen = dropdown.hidden;
+      dropdown.hidden = !willOpen;
+      btn.setAttribute('aria-expanded', String(willOpen));
+    });
+    document.addEventListener('click', () => {
+      document.getElementById('user-dropdown').hidden = true;
+      document.getElementById('nav-user-btn').setAttribute('aria-expanded', 'false');
+    });
+
+    document.getElementById('nav-open-account').addEventListener('click', () => {
+      document.getElementById('user-dropdown').hidden = true;
+      document.getElementById('nav-user-btn').setAttribute('aria-expanded', 'false');
+      openAccountModal(_currentDisplayName);
+    });
+
+    document.getElementById('nav-logout').addEventListener('click', () => {
+      if (!window.confirm('¿Seguro que quieres cerrar sesión? Se eliminará tu sesión de este dispositivo.')) return;
+      localStorage.removeItem('avizor_token');
+      window.location.href = '/';
+    });
+
+    // ── Account modal ────────────────────────────────────────
+    async function openAccountModal(currentName) {
+      document.getElementById('account-name-input').value = currentName;
+      document.getElementById('account-current-pwd').value = '';
+      document.getElementById('account-new-pwd').value = '';
+      document.getElementById('account-phone-input').value = '';
+      ['name-feedback', 'pwd-feedback', 'phone-feedback', 'unlink-feedback'].forEach(id => {
+        const el = document.getElementById(id);
+        el.textContent = '';
+        el.className = 'modal-feedback';
+      });
+      document.getElementById('account-modal').classList.add('modal-overlay--open');
+      lucide.createIcons();
+
+      try {
+        const token = localStorage.getItem('avizor_token');
+        const res = await fetch('/api/v1/auth/me', { headers: { Authorization: `Bearer ${token}` } });
+        if (res.ok) {
+          const me = await res.json();
+          document.getElementById('account-phone-input').value = me.phone ?? '';
+        }
+      } catch {}
+    }
+    function closeAccountModal() {
+      document.getElementById('account-modal').classList.remove('modal-overlay--open');
+    }
+    document.getElementById('modal-close-btn').addEventListener('click', closeAccountModal);
+    document.getElementById('account-modal').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) closeAccountModal();
+    });
+
+    document.getElementById('btn-save-name').addEventListener('click', async () => {
+      const name = document.getElementById('account-name-input').value.trim();
+      const fb = document.getElementById('name-feedback');
+      const btn = document.getElementById('btn-save-name');
+      if (!name) { fb.textContent = 'El nombre no puede estar vacío.'; fb.className = 'modal-feedback modal-feedback--error'; return; }
+      btn.disabled = true; btn.textContent = 'Guardando…';
+      try {
+        const token = localStorage.getItem('avizor_token');
+        const res = await fetch('/api/v1/auth/me', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ display_name: name }),
+        });
+        if (res.ok) {
+          _currentDisplayName = name;
+          document.getElementById('nav-username').textContent = name;
+          const greetEl = document.getElementById('greeting-name');
+          if (greetEl) greetEl.textContent = name;
+          fb.textContent = 'Nombre actualizado.';
+          fb.className = 'modal-feedback modal-feedback--success';
+        } else {
+          const err = await res.json();
+          fb.textContent = err.detail ?? 'Error al guardar.';
+          fb.className = 'modal-feedback modal-feedback--error';
+        }
+      } catch { fb.textContent = 'Error de conexión.'; fb.className = 'modal-feedback modal-feedback--error'; }
+      btn.disabled = false; btn.textContent = 'Guardar nombre';
+    });
+
+    document.getElementById('btn-save-phone').addEventListener('click', async () => {
+      const phone = document.getElementById('account-phone-input').value.trim();
+      const fb = document.getElementById('phone-feedback');
+      const btn = document.getElementById('btn-save-phone');
+      btn.disabled = true; btn.textContent = 'Guardando…';
+      try {
+        const token = localStorage.getItem('avizor_token');
+        const res = await fetch('/api/v1/auth/me', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ display_name: _currentDisplayName, phone: phone || null }),
+        });
+        if (res.ok) {
+          fb.textContent = 'Teléfono actualizado.';
+          fb.className = 'modal-feedback modal-feedback--success';
+        } else {
+          const err = await res.json();
+          fb.textContent = Array.isArray(err.detail)
+            ? 'Teléfono no válido. Ejemplo: +34 600 000 000'
+            : (err.detail ?? 'Error al guardar.');
+          fb.className = 'modal-feedback modal-feedback--error';
+        }
+      } catch { fb.textContent = 'Error de conexión.'; fb.className = 'modal-feedback modal-feedback--error'; }
+      btn.disabled = false; btn.textContent = 'Guardar teléfono';
+    });
+
+    document.getElementById('btn-change-pwd').addEventListener('click', async () => {
+      const current = document.getElementById('account-current-pwd').value;
+      const newPwd  = document.getElementById('account-new-pwd').value;
+      const fb = document.getElementById('pwd-feedback');
+      const btn = document.getElementById('btn-change-pwd');
+      if (!current || !newPwd) { fb.textContent = 'Rellena ambos campos.'; fb.className = 'modal-feedback modal-feedback--error'; return; }
+      if (newPwd.length < 10) { fb.textContent = 'La nueva contraseña debe tener al menos 10 caracteres.'; fb.className = 'modal-feedback modal-feedback--error'; return; }
+      btn.disabled = true; btn.textContent = 'Guardando…';
+      try {
+        const token = localStorage.getItem('avizor_token');
+        const res = await fetch('/api/v1/auth/change-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ current_password: current, new_password: newPwd }),
+        });
+        if (res.ok) {
+          localStorage.removeItem('avizor_token');
+          window.location.replace('/login');
+        } else {
+          const err = await res.json();
+          fb.textContent = err.detail ?? 'Error al cambiar la contraseña.';
+          fb.className = 'modal-feedback modal-feedback--error';
+          btn.disabled = false; btn.textContent = 'Cambiar contraseña';
+        }
+      } catch { fb.textContent = 'Error de conexión.'; fb.className = 'modal-feedback modal-feedback--error'; btn.disabled = false; btn.textContent = 'Cambiar contraseña'; }
+    });
+
+    document.getElementById('btn-unlink-senior').addEventListener('click', async () => {
+      const fb = document.getElementById('unlink-feedback');
+      if (!window.confirm('¿Seguro que quieres desvincular al sénior? Dejará de estar protegido por Avizor. Esta acción no se puede deshacer.')) return;
+      const btn = document.getElementById('btn-unlink-senior');
+      btn.disabled = true; btn.textContent = 'Desvinculando…';
+      try {
+        const token = localStorage.getItem('avizor_token');
+        const res = await fetch('/api/v1/senior', { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+        if (res.ok || res.status === 404) {
+          closeAccountModal();
+          window.location.reload();
+        } else {
+          const err = await res.json();
+          fb.textContent = err.detail ?? 'Error al desvincular.';
+          fb.className = 'modal-feedback modal-feedback--error';
+          btn.disabled = false; btn.textContent = 'Desvincular sénior';
+        }
+      } catch { fb.textContent = 'Error de conexión.'; fb.className = 'modal-feedback modal-feedback--error'; btn.disabled = false; btn.textContent = 'Desvincular sénior'; }
+    });
+  </script>
+</body>
+</html>

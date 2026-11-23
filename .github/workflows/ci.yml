@@ -1,0 +1,133 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - dev
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Backend
+    runs-on: ubuntu-latest
+
+    # ES: PostgreSQL de pruebas para los tests de la API (se borra al terminar).
+    # EN: Test PostgreSQL for the API tests (deleted when the job ends).
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: avizor
+          POSTGRES_PASSWORD: avizor
+          POSTGRES_DB: avizor
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U avizor -d avizor"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+    # ES: Valores solo para CI, nunca secretos reales.
+    # EN: CI-only values, never real secrets.
+    env:
+      DATABASE_URL: postgresql+psycopg://avizor:avizor@localhost:5432/avizor
+      JWT_SECRET: ci-secret-not-for-production-0123456789abcdef
+      PHONE_HMAC_KEY: ci-hmac-key-not-for-production-0123456789
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements-dev.txt
+
+      - name: Install backend dependencies
+        run: python -m pip install -r backend/requirements-dev.txt
+
+      - name: Check lint and formatting
+        run: |
+          ruff check backend
+          ruff format --check backend
+
+      - name: Apply database migrations
+        working-directory: backend
+        run: alembic upgrade head
+
+      - name: Run backend tests
+        if: ${{ hashFiles('backend/tests/**/*.py') != '' }}
+        run: PYTHONPATH=backend:. pytest backend/tests
+
+      - name: Report missing backend tests
+        if: ${{ hashFiles('backend/tests/**/*.py') == '' }}
+        run: echo "No backend test files found; pytest was skipped."
+
+
+  mobile:
+    name: Mobile
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        if: ${{ hashFiles('mobile/package.json') != '' }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install mobile dependencies
+        if: ${{ hashFiles('mobile/package.json') != '' }}
+        run: npm ci
+
+      - name: Run lint
+        if: ${{ hashFiles('mobile/package.json') != '' }}
+        run: npm run lint
+
+      - name: Run type-check
+        if: ${{ hashFiles('mobile/package.json') != '' }}
+        run: npm run type-check
+
+      - name: Report missing mobile package
+        if: ${{ hashFiles('mobile/package.json') == '' }}
+        working-directory: .
+        run: echo "mobile/package.json not found; mobile checks were skipped."
+
+  ml:
+    name: ML
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        if: ${{ hashFiles('ml/tests/**/*.py') != '' }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: ml/requirements-test.txt
+
+      # ES: Los tests no necesitan torch; el entrenamiento se hace en Colab.
+      # EN: Tests do not need torch; training runs on Colab.
+      - name: Install ML dependencies
+        if: ${{ hashFiles('ml/tests/**/*.py') != '' }}
+        run: python -m pip install -r ml/requirements-test.txt
+
+      - name: Run ML tests
+        if: ${{ hashFiles('ml/tests/**/*.py') != '' }}
+        run: pytest ml/tests
+
+      - name: Report missing ML tests
+        if: ${{ hashFiles('ml/tests/**/*.py') == '' }}
+        run: echo "No ML test files found; dependency installation and pytest were skipped."

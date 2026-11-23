@@ -1,0 +1,42 @@
+{
+  "expo": {
+    "name": "Avizor",
+    "slug": "avizor",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/logo-app.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#F4F6F4"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.avizor.app"
+    },
+    "android": {
+      "package": "com.avizor.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/logo-app.png",
+        "backgroundColor": "#ffffff"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "scheme": "avizor",
+    "plugins": [
+      "expo-secure-store",
+      "expo-status-bar",
+      "expo-notifications"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "b61cab23-d909-4f78-9bca-bc740780eb88"
+      }
+    },
+    "owner": "majorodri"
+  }
+}

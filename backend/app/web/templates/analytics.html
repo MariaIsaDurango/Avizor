@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+
+{% block title %}Analítica{% endblock %}
+{% block meta_description %}Estadísticas de amenazas detectadas por Avizor{% endblock %}
+
+{% block extra_head %}
+<script
+  src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"
+  crossorigin="anonymous"
+></script>
+<style>
+  .period-selector { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.5rem; }
+  .period-btn {
+    padding: 0.4rem 1rem;
+    border: 1.5px solid var(--color-primary);
+    border-radius: var(--radius-sm);
+    background: var(--color-white);
+    color: var(--color-primary);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .period-btn--active, .period-btn:hover {
+    background: var(--color-primary);
+    color: var(--color-white);
+  }
+  .charts-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1.5rem;
+  }
+  @media (max-width: 768px) { .charts-grid { grid-template-columns: 1fr; } }
+  .chart-wrap { position: relative; min-height: 300px; }
+  @media (max-width: 768px) { .chart-wrap { min-height: 240px; } }
+  @media (max-width: 480px) { .chart-wrap { min-height: 200px; } }
+  .stat-total {
+    font-size: var(--font-size-2xl);
+    font-weight: 700;
+    color: var(--color-primary);
+  }
+  .empty-state { text-align: center; padding: 3rem 1rem; color: var(--color-text-muted); }
+  .fetch-error { color: var(--color-alert); font-size: var(--font-size-sm); margin-top: 0.5rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<a href="/panel" class="back-link" id="back-to-panel" style="display:none;">
+  <i data-lucide="arrow-left" aria-hidden="true"></i>
+  Volver al panel
+</a>
+<script>
+  if (localStorage.getItem('avizor_token')) {
+    document.getElementById('back-to-panel').style.display = 'inline-flex';
+  }
+</script>
+
+<h1 class="page-heading">
+  <i data-lucide="bar-chart-2" aria-hidden="true"></i>
+  Panel de analítica
+</h1>
+
+<div class="period-selector" role="group" aria-label="Período de tiempo">
+  <button class="period-btn period-btn--active" data-period="7">7 días</button>
+  <button class="period-btn" data-period="30">30 días</button>
+  <button class="period-btn" data-period="90">3 meses</button>
+</div>
+
+<div class="card mt-2" style="margin-bottom: 1rem;">
+  <p class="text-muted text-sm">Total de ataques detectados en el período</p>
+  <p class="stat-total" id="total-count" aria-live="polite" aria-atomic="true">-</p>
+  <p class="fetch-error" id="fetch-error" aria-live="polite" aria-atomic="true" style="display:none;">
+    Error al cargar los datos. Inténtalo de nuevo.
+  </p>
+</div>
+
+<div class="charts-grid">
+  <div class="card">
+    <p class="card__title">Ataques diarios por nivel de riesgo</p>
+    <div class="chart-wrap">
+      <canvas id="chart-daily"></canvas>
+    </div>
+    <p class="empty-state" id="empty-daily" style="display:none;">
+      Sin ataques registrados en este período.
+    </p>
+  </div>
+
+  <div class="card">
+    <p class="card__title">Por tipo de amenaza</p>
+    <div class="chart-wrap">
+      <canvas id="chart-threat"></canvas>
+    </div>
+    <p class="empty-state" id="empty-threat" style="display:none;">
+      Sin ataques registrados en este período.
+    </p>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const COLORS = {
+  amber: '#D97706',
+  red:   '#D93838',
+};
+
+const THREAT_LABELS = {
+  phishing:       'Phishing',
+  smishing:       'Smishing',
+  vishing:        'Vishing',
+  spam:           'Spam',
+  identity_theft: 'Robo de identidad',
+  bank_fraud:     'Fraude bancario',
+  other:          'Otro',
+};
+
+const THREAT_COLORS = [
+  '#164E55','#D93838','#D97706','#0F2C59','#2E8B57','#F4B19B','#1d6b74'
+];
+
+let chartDaily = null;
+let chartThreat = null;
+
+function destroyCharts() {
+  if (chartDaily) { chartDaily.destroy(); chartDaily = null; }
+  if (chartThreat) { chartThreat.destroy(); chartThreat = null; }
+}
+
+function showError(show) {
+  document.getElementById('fetch-error').style.display = show ? 'block' : 'none';
+}
+
+async function loadStats(period) {
+  showError(false);
+
+  let daily, summary;
+  try {
+    const [resDaily, resSummary] = await Promise.all([
+      fetch(`/api/v1/stats/daily?period=${period}`),
+      fetch(`/api/v1/stats/summary?period=${period}`),
+    ]);
+
+    if (!resDaily.ok || !resSummary.ok) {
+      showError(true);
+      return;
+    }
+
+    [daily, summary] = await Promise.all([resDaily.json(), resSummary.json()]);
+  } catch {
+    showError(true);
+    return;
+  }
+
+  destroyCharts();
+
+  document.getElementById('total-count').textContent =
+    summary.total.toLocaleString('es-ES');
+
+  // ── Gráfica de barras diaria ──────────────────────────────
+  const emptyDaily = document.getElementById('empty-daily');
+  const canvasDaily = document.getElementById('chart-daily');
+  const hasAttacks = daily.rows.some(r => r.amber > 0 || r.red > 0);
+
+  if (!hasAttacks) {
+    canvasDaily.style.display = 'none';
+    emptyDaily.style.display = 'block';
+  } else {
+    canvasDaily.style.display = 'block';
+    emptyDaily.style.display = 'none';
+    chartDaily = new Chart(canvasDaily, {
+      type: 'bar',
+      data: {
+        labels: daily.rows.map(r => r.date),
+        datasets: [
+          { label: 'Sospechoso', data: daily.rows.map(r => r.amber), backgroundColor: COLORS.amber },
+          { label: 'Peligro',    data: daily.rows.map(r => r.red),   backgroundColor: COLORS.red   },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom' } },
+        scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } },
+      },
+    });
+  }
+
+  // ── Gráfica de donut por tipo de amenaza ─────────────────
+  const emptyThreat = document.getElementById('empty-threat');
+  const canvasThreat = document.getElementById('chart-threat');
+  const threatEntries = Object.entries(summary.by_threat_type).filter(([,n]) => n > 0);
+
+  if (!threatEntries.length) {
+    canvasThreat.style.display = 'none';
+    emptyThreat.style.display = 'block';
+  } else {
+    canvasThreat.style.display = 'block';
+    emptyThreat.style.display = 'none';
+    chartThreat = new Chart(canvasThreat, {
+      type: 'doughnut',
+      data: {
+        labels: threatEntries.map(([k]) => THREAT_LABELS[k] ?? k),
+        datasets: [{
+          data: threatEntries.map(([,n]) => n),
+          backgroundColor: THREAT_COLORS.slice(0, threatEntries.length),
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom' } },
+      },
+    });
+  }
+}
+
+// ── Selector de período ───────────────────────────────────
+document.querySelectorAll('.period-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('period-btn--active'));
+    btn.classList.add('period-btn--active');
+    loadStats(btn.dataset.period);
+  });
+});
+
+loadStats(7);
+</script>
+{% endblock %}

@@ -1,0 +1,3 @@
+# ES: Los scripts de shell siempre con LF (si no, fallan dentro de Linux/Docker).
+# EN: Shell scripts always use LF (otherwise they fail inside Linux/Docker).
+*.sh text eol=lf

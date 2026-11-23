@@ -5,3 +5,5 @@ chromadb>=0.5
 sentence-transformers>=3.0
 langgraph>=0.2
 pytest>=8.2
+python-dotenv>=1.0
+phonenumbers>=8.13,<10

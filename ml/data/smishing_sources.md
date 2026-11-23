@@ -13,7 +13,7 @@
 
 1. Se recuperan los 122 fragmentos con `col.get()` (embeddings BERT 768-dim incompatibles con all-MiniLM-L6-v2).
 2. Para cada entidad se selecciona contexto por puntuación de palabras clave + términos de fraude (`smishing`, `phishing`, `estafa`, etc.), máx. 3000 caracteres.
-3. Se llama a Groq (`openai/gpt-oss-120b` o `qwen/qwen3.8-27b`, `temperature=0.9`) con un SYSTEM prompt que exige:
+3. Se llama a Groq (`openai/gpt-oss-120b`, `temperature=0.9`) con un SYSTEM prompt que exige:
    - SMS < 160 caracteres
    - Enlace falso incluido
    - Español de España (tuteo o ustedeo)
@@ -57,7 +57,7 @@ text,label,source
 
 ## Volumen generado
 
-~77 SMS de 10 entidades (filtrado de refusals, URLs truncadas y mensajes fuera de rango 20–200 chars).
+247 SMS de 10 entidades. Filtros aplicados: refusals en inglés, acortadores reales (amzn.to, bit.ly…), dominios oficiales (.gov.es, .gob.es), URLs malformadas, SMS fuera del rango 20–160 caracteres.
 
 ## Revisión manual
 
