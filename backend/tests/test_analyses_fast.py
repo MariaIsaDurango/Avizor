@@ -255,3 +255,44 @@ def test_invalid_phone_is_422(api_client, paired_senior):
 def test_fast_path_is_under_800_ms(db_session, red_response):
     analysis = db_session.get(Analysis, red_response.json()["analysis_id"])
     assert analysis.latency_ms < 800
+
+
+# ---------- Enlaces dentro del texto / Links inside the text (#151) ----------
+
+LINK_IN_TEXT = "Hola, aquí tienes la información: https://bbva-seguro.top/login"
+
+
+def test_link_inside_text_is_checked(api_client, db_session, consented_senior):
+    """ES: Sin `urls`, el enlace del texto también pasa por las reglas de enlaces.
+    EN: Without `urls`, the link in the text also goes through the link rules.
+    """
+    body = sms_request(consented_senior.device.id, LINK_IN_TEXT)
+    response = api_client.post(ANALYSES, json=body, headers=consented_senior.headers)
+    assert response.status_code == 200
+    assert response.json()["risk_level"] == "red"
+    assert response.json()["block_template"] == "DANGEROUS_LINK"
+
+    temp = db_session.get(TempContent, response.json()["analysis_id"])
+    assert temp.urls == ["https://bbva-seguro.top/login"]
+    domain_hash = hash_indicator(IndicatorType.DOMAIN, "bbva-seguro.top")
+    assert db_session.scalar(
+        select(Indicator).where(Indicator.value_hash == domain_hash)
+    )
+
+
+def test_pasted_email_with_link_is_checked(api_client, consented_senior):
+    body = sms_request(consented_senior.device.id, LINK_IN_TEXT)
+    body.update(channel="manual", origin="manual")
+    body.pop("sender")
+    response = api_client.post(ANALYSES, json=body, headers=consented_senior.headers)
+    assert response.status_code == 200
+    assert response.json()["risk_level"] == "red"
+
+
+def test_official_link_in_text_stays_green(api_client, consented_senior):
+    body = sms_request(
+        consented_senior.device.id, "Tu pedido llega mañana: https://amazon.es/pedido"
+    )
+    body["sender"] = {"type": "phone", "value": "+34699000111"}
+    response = api_client.post(ANALYSES, json=body, headers=consented_senior.headers)
+    assert response.json()["risk_level"] == "green"

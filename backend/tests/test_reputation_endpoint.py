@@ -124,3 +124,25 @@ def test_lifespan_wires_real_local_feed(
         assert response.status_code == 200
         assert response.json()["risk_level"] == "red"
     assert app.state.reputation is None
+
+
+def test_link_only_in_text_reaches_reputation(
+    api_client, db_session, consented_senior, monkeypatch
+):
+    """ES: El enlace escrito en el texto también se consulta (#151).
+    EN: A link written in the text is also checked (#151).
+    """
+    provider = Provider("malicious", 100)
+    inject(monkeypatch, provider)
+    response = api_client.post(
+        ANALYSES,
+        json=sms_request(consented_senior.device.id, f"Mira esto: {URL}"),
+        headers=consented_senior.headers,
+    )
+    assert response.status_code == 200
+    assert response.json()["risk_level"] == "red"
+    assert provider.calls == 1
+    alert = db_session.scalar(
+        select(Alert).where(Alert.analysis_id == response.json()["analysis_id"])
+    )
+    assert alert.evidence[0]["value"] == "phishing.example"
