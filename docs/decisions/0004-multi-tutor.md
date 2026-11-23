@@ -75,5 +75,19 @@ Cómo funciona hoy en el backend:
   alertas ya llegan a todos.
 - Un Tutor con varios Sénior solo ve uno en `GET /senior`. Si se admite,
   habrá que cambiar ese endpoint a una lista (cambio MINOR del contrato).
-- Hay que revisar con José el consentimiento: si se añade un segundo Tutor,
-  el Sénior debe poder ver y aceptar quién recibe sus alertas.
+- Consentimiento (RGPD): las alertas dicen al Tutor qué tipo de amenaza
+  recibió el Sénior, por qué canal y cuándo. Son datos personales del Sénior.
+  Hoy el consentimiento (`POST /consents`, tabla `consents`) se guarda por
+  Sénior y canal, pero no dice para qué Tutor es. Si se añadiera un segundo
+  Tutor, quedaría cubierto por el consentimiento existente sin que el Sénior
+  lo sepa, y sería otra persona recibiendo sus datos. Por eso, antes de
+  activar varios Tutores, el consentimiento tiene que indicar a qué Tutor
+  autoriza (o pedirse de nuevo para cada uno, al Sénior o a su tutor legal), y
+  el Sénior debe poder ver quién recibe sus alertas y retirar a cualquiera.
+
+---
+
+## Pendiente de validar
+
+- **José (privacidad):** el consentimiento por cada Tutor descrito arriba,
+  antes de activar el flujo de varios Tutores.

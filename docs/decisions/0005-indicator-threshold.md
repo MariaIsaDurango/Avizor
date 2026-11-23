@@ -69,4 +69,12 @@ Cómo está aplicado:
   `senior_id` por indicador).
 - Cambiar el umbral solo requiere una migración que recree la vista y ajustar
   `REPORTS_RED` si se quiere mantener igual en la detección.
-- Pendiente de validar con José (privacidad) y María (datos de reputación).
+
+---
+
+## Pendiente de validar
+
+- **José (privacidad):** que 5 reportes basten para publicar un indicador sin
+  exponer a una persona concreta, mientras no se cuenten Sénior distintos.
+- **María (datos de reputación):** que el umbral de 5 encaje con los
+  indicadores que llegan de las fuentes oficiales y las APIs de reputación.
