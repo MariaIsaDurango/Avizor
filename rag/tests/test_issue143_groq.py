@@ -3,6 +3,7 @@
 from types import SimpleNamespace
 
 import pytest
+
 from rag.src.agent.hybrid import HybridSelector
 from rag.src.agent.llm import GroqSelector
 

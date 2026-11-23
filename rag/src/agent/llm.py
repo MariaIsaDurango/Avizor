@@ -62,7 +62,7 @@ def _completion(*, client, model: str, payload: dict, system: str, timeout: floa
         raise ValueError("Incomplete Groq response")
     content = result.choices[0].message.content
     if not isinstance(content, str):
-        raise ValueError("Invalid Groq content")
+        raise TypeError("Invalid Groq content")
     return json.loads(content)
 
 

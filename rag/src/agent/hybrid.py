@@ -1,11 +1,11 @@
 """Compact Groq relevance check; citations are attached by trusted Python code."""
 
+import os
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict
 
 from .llm import DEFAULT_MODEL, Selection, _completion
-import os
 
 SYSTEM = (
     "Evalúa si el aviso describe un patrón de fraude relacionado con el mensaje. "

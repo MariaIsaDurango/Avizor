@@ -21,14 +21,14 @@ class ManualAgent(Protocol):
 
 def build_runtime():
     """Imports and model loading are optional; only official local data is used."""
+    import os
+
     from rag.src.agent.graph import AgentEngine, build_graph
     from rag.src.agent.hybrid import HybridSelector
     from rag.src.agent.retriever import Retriever
     from rag.src.ingestion.pipeline import resolve_official_path
     from rag.src.vector_store.chroma_store import ChromaStore
     from rag.src.vector_store.embeddings import E5Embedder
-
-    import os
 
     if not os.environ.get("GROQ_API_KEY"):
         raise ValueError("GROQ_API_KEY is required for RAG")
