@@ -20,6 +20,7 @@ from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.core.errors import ApiError
 from app.core.privacy import InvalidPhoneError, hash_indicator, public_value
 from app.core.security import TokenPayload
@@ -40,15 +41,21 @@ from app.schemas.enums import (
 from app.schemas.verdict import Verdict
 from app.services.consent import has_active_consent
 from app.services.detection.decision import AMBER_THRESHOLD, decide
+from app.services.detection.ml_classifier import build_classifier
 from app.services.detection.reputation import ReputationRuntime
-from app.services.detection.text_rules import KeywordClassifier, ThreatClassifier
+from app.services.detection.text_rules import ThreatClassifier
 from app.services.detection.url_rules import domain_of
 from app.services.devices import touch_device
 from app.services.identity import senior_id_from_device
 
-# ES: Cambiar aquí por el modelo de Laura cuando esté listo.
-# EN: Swap for Laura's model here when it is ready.
-CLASSIFIER: ThreatClassifier = KeywordClassifier()
+# ES: Reglas por defecto; el modelo de IA con CLASSIFIER_PROVIDER=ml (#38).
+# EN: Rules by default; the AI model with CLASSIFIER_PROVIDER=ml (#38).
+CLASSIFIER: ThreatClassifier = build_classifier(
+    settings.CLASSIFIER_PROVIDER,
+    settings.ML_MODEL_DIR,
+    fraud_threshold=settings.ML_FRAUD_THRESHOLD,
+    threads=settings.ML_THREADS,
+)
 PHONE_MODEL_VERSION = "phone-reputation-0.1"
 
 RETENTION_DAYS = {RiskLevel.AMBER: 7, RiskLevel.RED: 30}

@@ -13,3 +13,7 @@ httpx>=0.27
 
 phonenumbers>=8.13      # ES: validar y enmascarar teléfonos / EN: validate and mask phones
 beautifulsoup4>=4.12
+
+numpy>=1.26
+onnxruntime>=1.18     # ES: modelo de IA sin torch (#38) / EN: AI model without torch (#38)
+tokenizers>=0.20

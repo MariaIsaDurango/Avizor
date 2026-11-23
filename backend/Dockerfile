@@ -17,6 +17,20 @@ WORKDIR /app/backend
 COPY backend/requirements.txt ./requirements.txt
 RUN pip install -r requirements.txt
 
+# ES: Modelo de IA (#38), opcional. No está en el repo (111 MB): se descarga de
+#     una release de GitHub y se comprueba su SHA-256. Sin estas variables la
+#     imagen se construye igual y usa el clasificador por reglas. Va antes
+#     del código para no descargarlo otra vez en cada cambio.
+# EN: AI model (#38), optional. Not in the repo (111 MB): downloaded from a
+#     GitHub release and checked against its SHA-256. Without these variables
+#     the image still builds and uses the rule-based classifier.
+#     Before the code, so a code change does not download it again.
+ARG ML_MODEL_URL=""
+ARG ML_MODEL_SHA256=""
+COPY backend/scripts/fetch_model.py ./scripts/fetch_model.py
+RUN python scripts/fetch_model.py /app/models/avizor-3c-onnx
+ENV ML_MODEL_DIR=/app/models/avizor-3c-onnx
+
 # ES: Solo lo necesario para ejecutar: sin tests, sin móvil, sin ml.
 # EN: Only what is needed at runtime: no tests, no mobile, no ml.
 COPY backend/alembic.ini ./alembic.ini
