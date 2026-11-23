@@ -225,6 +225,13 @@ def main() -> None:
 
     source_label = "smishing-no-link-groq" if args.style == "no-link" else "smishing-groq"
     mode = "a" if args.append else "w"
+
+    existing: set[str] = set()
+    if args.append and args.out.exists():
+        with args.out.open("r", encoding="utf-8") as f_read:
+            for row in csv.DictReader(f_read):
+                existing.add(row["text"])
+
     with args.out.open(mode, newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=["text", "label", "source"])
         if not args.append:
@@ -235,10 +242,14 @@ def main() -> None:
                 messages = generate_for_entity(
                     groq_client, args.model, corpus, entity, args.per_entity, args.style
                 )
-                for msg in messages:
+                new_msgs = [m for m in messages if m not in existing]
+                for msg in new_msgs:
                     writer.writerow({"text": msg, "label": "fraud", "source": source_label})
-                total += len(messages)
-                print(f"  {len(messages)} SMS generados.")
+                    existing.add(msg)
+                total += len(new_msgs)
+                skipped = len(messages) - len(new_msgs)
+                suffix = f" ({skipped} duplicados omitidos)" if skipped else ""
+                print(f"  {len(new_msgs)} SMS generados.{suffix}")
                 time.sleep(2)
             except Exception as e:
                 print(f"  Error con {entity}: {e}", file=sys.stderr)
