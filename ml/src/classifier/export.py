@@ -34,7 +34,13 @@ from tokenizers import Tokenizer
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
 from src.classifier.anonymize import NER_MODEL_VERSION
-from src.classifier.data import LABELS, load_spamspa, load_spaphish, prepare, split
+from src.classifier.data import (
+    LABELS,
+    build_splits,
+    load_spamspa,
+    load_spaphish,
+    load_synthetic,
+)
 from src.classifier.metrics import (
     FRAUD_RECALL_TARGET,
     class_metrics,
@@ -172,6 +178,8 @@ def main() -> None:
     parser.add_argument("--spaphish", type=Path, required=True)
     parser.add_argument("--spamspa", type=Path, required=True)
     parser.add_argument("--review", type=Path, default=None)
+    # ES: SMS sintéticos (#146), solo para entrenar. EN: Synthetic SMS, train only.
+    parser.add_argument("--synthetic", type=Path, action="append", default=[])
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--target-recall", type=float, default=FRAUD_RECALL_TARGET)
     args = parser.parse_args()
@@ -180,12 +188,13 @@ def main() -> None:
     training = json.loads((args.model_dir.parent / "metrics.json").read_text("utf-8"))
     max_length = training["max_length"]
 
-    parts = split(
-        prepare([load_spaphish(args.spaphish), load_spamspa(args.spamspa, args.review)])
+    parts = build_splits(
+        [load_spaphish(args.spaphish), load_spamspa(args.spamspa, args.review)],
+        [load_synthetic(path) for path in args.synthetic],
     )
     if {k: len(v) for k, v in parts.items()} != training["sizes"]:
         raise SystemExit(
-            "Los splits no coinciden con el entrenamiento: revisa los CSV."
+            "Los splits no coinciden con el entrenamiento: revisa los CSV y --synthetic."
         )
 
     expected = export_onnx(args.model_dir, args.out, max_length)

@@ -48,7 +48,7 @@ GROQ_API_KEY=sk-... python scripts/generate_smishing.py \
 
 ## Formato de salida
 
-CSV con columnas `text`, `label`, `source`, compatible con `load_spamspa()`:
+CSV con columnas `text`, `label`, `source`. Se carga con `load_synthetic()` (`ml/src/classifier/data.py`):
 
 ```
 text,label,source
@@ -72,10 +72,22 @@ Antes de incorporar al entrenamiento, revisar al menos el 20% de la muestra (≥
 
 ## Integración en el entrenamiento
 
-Una vez revisado manualmente, añadir `smishing_groq.csv` como fuente extra en `04_finetune_colab.ipynb`:
+Los SMS sintéticos se usan **solo para entrenar**. Validación y test siguen siendo
+los datos reales (SpaPhish y SpamSpa), con los mismos splits de siempre, para que
+los resultados se puedan comparar con el modelo anterior sin inflarlos.
 
-```python
-smishing = load_spamspa("data/raw/smishing_groq.csv")
-frames = [spaphish, spamspa, smishing]
-data = prepare(frames)
+```bash
+python -m src.classifier.train \
+    --spaphish "data/raw/spaphish/Spaphish dataset - DiB.csv" \
+    --spamspa data/raw/spamspa/train.csv \
+    --review data/raw/spamspa/spamspa_review.csv \
+    --synthetic data/raw/smishing_groq.csv \
+    --out models/avizor-3c
 ```
+
+El notebook `04_finetune_colab.ipynb` ya lo incluye. `export.py` necesita el mismo
+`--synthetic` para reconstruir los splits.
+
+Riesgo vigilado: todos los SMS sintéticos llevan enlace y los SMS reales de SpamSpa
+no. `metrics.json` incluye `link_probe`: cuántos SMS reales normales o de publicidad
+pasan a `fraud` solo por añadirles un enlace neutro.
