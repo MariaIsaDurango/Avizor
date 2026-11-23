@@ -4,8 +4,6 @@ Guardian account phone tests (need PostgreSQL).
 
 import uuid
 
-import pytest
-
 from app.models.user import Pairing
 
 ME = "/api/v1/auth/me"
