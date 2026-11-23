@@ -42,7 +42,6 @@ def build_runtime():
     return AgentEngine(build_graph(Retriever(store, embedder), HybridSelector()))
 
 
-
 def initialize_agent(enabled: bool) -> None:
     global _engine
     close_agent()
