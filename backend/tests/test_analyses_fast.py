@@ -133,6 +133,10 @@ def test_red_text_is_kept_30_days(db_session, red_response):
     assert timedelta(days=29) < remaining <= timedelta(days=30)
 
 
+# ES: Con CLASSIFIER_PROVIDER=ml este mensaje se clasifica como estafa (rojo),
+#     no como spam (ámbar). El CI usa las reglas, así que el test siempre pasa en CI.
+# EN: With CLASSIFIER_PROVIDER=ml this message is classified as scam (red),
+#     not spam (amber). CI uses rules, so the test always passes in CI.
 def test_amber_text_is_kept_7_days(api_client, db_session, consented_senior):
     body = sms_request(consented_senior.device.id, SPAM)
     response = api_client.post(ANALYSES, json=body, headers=consented_senior.headers)
