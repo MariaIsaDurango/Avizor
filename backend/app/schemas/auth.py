@@ -88,6 +88,7 @@ class UpdateMeRequest(ContractModel):
     @classmethod
     def check_phone(cls, value: str | None) -> str | None:
         from app.schemas.pairing import normalize_phone
+
         return normalize_phone(value)
 
 
