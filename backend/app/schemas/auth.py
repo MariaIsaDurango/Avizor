@@ -87,7 +87,7 @@ class UpdateMeRequest(ContractModel):
     @field_validator("phone")
     @classmethod
     def check_phone(cls, value: str | None) -> str | None:
-        from app.schemas.pairing import normalize_phone  # noqa: PLC0415
+        from app.schemas.pairing import normalize_phone
         return normalize_phone(value)
 
 
