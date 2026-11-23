@@ -132,7 +132,7 @@ def main() -> None:
     parser.add_argument("--chroma", type=Path, required=True, help="Ruta al chroma_db")
     parser.add_argument("--out", type=Path, required=True, help="CSV de salida")
     parser.add_argument("--per-entity", type=int, default=25, help="SMS por entidad")
-    parser.add_argument("--model", default="openai/gpt-oss-120b", help="Modelo Groq")
+    parser.add_argument("--model", default="qwen/qwen3.8-27b", help="Modelo Groq")
     parser.add_argument("--entities", default="", help="Entidades (separadas por coma); vacío = todas")
     parser.add_argument("--append", action="store_true", help="Añadir al CSV sin sobreescribir")
     args = parser.parse_args()
