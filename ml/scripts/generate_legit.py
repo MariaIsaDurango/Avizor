@@ -32,6 +32,11 @@ ENTITIES = [
     ("Iberdrola", "factura del mes disponible o aviso de lectura del contador"),
     ("Amazon España", "pedido enviado o entregado, enlace de seguimiento"),
     ("Centro de salud", "recordatorio de cita médica con enlace para confirmar o cancelar"),
+    ("Farmacia online Lozano", "pedido enviado con número de seguimiento y enlace de rastreo"),
+    ("Clínica dental San Pablo", "recordatorio de cita con enlace para confirmar o cancelar"),
+    ("Gestoría Marín & Asociados", "documentación lista para descargar en el área cliente"),
+    ("Academia online EduPro", "nuevo curso o material disponible en la plataforma"),
+    ("Tienda de ropa Modalia", "pedido enviado o listo para recoger, enlace de seguimiento"),
 ]
 
 SYSTEM = (
@@ -94,7 +99,7 @@ def generate_for_entity(client, model: str, entity: str, description: str, count
             {"role": "user", "content": user_msg},
         ],
         temperature=0.85,
-        max_tokens=2048,
+        max_tokens=800,
     )
     raw = response.choices[0].message.content.strip()
     lines = [line.strip() for line in raw.splitlines() if line.strip()]
@@ -107,6 +112,7 @@ def main() -> None:
     parser.add_argument("--per-entity", type=int, default=25, help="SMS por entidad")
     parser.add_argument("--model", default="qwen/qwen3.8-27b", help="Modelo Groq")
     parser.add_argument("--append", action="store_true", help="Añadir al CSV sin sobreescribir")
+    parser.add_argument("--entities", default="", help="Entidades (separadas por coma); vacío = todas")
     args = parser.parse_args()
 
     api_key = os.environ.get("GROQ_API_KEY", "").strip()
@@ -131,7 +137,9 @@ def main() -> None:
         writer = csv.DictWriter(f, fieldnames=["text", "label", "source"])
         if not args.append:
             writer.writeheader()
-        for entity, description in ENTITIES:
+        entity_filter = {e.strip() for e in args.entities.split(",") if e.strip()}
+        pairs = [(e, d) for e, d in ENTITIES if not entity_filter or e in entity_filter]
+        for entity, description in pairs:
             print(f"Generando {args.per_entity} SMS para: {entity}...")
             try:
                 messages = generate_for_entity(

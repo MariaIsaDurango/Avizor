@@ -4,6 +4,10 @@ ES: Lee el corpus de avisos oficiales (INCIBE, OSI, Banco de España) de ChromaD
     y lo usa como contexto para que Groq genere ejemplos de smishing realistas
     en español de España. La salida es un CSV con columnas text, label, source.
 
+    Dos estilos (--style):
+      link     (defecto) SMS con enlace falso suplantando entidad conocida.
+      no-link  SMS corto sin enlace: premio, herencia, verificación de cuenta.
+
 EN: Reads the official-notices corpus (INCIBE, OSI, Banco de España) from
     ChromaDB and uses it as context for Groq to generate realistic Spanish
     smishing examples. Output CSV has columns text, label, source.
@@ -12,7 +16,7 @@ Uso / Usage:
     GROQ_API_KEY=sk-... python scripts/generate_smishing.py \
         --chroma ../rag/chroma_db \
         --out data/raw/smishing_groq.csv \
-        [--per-entity 25] [--model openai/gpt-oss-120b]
+        [--per-entity 25] [--model qwen/qwen3.8-27b] [--style link|no-link]
 """
 
 import argparse
@@ -36,6 +40,19 @@ ENTITIES = [
     "Amazon España",
 ]
 
+ENTITIES_NO_LINK = [
+    "premio o sorteo ganador (lotería, supermercado, operadora)",
+    "herencia o transferencia bancaria inesperada de desconocido",
+    "verificación urgente de cuenta bancaria o tarjeta bloqueada",
+    "oferta de trabajo desde casa con sueldo muy alto",
+    "paquete retenido (instrucción de llamar o responder, sin enlace)",
+    "alerta de acceso no autorizado a cuenta o dispositivo",
+    "subsidio o ayuda gubernamental pendiente de cobro",
+    "reembolso fiscal o devolución de Hacienda pendiente",
+    "código de verificación enviado sin haberlo solicitado",
+    "mensaje de un familiar en apuros pidiendo dinero urgente",
+]
+
 SYSTEM = (
     "Eres un generador de datos de entrenamiento para un detector de fraude por SMS. "
     "Tu tarea es crear ejemplos realistas de smishing en español de España. "
@@ -50,6 +67,22 @@ SYSTEM = (
     "- Español natural de España (tuteo o ustedeo, vocabulario peninsular).\n"
     "- Sin saludos de email ('Estimado cliente', 'Buenos días', etc.).\n"
     "- Cada SMS debe tener un gancho distinto (multa, paquete, cuenta, verificación, premio…).\n"
+    "- No empieces ninguna línea con número seguido de punto o paréntesis.\n"
+    "- Devuelve SOLO los SMS, uno por línea, sin numeración, sin comillas, sin explicaciones."
+)
+
+SYSTEM_NO_LINK = (
+    "Eres un generador de datos de entrenamiento para un detector de fraude por SMS. "
+    "Tu tarea es crear ejemplos realistas de smishing SIN ENLACE en español de España. "
+    "Reglas estrictas:\n"
+    "- Menos de 160 caracteres por SMS.\n"
+    "- Tono urgente: premio, herencia, cuenta bloqueada, verificación, familiar en apuros.\n"
+    "- NO incluyas ningún enlace (ni http://, ni www., ni acortadores).\n"
+    "- Puedes incluir un número de teléfono inventado (ej: 900 123 456) o pedir que "
+    "respondan al SMS con una palabra clave (ej: 'Responde SI para reclamar').\n"
+    "- Español natural de España (tuteo o ustedeo, vocabulario peninsular).\n"
+    "- Sin saludos de email ('Estimado cliente', 'Buenos días', etc.).\n"
+    "- Cada SMS debe tener un gancho distinto.\n"
     "- No empieces ninguna línea con número seguido de punto o paréntesis.\n"
     "- Devuelve SOLO los SMS, uno por línea, sin numeración, sin comillas, sin explicaciones."
 )
@@ -90,13 +123,15 @@ def select_context(corpus: list[str], entity: str, max_chars: int = 3000) -> str
     return "\n\n".join(context)
 
 
-def _is_valid(line: str) -> bool:
+def _is_valid(line: str, require_url: bool = True) -> bool:
     if not (20 <= len(line) <= 160):
         return False
     lower = line.lower()
     if "i'm sorry" in lower or "i cannot" in lower or "i can't" in lower:
         return False
-    if not re.search(r"https?://", line, re.IGNORECASE):
+    if require_url and not re.search(r"https?://", line, re.IGNORECASE):
+        return False
+    if not require_url and re.search(r"https?://", line, re.IGNORECASE):
         return False
     if _REAL_SHORTENERS.search(line):
         return False
@@ -106,33 +141,42 @@ def _is_valid(line: str) -> bool:
 
 
 def generate_for_entity(
-    client, model: str, corpus: list[str], entity: str, count: int
+    client, model: str, corpus: list[str], entity: str, count: int, style: str
 ) -> list[str]:
-    context = select_context(corpus, entity)
-    user_msg = (
-        f"Patrones de fraude reales detectados en España:\n\n{context}\n\n"
-        f"Genera exactamente {count} SMS de smishing distintos que suplanten a: {entity}"
-    )
+    system_prompt = SYSTEM_NO_LINK if style == "no-link" else SYSTEM
+    require_url = style != "no-link"
+    if style == "no-link":
+        user_msg = (
+            f"Genera exactamente {count} SMS de smishing distintos sin enlace "
+            f"con el gancho: {entity}"
+        )
+    else:
+        context = select_context(corpus, entity)
+        user_msg = (
+            f"Patrones de fraude reales detectados en España:\n\n{context}\n\n"
+            f"Genera exactamente {count} SMS de smishing distintos que suplanten a: {entity}"
+        )
     response = client.chat.completions.create(
         model=model,
         messages=[
-            {"role": "system", "content": SYSTEM},
+            {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_msg},
         ],
         temperature=0.9,
-        max_tokens=2048,
+        max_tokens=800,
     )
     raw = response.choices[0].message.content.strip()
-    lines = [l.strip() for l in raw.splitlines() if l.strip()]
-    return [l for l in lines if _is_valid(l)]
+    lines = [line.strip() for line in raw.splitlines() if line.strip()]
+    return [line for line in lines if _is_valid(line, require_url=require_url)]
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Genera smishing con ChromaDB + Groq")
-    parser.add_argument("--chroma", type=Path, required=True, help="Ruta al chroma_db")
+    parser.add_argument("--chroma", type=Path, default=None, help="Ruta al chroma_db (requerido para --style link)")
     parser.add_argument("--out", type=Path, required=True, help="CSV de salida")
     parser.add_argument("--per-entity", type=int, default=25, help="SMS por entidad")
     parser.add_argument("--model", default="qwen/qwen3.8-27b", help="Modelo Groq")
+    parser.add_argument("--style", choices=["link", "no-link"], default="link", help="Estilo de smishing")
     parser.add_argument("--entities", default="", help="Entidades (separadas por coma); vacío = todas")
     parser.add_argument("--append", action="store_true", help="Añadir al CSV sin sobreescribir")
     args = parser.parse_args()
@@ -140,40 +184,48 @@ def main() -> None:
     api_key = os.environ.get("GROQ_API_KEY", "").strip()
     if not api_key:
         sys.exit("Falta GROQ_API_KEY en el entorno.")
-    if not args.chroma.exists():
-        sys.exit(f"ChromaDB no encontrado en {args.chroma}")
 
-    try:
-        from groq import Groq
-    except ImportError:
-        sys.exit("Instala groq: pip install groq>=0.9")
-
-    print(f"Cargando corpus de {args.chroma}...")
-    corpus = load_corpus(args.chroma)
-    print(f"  {len(corpus)} fragmentos cargados.")
+    corpus = []
+    if args.style == "link":
+        if not args.chroma:
+            sys.exit("--chroma es obligatorio para --style link.")
+        if not args.chroma.exists():
+            sys.exit(f"ChromaDB no encontrado en {args.chroma}")
+        try:
+            from groq import Groq
+        except ImportError:
+            sys.exit("Instala groq: pip install groq>=0.9")
+        print(f"Cargando corpus de {args.chroma}...")
+        corpus = load_corpus(args.chroma)
+        print(f"  {len(corpus)} fragmentos cargados.")
+    else:
+        try:
+            from groq import Groq
+        except ImportError:
+            sys.exit("Instala groq: pip install groq>=0.9")
 
     groq_client = Groq(api_key=api_key)
     args.out.parent.mkdir(parents=True, exist_ok=True)
     total = 0
 
-    entities = (
-        [e.strip() for e in args.entities.split(",") if e.strip()]
-        if args.entities
-        else ENTITIES
-    )
+    entity_list = ENTITIES_NO_LINK if args.style == "no-link" else ENTITIES
+    if args.entities:
+        entity_list = [e.strip() for e in args.entities.split(",") if e.strip()]
+
+    source_label = "smishing-no-link-groq" if args.style == "no-link" else "smishing-groq"
     mode = "a" if args.append else "w"
     with args.out.open(mode, newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=["text", "label", "source"])
         if not args.append:
             writer.writeheader()
-        for entity in entities:
+        for entity in entity_list:
             print(f"Generando {args.per_entity} SMS para: {entity}...")
             try:
                 messages = generate_for_entity(
-                    groq_client, args.model, corpus, entity, args.per_entity
+                    groq_client, args.model, corpus, entity, args.per_entity, args.style
                 )
                 for msg in messages:
-                    writer.writerow({"text": msg, "label": "fraud", "source": "smishing-groq"})
+                    writer.writerow({"text": msg, "label": "fraud", "source": source_label})
                 total += len(messages)
                 print(f"  {len(messages)} SMS generados.")
                 time.sleep(2)
