@@ -32,7 +32,7 @@ export async function submitAnalysis(
   deviceId: string,
   inputType: InputType,
   value: string,
-  options?: { channel?: 'manual' | 'screen'; origin?: 'manual' | 'automatic' },
+  options?: { channel?: 'manual' | 'screen' | 'sms'; origin?: 'manual' | 'automatic' },
 ): Promise<Verdict> {
   const body: Record<string, unknown> = {
     device_id: deviceId,
