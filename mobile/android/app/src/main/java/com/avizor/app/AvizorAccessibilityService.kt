@@ -3,6 +3,8 @@ package com.avizor.app
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.AccessibilityServiceInfo
 import android.content.Intent
+import android.os.Handler
+import android.os.Looper
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 
@@ -13,13 +15,24 @@ class AvizorAccessibilityService : AccessibilityService() {
         const val EXTRA_TEXT = "text"
         const val EXTRA_PACKAGE = "packageName"
         const val EXTRA_EVENT_TYPE = "eventType"
+
+        private const val GMAIL = "com.google.android.gm"
+        private const val OUTLOOK = "com.microsoft.office.outlook"
+        private const val MIN_EMAIL_LENGTH = 200
+        private const val DEBOUNCE_MS = 1500L
     }
+
+    private val analyzedHashes = mutableSetOf<Int>()
+    private var currentEmailPkg: String? = null
+    private val handler = Handler(Looper.getMainLooper())
+    private val extractRunnable = Runnable { tryExtractAndEmitEmail() }
 
     override fun onServiceConnected() {
         serviceInfo = serviceInfo.apply {
             eventTypes = AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED or
                 AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED or
-                AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED
+                AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED or
+                AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
             feedbackType = AccessibilityServiceInfo.FEEDBACK_GENERIC
             notificationTimeout = 100
             flags = AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS or
@@ -29,21 +42,67 @@ class AvizorAccessibilityService : AccessibilityService() {
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
         if (event.isPassword) return
-        if (event.packageName?.toString() == packageName) return
+        val pkg = event.packageName?.toString() ?: return
+        if (pkg == packageName) return
+
+        if (pkg == GMAIL || pkg == OUTLOOK) {
+            handleEmailApp(event, pkg)
+            return
+        }
 
         val text = extractText(event)
         if (text.isNullOrBlank()) return
+        emitTextEvent(text, pkg, AccessibilityEvent.eventTypeToString(event.eventType))
+    }
 
+    private fun handleEmailApp(event: AccessibilityEvent, pkg: String) {
+        when (event.eventType) {
+            AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED -> {
+                currentEmailPkg = pkg
+                handler.removeCallbacks(extractRunnable)
+                handler.postDelayed(extractRunnable, DEBOUNCE_MS)
+            }
+            AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED -> {
+                if (currentEmailPkg == pkg) {
+                    handler.removeCallbacks(extractRunnable)
+                    handler.postDelayed(extractRunnable, DEBOUNCE_MS)
+                }
+            }
+        }
+    }
+
+    private fun tryExtractAndEmitEmail() {
+        val pkg = currentEmailPkg ?: return
+        val root = rootInActiveWindow ?: return
+        try {
+            val body = extractNodeText(root).trim()
+            if (body.length < MIN_EMAIL_LENGTH) return
+            val hash = body.hashCode()
+            if (!analyzedHashes.add(hash)) return
+            emitTextEvent(body, pkg, "email_body")
+        } finally {
+            root.recycle()
+        }
+    }
+
+    private fun emitTextEvent(text: String, pkg: String, eventType: String) {
         val intent = Intent(ACTION_TEXT_EVENT).apply {
             putExtra(EXTRA_TEXT, text)
-            putExtra(EXTRA_PACKAGE, event.packageName?.toString() ?: "")
-            putExtra(EXTRA_EVENT_TYPE, AccessibilityEvent.eventTypeToString(event.eventType))
+            putExtra(EXTRA_PACKAGE, pkg)
+            putExtra(EXTRA_EVENT_TYPE, eventType)
             setPackage(packageName)
         }
         sendBroadcast(intent)
     }
 
-    override fun onInterrupt() {}
+    override fun onInterrupt() {
+        handler.removeCallbacks(extractRunnable)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        handler.removeCallbacks(extractRunnable)
+    }
 
     private fun extractText(event: AccessibilityEvent): String? {
         val direct = event.text

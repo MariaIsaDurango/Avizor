@@ -10,6 +10,7 @@ import { navigationRef } from './src/navigation/navigationRef';
 import { STORAGE_KEYS } from './src/constants/storage';
 import { getAlert } from './src/services/alerts';
 import { registerDevice } from './src/services/devices';
+import { submitAnalysis } from './src/services/analyses';
 import { AccessibilityProvider } from './src/contexts/AccessibilityContext';
 
 const { ShareModule } = NativeModules;
@@ -73,6 +74,37 @@ export default function App() {
         setHasDeviceId(false);
       });
 
+    // ES: Email detectado automáticamente por AccesibilityService en Gmail/Outlook.
+    const emailSub = DeviceEventEmitter.addListener(
+      'AvizorTextEvent',
+      async ({ text, eventType }: { text: string; eventType: string }) => {
+        if (eventType !== 'email_body') return;
+        try {
+          const [mode, deviceId] = await Promise.all([
+            SecureStore.getItemAsync(STORAGE_KEYS.USER_MODE),
+            SecureStore.getItemAsync(STORAGE_KEYS.DEVICE_ID),
+          ]);
+          if (mode !== 'senior' || !deviceId) return;
+
+          const verdict = await submitAnalysis(deviceId, 'text', text);
+
+          const notif =
+            verdict.risk_level === 'green'
+              ? { title: 'Email seguro', body: 'No detectamos señales de fraude en este email.' }
+              : verdict.risk_level === 'amber'
+                ? { title: 'Revisa este email', body: 'Tiene indicios sospechosos. Consulta con un familiar.' }
+                : { title: 'Email peligroso', body: 'Este email parece una estafa. No hagas clic en ningún enlace.' };
+
+          await Notifications.scheduleNotificationAsync({
+            content: { ...notif, data: { verdict: verdict.risk_level } },
+            trigger: null,
+          });
+        } catch {
+          // silent — no interrumpir al sénior si el análisis falla
+        }
+      },
+    );
+
     // ES: Texto compartido cuando la app estaba abierta (DeviceEventEmitter).
     const shareSub = DeviceEventEmitter.addListener('ShareIntentReceived', ({ text }: { text: string }) => {
       if (navigationRef.isReady()) {
@@ -91,6 +123,7 @@ export default function App() {
       handleNotificationResponse,
     );
     return () => {
+      emailSub.remove();
       shareSub.remove();
       subscription.remove();
     };
