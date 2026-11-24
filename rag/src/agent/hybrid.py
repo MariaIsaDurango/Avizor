@@ -1,12 +1,11 @@
-"""Compact local relevance check; citations are attached by trusted Python code."""
+"""Compact Groq relevance check; citations are attached by trusted Python code."""
 
-import json
+import os
 from typing import Literal
 
-import httpx
 from pydantic import BaseModel, ConfigDict
 
-from .llm import Selection
+from .llm import DEFAULT_MODEL, Selection, _completion
 
 SYSTEM = (
     "Evalúa si el aviso describe un patrón de fraude relacionado con el mensaje. "
@@ -25,8 +24,8 @@ class Assessment(BaseModel):
 class HybridSelector:
     """Assess only the best-ranked candidate; never let the model author citations."""
 
-    def __init__(self, model: str = "gemma3:1b", *, client=None):
-        self.model = model
+    def __init__(self, model: str | None = None, *, client=None):
+        self.model = model or os.environ.get("GROQ_MODEL", DEFAULT_MODEL)
         self.client = client
 
     def select(self, payload: dict, *, timeout: float) -> Selection:
@@ -45,30 +44,14 @@ class HybridSelector:
                 "excerpt": candidate["excerpt"][:240],
             },
         }
-        schema = Assessment.model_json_schema()
-        schema["properties"]["block_template"]["enum"] = payload["allowed_templates"]
-        body = {
-            "model": self.model,
-            "messages": [
-                {"role": "system", "content": SYSTEM},
-                {"role": "user", "content": json.dumps(compact, ensure_ascii=False)},
-            ],
-            "format": schema,
-            "stream": False,
-            "keep_alive": "15m",
-            "options": {"temperature": 0, "num_ctx": 4096, "num_predict": 48},
-        }
-        url = "http://127.0.0.1:11434/api/chat"
-        if self.client is not None:
-            response = self.client.post(url, json=body, timeout=timeout)
-        else:
-            with httpx.Client(trust_env=False, follow_redirects=False) as client:
-                response = client.post(url, json=body, timeout=timeout)
-        response.raise_for_status()
-        result = response.json()
-        if result.get("done") is not True or result.get("done_reason") != "stop":
-            raise ValueError("Incomplete model response")
-        assessment = Assessment.model_validate_json(result["message"]["content"])
+        assessment = Assessment.model_validate(_completion(
+            client=self.client,
+            model=self.model,
+            payload=compact,
+            system=SYSTEM,
+            timeout=timeout,
+            max_tokens=256,
+        ))
         if assessment.relevance != "yes":
             raise ValueError("Model abstained")
         if assessment.block_template not in payload["allowed_templates"]:

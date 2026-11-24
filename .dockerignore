@@ -20,3 +20,6 @@ rag/tests
 rag/data/raw
 rag/data/processed
 rag/data/samples
+
+# Base ChromaDB local: se monta como volumen en Railway
+rag/chroma_db

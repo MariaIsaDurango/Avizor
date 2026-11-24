@@ -5,6 +5,12 @@ from pathlib import Path
 
 MODEL_ID = "intfloat/multilingual-e5-base"
 DIMENSIONS = 768
+# ES: Archivos que usa sentence-transformers. La imagen Docker solo descarga estos
+#     (sin copias ONNX/OpenVINO ni pytorch_model.bin) y huggingface_hub exige el
+#     mismo filtro al cargar sin conexión. Mantener igual en backend/Dockerfile.
+# EN: Files sentence-transformers needs. The Docker image only downloads these and
+#     huggingface_hub requires the same filter offline. Keep in sync with Dockerfile.
+E5_FILES = ["*.json", "model.safetensors", "sentencepiece.bpe.model"]
 
 
 class E5Embedder:
@@ -13,7 +19,9 @@ class E5Embedder:
         from sentence_transformers import SentenceTransformer
         from transformers import AutoTokenizer
 
-        path = snapshot_download(MODEL_ID, revision=revision, local_files_only=True)
+        path = snapshot_download(
+            MODEL_ID, revision=revision, local_files_only=True, allow_patterns=E5_FILES
+        )
         self.revision = Path(path).name
         self.tokenizer = AutoTokenizer.from_pretrained(
             path, use_fast=True, local_files_only=True
