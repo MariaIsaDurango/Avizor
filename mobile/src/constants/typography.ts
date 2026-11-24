@@ -1,6 +1,7 @@
 import { TextStyle } from 'react-native';
 
 export const fontSize = {
+  caption: 14,
   body: 18,
   button: 24,
   heading: 28,
