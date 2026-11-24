@@ -9,7 +9,7 @@ from unittest.mock import Mock
 import pytest
 
 from rag.src.ingestion import pipeline
-from rag.src.vector_store.embeddings import DIMENSIONS, MODEL_ID, E5Embedder
+from rag.src.vector_store.embeddings import DIMENSIONS, E5_FILES, MODEL_ID, E5Embedder
 
 
 @pytest.fixture
@@ -49,7 +49,7 @@ def test_e5_initializes_local_cpu(e5_dependencies):
     deps = e5_dependencies
     embedder = E5Embedder("test-ref")
     deps.hub.snapshot_download.assert_called_once_with(
-        MODEL_ID, revision="test-ref", local_files_only=True
+        MODEL_ID, revision="test-ref", local_files_only=True, allow_patterns=E5_FILES
     )
     deps.transformers.AutoTokenizer.from_pretrained.assert_called_once_with(
         str(deps.snapshot), use_fast=True, local_files_only=True

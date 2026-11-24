@@ -49,8 +49,7 @@ sin `mobile/` y sin `ml/`.
    funciona allí. Se usa la API HTTPS de Brevo. En local se puede seguir usando
    `smtp` con Gmail o `log`.
 
-   No hace falta `CHROMADB_*`: el backend todavía no usa ChromaDB (el RAG se
-   integrará más adelante).
+   El RAG (#143) está apagado por defecto: ver la sección **RAG (#143)**.
 
 4. **Settings → Networking → Generate Domain**. Copia la URL y ponla en
    `FRONTEND_URL`.
@@ -105,3 +104,28 @@ docker run --rm -p 8000:8000 --env-file .env avizor-backend
 
 Con la base de datos de `docker-compose.yml`, en el `.env` usa
 `host.docker.internal` en lugar de `localhost` en `DATABASE_URL`.
+
+## RAG (#143)
+
+El RAG del análisis manual usa Groq y la base ChromaDB de avisos oficiales.
+Está **apagado por defecto** porque torch y el modelo E5 añaden varios GB a la
+imagen. Sin él, la vía rápida (clasificador + reputación) funciona igual.
+
+Para activarlo, cuando el volumen de ChromaDB esté listo:
+
+| Variable | Valor |
+|---|---|
+| `INSTALL_RAG` | `true` (se usa al construir: instala torch CPU, dependencias del RAG y E5) |
+| `GROQ_API_KEY` | clave de Groq (nunca en el repo) |
+| `GROQ_MODEL` | `openai/gpt-oss-20b` |
+| `CHROMA_PATH` | carpeta del volumen montado con `chroma.sqlite3` |
+| `AVIZOR_RAG_ENABLED` | `true`, solo después de comprobar lo anterior |
+
+E5 se descarga en la revisión fija `d128750597153bb5987e10b1c3493a34e5a4502a`,
+la misma con la que se creó la base ChromaDB. Para volver atrás basta con
+`AVIZOR_RAG_ENABLED=false`; con `INSTALL_RAG=false` la imagen vuelve a su
+tamaño normal en el siguiente despliegue.
+
+Privacidad: el texto anonimizado del análisis manual se envía a Groq. La
+anonimización actual no quita nombres de personas ni enlaces. Decisión pendiente
+de documentar por José (privacidad).

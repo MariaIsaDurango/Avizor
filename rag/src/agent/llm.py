@@ -1,7 +1,13 @@
 """Groq-hosted structured selection; official citations are constructed locally.
 
-The user message is already anonymized by the caller. The LLM never sees raw URLs,
-real contact names, or technical evidence. On errors the agent returns to fast path.
+ES: El texto llega anonimizado, pero la anonimización actual (regex-v0) no quita
+    nombres de personas ni enlaces: pueden llegar al proveedor externo (Groq).
+    Nunca se envían evidencias técnicas (reputación, hallazgos de enlaces).
+    Ante cualquier error el agente vuelve a la vía rápida.
+EN: The text arrives anonymized, but the current anonymization (regex-v0) does not
+    remove person names or links: they can reach the external provider (Groq).
+    Technical evidence (reputation, link findings) is never sent.
+    On any error the agent falls back to the fast path.
 """
 
 import json

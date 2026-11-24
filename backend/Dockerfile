@@ -16,13 +16,37 @@ ENV PYTHONPATH=/app:/app/backend
 # ES: Primero las dependencias (capa en caché si no cambian).
 # EN: Dependencies first (cached layer while they do not change).
 COPY backend/requirements.txt ./requirements.txt
+RUN pip install -r requirements.txt
 
-COPY rag/requirements.txt /app/rag/requirements.txt
-RUN pip install -r requirements.txt -r /app/rag/requirements.txt
-
-# Modelo E5 precargado para el RAG sin descarga al arrancar.
+# ES: RAG (#143), opcional. Desactivado por defecto: torch y el modelo E5 suman
+#     varios GB y solo hacen falta con AVIZOR_RAG_ENABLED=true y el volumen de
+#     ChromaDB listo. Activar con INSTALL_RAG=true (variable de Railway o
+#     --build-arg). torch se instala en versión CPU (sin CUDA). E5 se descarga
+#     en la revisión fija que usa la base ChromaDB y se registra como "main"
+#     para que E5Embedder() la cargue sin conexión. Solo se descargan los archivos
+#     que usa sentence-transformers (sin copias ONNX/OpenVINO ni pytorch_model.bin);
+#     la lista debe coincidir con E5_FILES de rag/src/vector_store/embeddings.py.
+#     pytest no entra en la imagen.
+# EN: RAG (#143), optional and off by default: torch and E5 add several GB and
+#     are only needed with AVIZOR_RAG_ENABLED=true and the ChromaDB volume ready.
+#     Enable with INSTALL_RAG=true. CPU-only torch. E5 is pinned to the revision
+#     used by the ChromaDB store and registered as "main" for offline loading.
+#     Only the files sentence-transformers needs (no ONNX/OpenVINO/.bin copies).
+ARG INSTALL_RAG=false
+ARG E5_REVISION=d128750597153bb5987e10b1c3493a34e5a4502a
 ENV HF_HOME=/app/huggingface
-RUN python -c "from pathlib import Path; from huggingface_hub import snapshot_download; p=Path(snapshot_download('intfloat/multilingual-e5-base', revision='main')); assert p.name == 'd128750597153bb5987e10b1c3493a34e5a4502a', f'Revision E5 incompatible: {p.name}'; print('E5 listo:', p.name)"
+COPY rag/requirements.txt /app/rag/requirements.txt
+RUN if [ "$INSTALL_RAG" = "true" ]; then \
+        pip install torch --index-url https://download.pytorch.org/whl/cpu \
+        && grep -v '^pytest' /app/rag/requirements.txt > /tmp/rag-requirements.txt \
+        && pip install -r /tmp/rag-requirements.txt \
+        && python -c "from huggingface_hub import snapshot_download; snapshot_download('intfloat/multilingual-e5-base', revision='$E5_REVISION', allow_patterns=['*.json', 'model.safetensors', 'sentencepiece.bpe.model'])" \
+        && mkdir -p "$HF_HOME/hub/models--intfloat--multilingual-e5-base/refs" \
+        && printf '%s' "$E5_REVISION" > "$HF_HOME/hub/models--intfloat--multilingual-e5-base/refs/main" \
+        && python -c "from pathlib import Path; from huggingface_hub import snapshot_download; p = Path(snapshot_download('intfloat/multilingual-e5-base', revision='main', local_files_only=True, allow_patterns=['*.json', 'model.safetensors', 'sentencepiece.bpe.model'])); assert p.name == '$E5_REVISION', p.name; print('E5 ready:', p.name)"; \
+    else \
+        echo "RAG not installed (INSTALL_RAG=$INSTALL_RAG)"; \
+    fi
 
 # ES: Modelo de IA (#38), opcional. No está en el repo (111 MB): se descarga de
 #     una release de GitHub y se comprueba su SHA-256. Sin estas variables la
@@ -47,13 +71,21 @@ COPY backend/docker-entrypoint.sh ./docker-entrypoint.sh
 COPY rag/src /app/rag/src
 COPY rag/data/reputation /app/rag/data/reputation
 
+# ES: Con RAG, comprueba que E5 carga sin conexión con los archivos descargados.
+# EN: With RAG, check E5 loads offline with the downloaded files.
+RUN if [ "$INSTALL_RAG" = "true" ]; then \
+        python -c "from rag.src.vector_store.embeddings import E5Embedder; e = E5Embedder(); print('E5 loads:', e.revision, len(e.encode(['prueba'])[0]))"; \
+    fi
+
 # ES: Sin root dentro del contenedor. EN: No root inside the container.
 # ES: sed quita CRLF por si el script se copió desde Windows.
 # EN: sed strips CRLF in case the script was copied from Windows.
+# ES: E5 (/app/huggingface) solo se lee: cambiarle el dueño duplicaría sus GB en
+#     una capa nueva. EN: E5 is read-only; chown would duplicate its GB in a new layer.
 RUN useradd --create-home --uid 10001 avizor \
     && sed -i 's/\r$//' docker-entrypoint.sh \
     && chmod +x docker-entrypoint.sh \
-    && chown -R avizor:avizor /app
+    && find /app -path /app/huggingface -prune -o -exec chown avizor:avizor {} +
 USER avizor
 
 # ES: Railway define PORT; en local se usa 8000.
