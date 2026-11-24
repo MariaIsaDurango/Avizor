@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
     fontSize: fontSize.caption,
     fontWeight: fontWeight.bold,
     color: colors.primary,
-    opacity: 0.5,
+    opacity: 0.7,
     textTransform: 'uppercase',
     letterSpacing: 0.8,
     marginBottom: 8,
