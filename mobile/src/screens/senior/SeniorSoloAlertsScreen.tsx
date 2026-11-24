@@ -8,7 +8,7 @@ import Screen from '../../components/Screen';
 import AlertCard from '../../components/AlertCard';
 import { colors } from '../../constants/colors';
 import { fontSize, fontWeight } from '../../constants/typography';
-import { getAlerts, Alert, ThreatType } from '../../services/alerts';
+import { getMyAnalyses, MyAnalysis, ThreatType } from '../../services/myAnalyses';
 import { RootStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SeniorSoloAlerts'>;
@@ -21,7 +21,7 @@ const THREAT_ICONS: Record<ThreatType, keyof typeof MaterialIcons.glyphMap> = {
   identity_theft: 'person',
   bank_fraud:     'attach-money',
   other:          'warning',
-  none:           'info',
+  none:           'check-circle',
 };
 
 const THREAT_LABELS: Record<string, string> = {
@@ -32,9 +32,24 @@ const THREAT_LABELS: Record<string, string> = {
   identity_theft: 'Id. theft',
   bank_fraud:     'Fraude bancario',
   other:          'Otro',
+  none:           'Sin amenaza',
+};
+
+const CHANNEL_LABELS: Record<string, string> = {
+  sms:          'SMS',
+  notification: 'Notificación',
+  screen:       'Pantalla',
+  call:         'Llamada',
+  manual:       'Manual',
 };
 
 const THREAT_COLORS = ['#164E55','#D93838','#D97706','#0F2C59','#2E8B57','#F4B19B','#1d6b74'];
+
+const RISK_MAP: Record<string, 'green' | 'amber' | 'red'> = {
+  green:  'green',
+  yellow: 'amber',
+  red:    'red',
+};
 
 function buildPieData(byThreatType: Record<string, number>) {
   return Object.entries(byThreatType)
@@ -54,21 +69,25 @@ function formatDate(iso: string): string {
   });
 }
 
-export default function SeniorSoloAlertsScreen({ navigation }: Props) {
-  const { width }                             = useWindowDimensions();
-  const [alerts, setAlerts]       = useState<Alert[]>([]);
-  const [nextCursor, setNextCursor] = useState<string | null>(null);
-  const [loading, setLoading]     = useState(false);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [error, setError]         = useState<string | null>(null);
+const PAGE_SIZE = 20;
 
-  const fetchAlerts = useCallback(async () => {
+export default function SeniorSoloAlertsScreen({ navigation }: Props) {
+  const { width }                     = useWindowDimensions();
+  const [analyses, setAnalyses]       = useState<MyAnalysis[]>([]);
+  const [total, setTotal]             = useState(0);
+  const [offset, setOffset]           = useState(0);
+  const [loading, setLoading]         = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [error, setError]             = useState<string | null>(null);
+
+  const fetchAnalyses = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const page = await getAlerts();
-      setAlerts(page.items);
-      setNextCursor(page.next_cursor);
+      const page = await getMyAnalyses(0, PAGE_SIZE);
+      setAnalyses(page.items);
+      setTotal(page.total);
+      setOffset(page.items.length);
     } catch {
       setError('No se pudieron cargar las alertas.');
     } finally {
@@ -76,21 +95,21 @@ export default function SeniorSoloAlertsScreen({ navigation }: Props) {
     }
   }, []);
 
-  useFocusEffect(useCallback(() => { fetchAlerts(); }, [fetchAlerts]));
+  useFocusEffect(useCallback(() => { fetchAnalyses(); }, [fetchAnalyses]));
 
   async function handleLoadMore() {
-    if (!nextCursor || loadingMore) return;
+    if (analyses.length >= total || loadingMore) return;
     setLoadingMore(true);
     try {
-      const page = await getAlerts(nextCursor);
-      setAlerts(prev => [...prev, ...page.items]);
-      setNextCursor(page.next_cursor);
+      const page = await getMyAnalyses(offset, PAGE_SIZE);
+      setAnalyses(prev => [...prev, ...page.items]);
+      setOffset(prev => prev + page.items.length);
     } catch {}
     finally { setLoadingMore(false); }
   }
 
   const byThreatType: Record<string, number> = {};
-  for (const a of alerts) {
+  for (const a of analyses) {
     if (a.threat_type && a.threat_type !== 'none') {
       byThreatType[a.threat_type] = (byThreatType[a.threat_type] || 0) + 1;
     }
@@ -114,12 +133,25 @@ export default function SeniorSoloAlertsScreen({ navigation }: Props) {
       </View>
 
       {loading && <ActivityIndicator size="large" color={colors.primary} style={styles.loader} />}
-      {error !== null && <Text style={styles.error}>{error}</Text>}
 
-      {!loading && (
+      {!loading && error && (
+        <View style={styles.errorState}>
+          <Text style={styles.error}>{error}</Text>
+          <Pressable
+            onPress={fetchAnalyses}
+            style={styles.retryBtn}
+            accessibilityRole="button"
+            accessibilityLabel="Reintentar"
+          >
+            <Text style={styles.retryText}>Reintentar</Text>
+          </Pressable>
+        </View>
+      )}
+
+      {!loading && !error && (
         <FlatList
-          data={alerts}
-          keyExtractor={item => item.id}
+          data={analyses}
+          keyExtractor={item => item.analysis_id}
           contentContainerStyle={styles.list}
           ListHeaderComponent={
             <View>
@@ -129,7 +161,6 @@ export default function SeniorSoloAlertsScreen({ navigation }: Props) {
                   <Text style={styles.statsValue}>{attacksTotal}</Text>
                 </View>
               )}
-
               {pieData.length > 0 && (
                 <View style={styles.chartCard}>
                   <Text style={styles.statsLabel}>Por tipo de amenaza</Text>
@@ -153,35 +184,23 @@ export default function SeniorSoloAlertsScreen({ navigation }: Props) {
                   </View>
                 </View>
               )}
-
-              {alerts.length > 0 && (
+              {analyses.length > 0 && (
                 <View style={styles.sectionHeader}>
-                  <Text style={styles.sectionTitle}>Alertas recientes</Text>
+                  <Text style={styles.sectionTitle}>Historial</Text>
                   <View style={styles.badge}>
-                    <Text style={styles.badgeText}>{alerts.length}</Text>
+                    <Text style={styles.badgeText}>{total}</Text>
                   </View>
                 </View>
               )}
             </View>
           }
           renderItem={({ item }) => (
-            <Pressable
-              onPress={() => navigation.navigate('AlertDetail', { alert: item })}
-              accessibilityRole="button"
-              accessibilityLabel={`Alerta: ${item.summary}`}
-            >
-              {item.status === 'new' && (
-                <View style={styles.newBadge}>
-                  <Text style={styles.newLabel}>NUEVA</Text>
-                </View>
-              )}
-              <AlertCard
-                icon={THREAT_ICONS[item.threat_type]}
-                title={item.summary}
-                description={formatDate(item.created_at)}
-                riskLevel="red"
-              />
-            </Pressable>
+            <AlertCard
+              icon={THREAT_ICONS[item.threat_type]}
+              title={THREAT_LABELS[item.threat_type] ?? item.threat_type}
+              description={`${CHANNEL_LABELS[item.channel] ?? item.channel} · ${formatDate(item.created_at)}`}
+              riskLevel={RISK_MAP[item.risk_level] ?? 'green'}
+            />
           )}
           ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
           ListEmptyComponent={
@@ -191,7 +210,7 @@ export default function SeniorSoloAlertsScreen({ navigation }: Props) {
             </View>
           }
           ListFooterComponent={
-            nextCursor ? (
+            analyses.length < total ? (
               <Pressable
                 onPress={handleLoadMore}
                 disabled={loadingMore}
@@ -285,27 +304,30 @@ const styles = StyleSheet.create({
     opacity: 0.5,
     textAlign: 'center',
   },
-  newBadge: {
-    alignSelf: 'flex-end',
-    backgroundColor: colors.alert,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 4,
-    marginBottom: 4,
+  errorState: { alignItems: 'center', marginTop: 48, gap: 16 },
+  error: {
+    fontSize: fontSize.body,
+    color: colors.alert,
+    textAlign: 'center',
   },
-  newLabel: { color: colors.white, fontSize: 12, fontWeight: fontWeight.bold },
+  retryBtn: {
+    paddingVertical: 10,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.primary,
+  },
+  retryText: {
+    fontSize: fontSize.body,
+    color: colors.primary,
+    fontWeight: fontWeight.bold,
+  },
   loadMoreBtn: { marginTop: 16, paddingVertical: 12, alignItems: 'center' },
   loadMoreText: {
     fontSize: fontSize.body,
     color: colors.primary,
     fontWeight: fontWeight.bold,
     textDecorationLine: 'underline',
-  },
-  error: {
-    fontSize: fontSize.body,
-    color: colors.alert,
-    textAlign: 'center',
-    marginTop: 24,
   },
   legend: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
