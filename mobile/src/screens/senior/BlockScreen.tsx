@@ -35,7 +35,7 @@ const CONFIGS: Record<BlockTemplate, Config> = {
   DANGEROUS_LINK: {
     message: 'Este enlace es peligroso.\nNo lo abras.',
     empathy: 'Tranquilo/a, lo hemos bloqueado por ti.\nNo pasa nada.',
-    tip: '1. No introduzcas ningún dato en la página que se abrió.\n2. Cierra el navegador.\n3. Cuéntaselo a tu familiar, no ha pasado nada grave.',
+    tip: '1. No abras el enlace.\n2. Si ya lo abriste, no escribas ningún dato.\n3. Cuéntaselo a tu familiar.',
     icon: 'dangerous',
     background: colors.alert,
     riskLabel: 'PELIGRO',

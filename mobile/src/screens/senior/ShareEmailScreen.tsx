@@ -15,7 +15,7 @@ import { RootStackParamList } from '../../navigation/types';
 type Props = NativeStackScreenProps<RootStackParamList, 'SeniorShareEmail'>;
 
 const RISK_LABEL: Record<string, string> = {
-  green: 'Parece seguro',
+  green: 'Sin señales de riesgo',
   amber: 'Sospechoso',
   red: 'Peligroso — no hagas clic',
 };
