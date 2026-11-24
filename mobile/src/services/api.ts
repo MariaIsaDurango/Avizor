@@ -35,25 +35,29 @@ export async function apiFetch(path: string, options: RequestInit = {}): Promise
   if (response.status === 401 && !path.startsWith('/api/v1/auth/') && !path.startsWith('/api/v1/pairings/redeem')) {
     if (redirectingOn401) return response;
     redirectingOn401 = true;
-    await clearToken();
-    if (navigationRef.isReady()) {
-      const mode = await SecureStore.getItemAsync(STORAGE_KEYS.USER_MODE);
-      if (mode === 'senior') {
-        await SecureStore.deleteItemAsync(STORAGE_KEYS.DEVICE_ID);
-        Alert.alert(
-          'Sesión cerrada',
-          'Tu sesión se ha cerrado. Vuelve a vincularte con tu tutor.',
-          [{ text: 'Entendido', onPress: () => {
-            redirectingOn401 = false;
-            navigationRef.reset({ index: 0, routes: [{ name: 'SeniorPairing' }] });
-          }}],
-          { cancelable: false },
-        );
+    try {
+      await clearToken();
+      if (navigationRef.isReady()) {
+        const mode = await SecureStore.getItemAsync(STORAGE_KEYS.USER_MODE);
+        if (mode === 'senior') {
+          await SecureStore.deleteItemAsync(STORAGE_KEYS.DEVICE_ID);
+          Alert.alert(
+            'Sesión cerrada',
+            'Tu sesión se ha cerrado. Vuelve a vincularte con tu tutor.',
+            [{ text: 'Entendido', onPress: () => {
+              redirectingOn401 = false;
+              navigationRef.reset({ index: 0, routes: [{ name: 'SeniorPairing' }] });
+            }}],
+            { cancelable: false },
+          );
+        } else {
+          redirectingOn401 = false;
+          navigationRef.reset({ index: 0, routes: [{ name: 'TutorLogin' }] });
+        }
       } else {
         redirectingOn401 = false;
-        navigationRef.reset({ index: 0, routes: [{ name: 'TutorLogin' }] });
       }
-    } else {
+    } catch {
       redirectingOn401 = false;
     }
   }
