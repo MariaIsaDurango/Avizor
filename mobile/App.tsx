@@ -23,7 +23,7 @@ const TEMPLATE_NOTIFICATION_BODY: Record<string, string> = {
   UNSURE_CALL_FAMILY:'Consulta con un familiar antes de responder.',
 };
 
-type SavedMode = 'senior' | 'tutor' | null;
+type SavedMode = 'senior' | 'tutor' | 'senior_solo' | null;
 
 Notifications.setNotificationHandler({
   handleNotification: async () => {
@@ -62,15 +62,18 @@ async function handleNotificationResponse(
 export default function App() {
   const [initialMode, setInitialMode] = useState<SavedMode | undefined>(undefined);
   const [hasDeviceId, setHasDeviceId] = useState<boolean | undefined>(undefined);
+  const [hasConsent, setHasConsent]   = useState<boolean | undefined>(undefined);
 
   useEffect(() => {
     Promise.all([
       SecureStore.getItemAsync(STORAGE_KEYS.USER_MODE),
       SecureStore.getItemAsync(STORAGE_KEYS.DEVICE_ID),
+      SecureStore.getItemAsync(STORAGE_KEYS.CONSENT_GIVEN),
     ])
-      .then(([mode, deviceId]) => {
+      .then(([mode, deviceId, consentGiven]) => {
         setInitialMode((mode as SavedMode) ?? null);
         setHasDeviceId(deviceId !== null);
+        setHasConsent(consentGiven === 'true');
         if (mode === 'tutor') {
           registerDevice().catch((e) => {
             if (__DEV__) console.warn('[App] registerDevice failed:', e);
@@ -80,6 +83,7 @@ export default function App() {
       .catch(() => {
         setInitialMode(null);
         setHasDeviceId(false);
+        setHasConsent(false);
       });
 
     // ES: Email detectado automáticamente por AccesibilityService en Gmail/Outlook.
@@ -92,7 +96,7 @@ export default function App() {
             SecureStore.getItemAsync(STORAGE_KEYS.USER_MODE),
             SecureStore.getItemAsync(STORAGE_KEYS.DEVICE_ID),
           ]);
-          if (mode !== 'senior' || !deviceId) return;
+          if ((mode !== 'senior' && mode !== 'senior_solo') || !deviceId) return;
 
           const verdict = await submitAnalysis(deviceId, 'text', text, {
             channel: 'screen',
@@ -131,7 +135,7 @@ export default function App() {
             SecureStore.getItemAsync(STORAGE_KEYS.USER_MODE),
             SecureStore.getItemAsync(STORAGE_KEYS.DEVICE_ID),
           ]);
-          if (mode !== 'senior' || !deviceId) return;
+          if ((mode !== 'senior' && mode !== 'senior_solo') || !deviceId) return;
 
           const verdict = await submitAnalysis(deviceId, 'text', text, {
             channel: 'sms',
@@ -178,7 +182,7 @@ export default function App() {
     };
   }, []);
 
-  if (initialMode === undefined || hasDeviceId === undefined) return null;
+  if (initialMode === undefined || hasDeviceId === undefined || hasConsent === undefined) return null;
 
   return (
     <AccessibilityProvider>
@@ -197,7 +201,7 @@ export default function App() {
         }}
       >
         <StatusBar style="auto" />
-        <RootNavigator initialMode={initialMode} hasDeviceId={hasDeviceId} />
+        <RootNavigator initialMode={initialMode} hasDeviceId={hasDeviceId} hasConsent={hasConsent} />
       </NavigationContainer>
     </AccessibilityProvider>
   );

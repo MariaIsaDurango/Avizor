@@ -1,8 +1,9 @@
 import { useState, useCallback } from 'react';
-import { View, Text, Image, FlatList, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, Image, FlatList, Pressable, StyleSheet, ActivityIndicator, useWindowDimensions } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { PieChart } from 'react-native-chart-kit';
 import { RootStackParamList } from '../../navigation/types';
 import Screen from '../../components/Screen';
 import AlertCard from '../../components/AlertCard';
@@ -10,7 +11,6 @@ import { colors } from '../../constants/colors';
 import { fontSize, fontWeight } from '../../constants/typography';
 import { getAlerts, Alert, ThreatType } from '../../services/alerts';
 import { getSenior, GuardianSeniorInfo } from '../../services/pairing';
-import { getStatsSummary } from '../../services/stats';
 import { getMe } from '../../services/auth';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TutorDashboard'>;
@@ -25,6 +25,30 @@ const THREAT_ICONS: Record<ThreatType, keyof typeof MaterialIcons.glyphMap> = {
   other: 'warning',
   none: 'info',
 };
+
+const THREAT_LABELS: Record<string, string> = {
+  phishing:       'Phishing',
+  smishing:       'Smishing',
+  vishing:        'Vishing',
+  spam:           'Spam',
+  identity_theft: 'Id. theft',
+  bank_fraud:     'Fraude bancario',
+  other:          'Otro',
+};
+
+const THREAT_COLORS = ['#164E55','#D93838','#D97706','#0F2C59','#2E8B57','#F4B19B','#1d6b74'];
+
+function buildPieData(byThreatType: Record<string, number>) {
+  return Object.entries(byThreatType)
+    .filter(([k, v]) => k !== 'none' && v > 0)
+    .map(([k, v], i) => ({
+      name: THREAT_LABELS[k] ?? k,
+      population: v,
+      color: THREAT_COLORS[i % THREAT_COLORS.length],
+      legendFontColor: colors.primary,
+      legendFontSize: 12,
+    }));
+}
 
 function formatDate(isoString: string): string {
   return new Date(isoString).toLocaleDateString('es-ES', {
@@ -43,6 +67,7 @@ function formatRelative(iso: string): string {
 }
 
 export default function TutorDashboardScreen({ navigation }: Props) {
+  const { width } = useWindowDimensions();
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -50,23 +75,20 @@ export default function TutorDashboardScreen({ navigation }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [senior, setSenior] = useState<GuardianSeniorInfo | null>(null);
   const [tutorName, setTutorName] = useState<string>('');
-  const [attacksTotal, setAttacksTotal] = useState<number | null>(null);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const [page, seniorData, me, stats] = await Promise.all([
+      const [page, seniorData, me] = await Promise.all([
         getAlerts(),
         getSenior(),
         getMe().catch(() => null),
-        getStatsSummary(7).catch(() => null),
       ]);
       setAlerts(page.items);
       setNextCursor(page.next_cursor);
       setSenior(seniorData);
       if (me) setTutorName(me.display_name);
-      if (stats) setAttacksTotal(stats.total);
     } catch {
       setError('No se pudieron cargar las alertas.');
     } finally {
@@ -91,6 +113,14 @@ export default function TutorDashboardScreen({ navigation }: Props) {
   }
 
   const seniorInitial = senior?.senior_display_name?.charAt(0).toUpperCase() ?? '?';
+  const byThreatType: Record<string, number> = {};
+  for (const a of alerts) {
+    if (a.threat_type && a.threat_type !== 'none') {
+      byThreatType[a.threat_type] = (byThreatType[a.threat_type] || 0) + 1;
+    }
+  }
+  const attacksTotal = Object.values(byThreatType).reduce((s, n) => s + n, 0);
+  const pieData = buildPieData(byThreatType);
 
   return (
     <Screen style={styles.screen}>
@@ -180,11 +210,35 @@ export default function TutorDashboardScreen({ navigation }: Props) {
               )}
 
               {/* Stats card */}
-              {attacksTotal !== null && (
+              {attacksTotal > 0 && (
                 <View style={styles.card}>
-                  <Text style={styles.cardTitle}>Ataques detectados</Text>
+                  <Text style={styles.cardTitle}>Amenazas detectadas</Text>
                   <Text style={styles.statValue}>{attacksTotal}</Text>
-                  <Text style={styles.statLabel}>en Avizor · últimos 7 días</Text>
+                </View>
+              )}
+
+              {/* Threat type pie chart */}
+              {pieData.length > 0 && (
+                <View style={styles.card}>
+                  <Text style={styles.cardTitle}>Por tipo de amenaza</Text>
+                  <PieChart
+                    data={pieData}
+                    width={width - 40}
+                    height={160}
+                    chartConfig={{ color: (opacity = 1) => `rgba(22, 78, 85, ${opacity})` }}
+                    accessor="population"
+                    backgroundColor="transparent"
+                    paddingLeft="15"
+                    hasLegend={false}
+                  />
+                  <View style={styles.legend}>
+                    {pieData.map((item, i) => (
+                      <View key={i} style={styles.legendItem}>
+                        <View style={[styles.legendDot, { backgroundColor: item.color }]} />
+                        <Text style={styles.legendLabel}>{item.name}</Text>
+                      </View>
+                    ))}
+                  </View>
                 </View>
               )}
 
@@ -467,4 +521,8 @@ const styles = StyleSheet.create({
     fontWeight: fontWeight.bold,
     color: colors.primary,
   },
+  legend: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 },
+  legendItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  legendDot: { width: 10, height: 10, borderRadius: 5 },
+  legendLabel: { fontSize: 12, color: colors.primary },
 });

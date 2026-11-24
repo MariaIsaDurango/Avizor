@@ -4,6 +4,10 @@
 {% block meta_description %}Panel de control del Tutor - Avizor{% endblock %}
 
 {% block extra_head %}
+<script
+  src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"
+  crossorigin="anonymous"
+></script>
 <style>
   /* ── Greeting ──────────────────────────────────────────── */
   .panel-greeting { margin-bottom: 1.5rem; }
@@ -210,14 +214,21 @@
       </div>
     </div>
 
-    <!-- Resumen de ataques -->
+    <!-- Resumen de amenazas -->
     <div class="card summary-stat" id="summary-card" style="display:none;">
-      <p class="card__title">Ataques detectados</p>
+      <p class="card__title">Amenazas detectadas</p>
       <p class="summary-stat__value" id="summary-total" aria-live="polite" aria-atomic="true">-</p>
-      <p class="summary-stat__label">en los últimos 7 días</p>
       <a href="/analytics" class="summary-stat__link">Ver analítica completa →</a>
     </div>
 
+  </div>
+
+  <!-- Gráfica por tipo de amenaza -->
+  <div class="card" id="threat-chart-card" style="display:none; margin-bottom: 1.5rem;">
+    <p class="card__title">Por tipo de amenaza</p>
+    <div style="max-width: 320px; margin: 0 auto;">
+      <canvas id="panel-threat-chart"></canvas>
+    </div>
   </div>
 
   <!-- Alertas recientes (solo si hay Sénior) -->
@@ -254,6 +265,47 @@ const THREAT_LABELS   = { phishing:'Phishing', smishing:'Smishing', vishing:'Vis
 const STATUS_LABELS   = { new:'Nueva', seen:'Vista', confirmed_fraud:'Fraude confirmado', false_positive:'Falso positivo' };
 const RISK_BADGE      = { red:'badge--red', amber:'badge--amber', green:'badge--green' };
 const RISK_LABEL      = { red:'Peligro', amber:'Sospechoso', green:'Seguro' };
+const THREAT_COLORS   = ['#164E55','#D93838','#D97706','#0F2C59','#2E8B57','#F4B19B','#1d6b74'];
+
+let _threatChart = null;
+
+function renderThreatChart(alerts) {
+  const byType = {};
+  alerts.forEach(a => {
+    if (a.threat_type && a.threat_type !== 'none') {
+      byType[a.threat_type] = (byType[a.threat_type] || 0) + 1;
+    }
+  });
+  const entries = Object.entries(byType).filter(([,n]) => n > 0);
+  const total   = entries.reduce((s,[,n]) => s + n, 0);
+
+  const summaryCard = document.getElementById('summary-card');
+  const chartCard   = document.getElementById('threat-chart-card');
+
+  if (total === 0) {
+    summaryCard.style.display = 'none';
+    chartCard.style.display   = 'none';
+    return;
+  }
+
+  summaryCard.style.display = 'flex';
+  document.getElementById('summary-total').textContent = total.toLocaleString('es-ES');
+
+  chartCard.style.display = 'block';
+  const canvas = document.getElementById('panel-threat-chart');
+  if (_threatChart) { _threatChart.destroy(); _threatChart = null; }
+  _threatChart = new Chart(canvas, {
+    type: 'doughnut',
+    data: {
+      labels: entries.map(([k]) => THREAT_LABELS[k] ?? k),
+      datasets: [{ data: entries.map(([,n]) => n), backgroundColor: THREAT_COLORS.slice(0, entries.length) }],
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'bottom' } },
+    },
+  });
+}
 
 function formatDate(iso) {
   return new Date(iso).toLocaleDateString('es-ES', { day:'numeric', month:'short', year:'numeric' });
@@ -321,6 +373,7 @@ function renderAlerts(alerts) {
         <td class="text-muted">${STATUS_LABELS[a.status] ?? a.status}</td>
       </tr>`).join('');
   }
+  renderThreatChart(alerts);
 }
 
 function startAlertsPoller(token) {
@@ -472,18 +525,15 @@ async function loadPanel() {
     me = await res.json();
   } catch { window.location.replace('/login'); return; }
 
-  let senior  = null;
-  let summary = null;
-  let alerts  = [];
+  let senior = null;
+  let alerts = [];
   try {
-    const [resSenior, resSummary, resAlerts] = await Promise.all([
-      fetch('/api/v1/senior',                  { headers: { Authorization: `Bearer ${token}` } }),
-      fetch('/api/v1/stats/summary?period=7',  { headers: { Authorization: `Bearer ${token}` } }),
-      fetch('/api/v1/alerts?limit=5',          { headers: { Authorization: `Bearer ${token}` } }),
+    const [resSenior, resAlerts] = await Promise.all([
+      fetch('/api/v1/senior',         { headers: { Authorization: `Bearer ${token}` } }),
+      fetch('/api/v1/alerts?limit=5', { headers: { Authorization: `Bearer ${token}` } }),
     ]);
-    if (resSenior.ok)  senior  = await resSenior.json();
-    if (resSummary.ok) summary = await resSummary.json();
-    if (resAlerts.ok)  alerts  = (await resAlerts.json()).items ?? [];
+    if (resSenior.ok) senior = await resSenior.json();
+    if (resAlerts.ok) alerts = (await resAlerts.json()).items ?? [];
   } catch {}
 
   document.getElementById('panel-loading').style.display = 'none';
@@ -515,12 +565,6 @@ async function loadPanel() {
     lucide.createIcons();
   }
 
-  // ── Resumen de ataques (siempre visible si hay datos) ────
-  if (summary) {
-    document.getElementById('summary-card').style.display = 'flex';
-    document.getElementById('summary-total').textContent =
-      summary.total.toLocaleString('es-ES');
-  }
 }
 
 loadPanel();
