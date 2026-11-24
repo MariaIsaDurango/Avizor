@@ -22,9 +22,6 @@ class AvizorAccessibilityService : AccessibilityService() {
         private const val MAX_EMAIL_LENGTH = 5000
         private const val DEBOUNCE_MS = 1500L
         private const val MAX_HASH_CACHE = 100
-
-        // Clases de Gmail/Outlook que corresponden a la lista de correos, no al detalle.
-        private val INBOX_CLASS_KEYWORDS = listOf("ConversationList", "MailList", "InboxList")
     }
 
     private val analyzedHashes = LinkedHashSet<Int>()
@@ -62,19 +59,11 @@ class AvizorAccessibilityService : AccessibilityService() {
 
     private fun handleEmailApp(event: AccessibilityEvent, pkg: String) {
         when (event.eventType) {
-            AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED -> {
-                val className = event.className?.toString() ?: ""
-                // Ignorar la bandeja de entrada y vistas de lista.
-                if (INBOX_CLASS_KEYWORDS.any { className.contains(it, ignoreCase = true) }) return
+            AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED,
+            AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED -> {
                 currentEmailPkg = pkg
                 handler.removeCallbacks(extractRunnable)
                 handler.postDelayed(extractRunnable, DEBOUNCE_MS)
-            }
-            AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED -> {
-                if (currentEmailPkg == pkg) {
-                    handler.removeCallbacks(extractRunnable)
-                    handler.postDelayed(extractRunnable, DEBOUNCE_MS)
-                }
             }
         }
     }
@@ -122,7 +111,7 @@ class AvizorAccessibilityService : AccessibilityService() {
 
     private fun extractText(event: AccessibilityEvent): String? {
         val direct = event.text
-        if (direct.isNotEmpty()) return direct.joinToString(" ") { it.toString() }
+        if (direct.isNotEmpty()) return direct.mapNotNull { it?.toString() }.joinToString(" ")
         val source = event.source ?: return null
         return try {
             extractNodeText(source)
