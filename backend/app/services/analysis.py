@@ -44,6 +44,7 @@ from app.services.detection.decision import AMBER_THRESHOLD, decide
 from app.services.detection.ml_classifier import build_classifier
 from app.services.detection.reputation import ReputationRuntime
 from app.services.detection.text_rules import ThreatClassifier
+from app.services.detection.url_extract import merge_urls
 from app.services.detection.url_rules import domain_of
 from app.services.devices import touch_device
 from app.services.identity import senior_id_from_device
@@ -191,7 +192,13 @@ def analyze_fast(
             ) from None
         sender_reports = _report_count(db, sender_type, sender_hash)
 
-    urls = [str(url) for url in body.content.urls] if body.content else []
+    # ES: También los enlaces escritos dentro del texto (#151).
+    # EN: Also the links written inside the text (#151).
+    urls = (
+        merge_urls([str(url) for url in body.content.urls], body.content.text)
+        if body.content
+        else []
+    )
     domains = {domain_of(url) for url in urls} - {""}
     domain_reports = max(
         (

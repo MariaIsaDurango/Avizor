@@ -16,7 +16,6 @@ EN: 1. start: stores the analysis with a provisional verdict (final=false)
 """
 
 import logging
-import re
 import uuid
 from dataclasses import replace
 from datetime import UTC, datetime, timedelta
@@ -55,6 +54,7 @@ from app.services.analysis import (
     record_indicator,
 )
 from app.services.detection.decision import FastDecision, decide
+from app.services.detection.url_extract import extract_urls
 from app.services.detection.url_rules import domain_of
 from app.services.devices import touch_device
 from app.services.identity import senior_id_from_device
@@ -76,7 +76,6 @@ ACTION_BY_LEVEL = {
     RiskLevel.AMBER: Action.SILENT_BLOCK,
     RiskLevel.RED: Action.BLOCK_AND_ALERT,
 }
-URL_PATTERN = re.compile(r"https?://[^\s<>\"']+")
 
 
 class ManualJob(NamedTuple):
@@ -93,11 +92,6 @@ class ManualJob(NamedTuple):
 class VerdictResult(NamedTuple):
     response: Verdict | AnalysisAccepted
     alert_ids: list[uuid.UUID]
-
-
-def extract_urls(text: str) -> list[str]:
-    found = [url.rstrip(".,;:!?)") for url in URL_PATTERN.findall(text)]
-    return list(dict.fromkeys(found))[:10]
 
 
 def _fast_decision(text: str, urls: list[str]) -> FastDecision:
