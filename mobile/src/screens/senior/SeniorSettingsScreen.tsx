@@ -11,19 +11,19 @@ import { apiFetch, clearToken } from '../../services/api';
 import { useAccessibility } from '../../contexts/AccessibilityContext';
 import { RootStackParamList } from '../../navigation/types';
 
-const { AvizorCallScreening, AvizorNotification } = NativeModules;
+const { AvizorNotification, AvizorAccessibility } = NativeModules;
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SeniorSettings'>;
 
 export default function SeniorSettingsScreen({ navigation }: Props) {
   const { largeText } = useAccessibility();
-  const [callRole, setCallRole] = useState<boolean | null>(null);
   const [notifEnabled, setNotifEnabled] = useState<boolean | null>(null);
+  const [a11yEnabled, setA11yEnabled] = useState<boolean | null>(null);
   const appState = useRef(AppState.currentState);
 
   function checkPermissions() {
-    AvizorCallScreening?.hasRole().then(setCallRole).catch(() => setCallRole(false));
     AvizorNotification?.isServiceEnabled().then(setNotifEnabled).catch(() => setNotifEnabled(false));
+    AvizorAccessibility?.isServiceEnabled().then(setA11yEnabled).catch(() => setA11yEnabled(false));
   }
 
   useEffect(() => {
@@ -82,30 +82,6 @@ export default function SeniorSettingsScreen({ navigation }: Props) {
 
           <View style={styles.row}>
             <View style={styles.rowLeft}>
-              <View style={[styles.dot, { backgroundColor: dotColor(callRole), opacity: dotOpacity(callRole) }]} />
-              <View>
-                <Text style={[styles.rowLabel, largeText && styles.rowLabelLarge]}>Filtrado de llamadas</Text>
-                <Text style={styles.rowSub}>
-                  {callRole === null ? 'Comprobando…' : callRole ? 'Activo' : 'Inactivo'}
-                </Text>
-              </View>
-            </View>
-            {callRole === false && (
-              <Pressable
-                style={styles.activateBtn}
-                onPress={() => AvizorCallScreening?.requestRole()}
-                accessibilityRole="button"
-                accessibilityLabel="Activar filtrado de llamadas"
-              >
-                <Text style={styles.activateBtnText}>Activar</Text>
-              </Pressable>
-            )}
-          </View>
-
-          <View style={styles.divider} />
-
-          <View style={styles.row}>
-            <View style={styles.rowLeft}>
               <View style={[styles.dot, { backgroundColor: dotColor(notifEnabled), opacity: dotOpacity(notifEnabled) }]} />
               <View>
                 <Text style={[styles.rowLabel, largeText && styles.rowLabelLarge]}>Alertas de notificaciones</Text>
@@ -117,9 +93,47 @@ export default function SeniorSettingsScreen({ navigation }: Props) {
             {notifEnabled === false && (
               <Pressable
                 style={styles.activateBtn}
-                onPress={() => AvizorNotification?.openSettings()}
+                onPress={() => Alert.alert(
+                  'Activar alertas',
+                  'Se abrirán los ajustes del sistema. Busca "Avizor" en la lista y actívalo.',
+                  [
+                    { text: 'Cancelar', style: 'cancel' },
+                    { text: 'Ir a ajustes', onPress: () => AvizorNotification?.openSettings() },
+                  ],
+                )}
                 accessibilityRole="button"
                 accessibilityLabel="Activar acceso a notificaciones"
+              >
+                <Text style={styles.activateBtnText}>Activar</Text>
+              </Pressable>
+            )}
+          </View>
+
+          <View style={styles.divider} />
+
+          <View style={styles.row}>
+            <View style={styles.rowLeft}>
+              <View style={[styles.dot, { backgroundColor: dotColor(a11yEnabled), opacity: dotOpacity(a11yEnabled) }]} />
+              <View>
+                <Text style={[styles.rowLabel, largeText && styles.rowLabelLarge]}>Análisis de emails</Text>
+                <Text style={styles.rowSub}>
+                  {a11yEnabled === null ? 'Comprobando…' : a11yEnabled ? 'Activo' : 'Inactivo'}
+                </Text>
+              </View>
+            </View>
+            {a11yEnabled === false && (
+              <Pressable
+                style={styles.activateBtn}
+                onPress={() => Alert.alert(
+                  'Activar análisis de emails',
+                  'Se abrirán los ajustes de accesibilidad. Busca "Avizor" y actívalo para que pueda revisar tus emails automáticamente.',
+                  [
+                    { text: 'Cancelar', style: 'cancel' },
+                    { text: 'Ir a ajustes', onPress: () => AvizorAccessibility?.openSettings() },
+                  ],
+                )}
+                accessibilityRole="button"
+                accessibilityLabel="Activar análisis automático de emails"
               >
                 <Text style={styles.activateBtnText}>Activar</Text>
               </Pressable>

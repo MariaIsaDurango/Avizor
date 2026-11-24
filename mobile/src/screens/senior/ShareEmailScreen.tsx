@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import * as SecureStore from 'expo-secure-store';
+import { useAccessibility } from '../../contexts/AccessibilityContext';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MaterialIcons } from '@expo/vector-icons';
 import Screen from '../../components/Screen';
@@ -25,6 +26,7 @@ const RISK_COLOR: Record<string, string> = {
 
 export default function ShareEmailScreen({ route, navigation }: Props) {
   const { text } = route.params;
+  const { hardOfHearing } = useAccessibility();
   const [loading, setLoading] = useState(false);
   const [verdict, setVerdict] = useState<Verdict | null>(null);
   const [error, setError] = useState('');
@@ -36,13 +38,15 @@ export default function ShareEmailScreen({ route, navigation }: Props) {
       const deviceId = await SecureStore.getItemAsync(STORAGE_KEYS.DEVICE_ID);
       if (!deviceId) throw new Error('Dispositivo no vinculado.');
       const result = await submitAnalysis(deviceId, 'text', text.slice(0, 5000));
-      await Haptics.notificationAsync(
-        result.risk_level === 'red'
-          ? Haptics.NotificationFeedbackType.Error
-          : result.risk_level === 'amber'
-            ? Haptics.NotificationFeedbackType.Warning
-            : Haptics.NotificationFeedbackType.Success,
-      );
+      if (hardOfHearing) {
+        await Haptics.notificationAsync(
+          result.risk_level === 'red'
+            ? Haptics.NotificationFeedbackType.Error
+            : result.risk_level === 'amber'
+              ? Haptics.NotificationFeedbackType.Warning
+              : Haptics.NotificationFeedbackType.Success,
+        );
+      }
       if (result.block_template) {
         navigation.replace('SeniorBlock', { template: result.block_template });
       } else {
@@ -130,10 +134,10 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   previewLabel: {
-    fontSize: 12,
+    fontSize: fontSize.caption,
     fontWeight: fontWeight.bold,
     color: colors.primary,
-    opacity: 0.5,
+    opacity: 0.7,
     textTransform: 'uppercase',
     letterSpacing: 0.8,
     marginBottom: 8,
@@ -150,7 +154,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   resultLabel: { fontSize: fontSize.body, fontWeight: fontWeight.bold },
-  error: { fontSize: 13, color: colors.alert, marginBottom: 12, textAlign: 'center' },
+  error: { fontSize: fontSize.caption, color: colors.alert, marginBottom: 12, textAlign: 'center' },
   btn: {
     backgroundColor: colors.primary,
     borderRadius: 12,
