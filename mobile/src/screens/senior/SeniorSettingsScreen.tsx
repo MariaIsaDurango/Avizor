@@ -11,19 +11,17 @@ import { apiFetch, clearToken } from '../../services/api';
 import { useAccessibility } from '../../contexts/AccessibilityContext';
 import { RootStackParamList } from '../../navigation/types';
 
-const { AvizorCallScreening, AvizorNotification, AvizorAccessibility } = NativeModules;
+const { AvizorNotification, AvizorAccessibility } = NativeModules;
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SeniorSettings'>;
 
 export default function SeniorSettingsScreen({ navigation }: Props) {
   const { largeText } = useAccessibility();
-  const [callRole, setCallRole] = useState<boolean | null>(null);
   const [notifEnabled, setNotifEnabled] = useState<boolean | null>(null);
   const [a11yEnabled, setA11yEnabled] = useState<boolean | null>(null);
   const appState = useRef(AppState.currentState);
 
   function checkPermissions() {
-    AvizorCallScreening?.hasRole().then(setCallRole).catch(() => setCallRole(false));
     AvizorNotification?.isServiceEnabled().then(setNotifEnabled).catch(() => setNotifEnabled(false));
     AvizorAccessibility?.isServiceEnabled().then(setA11yEnabled).catch(() => setA11yEnabled(false));
   }
@@ -81,30 +79,6 @@ export default function SeniorSettingsScreen({ navigation }: Props) {
       {Platform.OS === 'android' && (
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, largeText && styles.sectionTitleLarge]}>Protección activa</Text>
-
-          <View style={styles.row}>
-            <View style={styles.rowLeft}>
-              <View style={[styles.dot, { backgroundColor: dotColor(callRole), opacity: dotOpacity(callRole) }]} />
-              <View>
-                <Text style={[styles.rowLabel, largeText && styles.rowLabelLarge]}>Filtrado de llamadas</Text>
-                <Text style={styles.rowSub}>
-                  {callRole === null ? 'Comprobando…' : callRole ? 'Activo' : 'Inactivo'}
-                </Text>
-              </View>
-            </View>
-            {callRole === false && (
-              <Pressable
-                style={styles.activateBtn}
-                onPress={() => AvizorCallScreening?.requestRole()}
-                accessibilityRole="button"
-                accessibilityLabel="Activar filtrado de llamadas"
-              >
-                <Text style={styles.activateBtnText}>Activar</Text>
-              </Pressable>
-            )}
-          </View>
-
-          <View style={styles.divider} />
 
           <View style={styles.row}>
             <View style={styles.rowLeft}>
