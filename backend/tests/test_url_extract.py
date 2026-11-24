@@ -44,7 +44,10 @@ def test_ignores_text_without_links(text):
 
 
 def test_stops_at_anonymization_placeholder():
-    # ES/EN: the placeholder is never part of the link
+    # ES: El marcador nunca forma parte del enlace. El enlace se corta en "[" y queda
+    #     "?id=" vacío: es lo esperado, el dominio sigue siendo válido y se revisa.
+    # EN: The placeholder is never part of the link. The link stops at "[" and keeps
+    #     an empty "?id=": expected, since the domain is still valid and gets checked.
     assert extract_urls("Entra https://bbva.es/app?id=[PHONE]") == [
         "https://bbva.es/app?id="
     ]
