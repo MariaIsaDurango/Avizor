@@ -91,4 +91,5 @@ SeniorToken = Annotated[TokenPayload, Depends(require_role(UserRole.SENIOR))]
 DeviceToken = Annotated[
     TokenPayload, Depends(require_role(UserRole.SENIOR, UserRole.SENIOR_SOLO))
 ]
+SeniorSoloToken = Annotated[TokenPayload, Depends(require_role(UserRole.SENIOR_SOLO))]
 AdminToken = Annotated[TokenPayload, Depends(require_role(UserRole.ADMIN))]

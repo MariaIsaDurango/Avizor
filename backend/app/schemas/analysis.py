@@ -13,7 +13,15 @@ from uuid import UUID
 from pydantic import AwareDatetime, Field, HttpUrl, model_validator
 
 from app.schemas.common import ContractModel
-from app.schemas.enums import Channel, InputType, Origin, RedactedEntity
+from app.schemas.enums import (
+    BlockTemplate,
+    Channel,
+    InputType,
+    Origin,
+    RedactedEntity,
+    RiskLevel,
+    ThreatType,
+)
 
 # ES: Teléfono en formato E.164 (+34612345612). EN: Phone number in E.164 format.
 E164_PATTERN = r"^\+[1-9]\d{6,14}$"
@@ -180,3 +188,23 @@ class ManualAnalysisMetadata(ContractModel):
         if len(fields) != len(set(fields)):
             raise ValueError("file_field values must be unique")
         return self
+
+
+class MyAnalysis(ContractModel):
+    """ES: Un análisis del historial del senior_solo (#175). Sin texto del mensaje.
+    EN: One analysis in the senior_solo history (#175). No message text.
+    """
+
+    analysis_id: UUID
+    risk_level: RiskLevel
+    threat_type: ThreatType
+    channel: Channel
+    block_template: BlockTemplate | None = None
+    created_at: AwareDatetime
+
+
+class MyAnalysesPage(ContractModel):
+    items: list[MyAnalysis]
+    total: int = Field(ge=0)
+    limit: int = Field(ge=1)
+    offset: int = Field(ge=0)
