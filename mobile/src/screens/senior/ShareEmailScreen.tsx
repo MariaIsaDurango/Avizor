@@ -15,14 +15,17 @@ import { RootStackParamList } from '../../navigation/types';
 type Props = NativeStackScreenProps<RootStackParamList, 'SeniorShareEmail'>;
 
 const RISK_LABEL: Record<string, string> = {
+  green: 'Sin señales de riesgo',
   amber: 'Sospechoso',
   red: 'Peligroso — no hagas clic',
 };
 
 const RISK_COLOR: Record<string, string> = {
+  green: colors.success,
   amber: colors.warning,
   red: colors.alert,
 };
+
 
 export default function ShareEmailScreen({ route, navigation }: Props) {
   const { text } = route.params;
