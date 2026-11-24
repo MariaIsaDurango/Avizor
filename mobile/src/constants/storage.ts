@@ -7,6 +7,8 @@ export const STORAGE_KEYS = {
   GUARDIAN_PHONE: 'guardian_phone',
   TOKEN_EXPIRES_AT: 'token_expires_at',
   CONSENT_GIVEN: 'consent_given',
+  CONSENT_SKIPPED: 'consent_skipped',
+  CONSENT_ID: 'consent_id',
 } as const;
 
 export const CONSENT_TEXT_VERSION = 'accessibility-notice-2026-11-v2';

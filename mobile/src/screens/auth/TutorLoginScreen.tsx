@@ -4,8 +4,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Screen from '../../components/Screen';
 import { authStyles as a } from '../../styles/auth';
+import * as SecureStore from 'expo-secure-store';
 import { login, EmailNotVerifiedError } from '../../services/auth';
 import { registerDevice } from '../../services/devices';
+import { STORAGE_KEYS } from '../../constants/storage';
 import { RootStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TutorLogin'>;
@@ -23,8 +25,21 @@ export default function TutorLoginScreen({ navigation, route }: Props) {
     setError(null);
     try {
       await login({ email, password });
-      registerDevice().catch((e) => { if (__DEV__) console.warn('[devices] registerDevice failed:', e); });
-      navigation.reset({ index: 0, routes: [{ name: 'TutorDashboard' }] });
+      const mode = await SecureStore.getItemAsync(STORAGE_KEYS.USER_MODE);
+      if (mode === 'senior_solo') {
+        const [consentGiven, consentSkipped] = await Promise.all([
+          SecureStore.getItemAsync(STORAGE_KEYS.CONSENT_GIVEN),
+          SecureStore.getItemAsync(STORAGE_KEYS.CONSENT_SKIPPED),
+        ]);
+        const withinSkipWindow = consentSkipped
+          ? Date.now() - Number(consentSkipped) < 7 * 24 * 60 * 60 * 1000
+          : false;
+        const hasConsent = consentGiven === 'true' || withinSkipWindow;
+        navigation.reset({ index: 0, routes: [{ name: hasConsent ? 'SeniorHome' : 'SeniorSoloConsent' }] });
+      } else {
+        registerDevice().catch((e) => { if (__DEV__) console.warn('[devices] registerDevice failed:', e); });
+        navigation.reset({ index: 0, routes: [{ name: 'TutorDashboard' }] });
+      }
     } catch (e) {
       if (e instanceof EmailNotVerifiedError) {
         navigation.navigate('VerifyEmail', { email: e.email });
@@ -49,7 +64,7 @@ export default function TutorLoginScreen({ navigation, route }: Props) {
         </View>
 
         <Text style={a.heading}>Bienvenido de nuevo</Text>
-        <Text style={a.subtitle}>Inicia sesión para acceder al panel de Tutor.</Text>
+        <Text style={a.subtitle}>Inicia sesión para acceder a tu cuenta.</Text>
 
         {error && (
           <View style={a.alertError}>

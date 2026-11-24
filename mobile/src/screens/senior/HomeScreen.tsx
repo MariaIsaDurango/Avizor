@@ -68,12 +68,16 @@ export default function SeniorHomeScreen({ navigation }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [verdict, setVerdict] = useState<Verdict | null>(null);
   const [deviceId, setDeviceId] = useState<string | null>(null);
+  const [isSeniorSolo, setIsSeniorSolo] = useState(false);
   const { largeText, colorBlind, hardOfHearing } = useAccessibility();
 
   useEffect(() => {
     SecureStore.getItemAsync(STORAGE_KEYS.DEVICE_ID)
       .then(setDeviceId)
       .catch(() => setDeviceId(null));
+    SecureStore.getItemAsync(STORAGE_KEYS.USER_MODE)
+      .then(mode => setIsSeniorSolo(mode === 'senior_solo'))
+      .catch(() => {});
   }, []);
 
   function handleTabChange(tab: InputType) {
@@ -88,7 +92,7 @@ export default function SeniorHomeScreen({ navigation }: Props) {
       setError('Introduce el contenido a analizar.');
       return;
     }
-    if (!deviceId) {
+    if (!deviceId && !isSeniorSolo) {
       setError('Tu dispositivo no está vinculado. Pide a tu Tutor el código de vinculación.');
       return;
     }

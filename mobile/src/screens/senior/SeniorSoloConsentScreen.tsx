@@ -24,6 +24,7 @@ export default function SeniorSoloConsentScreen({ navigation }: Props) {
   const [error, setError]     = useState<string | null>(null);
 
   function handleSkip() {
+    SecureStore.setItemAsync(STORAGE_KEYS.CONSENT_SKIPPED, String(Date.now())).catch(() => {});
     navigation.reset({ index: 0, routes: [{ name: 'SeniorHome' }] });
   }
 
@@ -47,7 +48,12 @@ export default function SeniorSoloConsentScreen({ navigation }: Props) {
         const err = await response.json().catch(() => ({}));
         throw new Error(err.detail ?? 'No se pudo registrar el consentimiento.');
       }
-      await SecureStore.setItemAsync(STORAGE_KEYS.CONSENT_GIVEN, 'true');
+      const result = await response.json().catch(() => ({}));
+      await Promise.all([
+        SecureStore.setItemAsync(STORAGE_KEYS.CONSENT_GIVEN, 'true'),
+        result.id ? SecureStore.setItemAsync(STORAGE_KEYS.CONSENT_ID, result.id) : Promise.resolve(),
+        SecureStore.deleteItemAsync(STORAGE_KEYS.CONSENT_SKIPPED).catch(() => {}),
+      ]);
       navigation.reset({ index: 0, routes: [{ name: 'SeniorHome' }] });
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Error al guardar el consentimiento. Inténtalo de nuevo.');
@@ -189,6 +195,6 @@ const styles = StyleSheet.create({
   skipText: {
     fontSize: fontSize.body,
     color: colors.primary,
-    opacity: 0.55,
+    textDecorationLine: 'underline',
   },
 });
