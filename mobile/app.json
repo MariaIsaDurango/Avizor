@@ -7,7 +7,7 @@
     "icon": "./assets/logo-app.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/logo-app.png",
       "resizeMode": "contain",
       "backgroundColor": "#F4F6F4"
     },
@@ -24,7 +24,7 @@
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/logo-web.png"
     },
     "scheme": "avizor",
     "plugins": [

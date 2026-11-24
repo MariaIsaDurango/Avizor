@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { DeviceEventEmitter, NativeModules } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import * as SecureStore from 'expo-secure-store';
@@ -10,6 +11,8 @@ import { STORAGE_KEYS } from './src/constants/storage';
 import { getAlert } from './src/services/alerts';
 import { registerDevice } from './src/services/devices';
 import { AccessibilityProvider } from './src/contexts/AccessibilityContext';
+
+const { ShareModule } = NativeModules;
 
 type SavedMode = 'senior' | 'tutor' | null;
 
@@ -70,10 +73,20 @@ export default function App() {
         setHasDeviceId(false);
       });
 
+    // ES: Texto compartido cuando la app estaba abierta (DeviceEventEmitter).
+    const shareSub = DeviceEventEmitter.addListener('ShareIntentReceived', ({ text }: { text: string }) => {
+      if (navigationRef.isReady()) {
+        navigationRef.navigate('SeniorShareEmail', { text });
+      }
+    });
+
     const subscription = Notifications.addNotificationResponseReceivedListener(
       handleNotificationResponse,
     );
-    return () => subscription.remove();
+    return () => {
+      shareSub.remove();
+      subscription.remove();
+    };
   }, []);
 
   if (initialMode === undefined || hasDeviceId === undefined) return null;
@@ -87,6 +100,10 @@ export default function App() {
           // EN: Pending notification if the app was closed when the push arrived.
           Notifications.getLastNotificationResponseAsync().then((response) => {
             if (response) handleNotificationResponse(response);
+          });
+          // ES: Texto compartido en arranque en frío — aquí la navegación ya está lista.
+          ShareModule?.getSharedText?.().then((text: string | null) => {
+            if (text) navigationRef.navigate('SeniorShareEmail', { text });
           });
         }}
       >

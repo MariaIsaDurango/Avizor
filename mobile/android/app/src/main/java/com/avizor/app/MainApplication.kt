@@ -24,6 +24,7 @@ class MainApplication : Application(), ReactApplication {
           add(AccessibilityPackage())
           add(CallScreeningPackage())
           add(NotificationPackage())
+          add(SharePackage())
         }
     )
   }

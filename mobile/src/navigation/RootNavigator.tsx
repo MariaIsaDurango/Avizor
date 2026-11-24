@@ -14,6 +14,7 @@ import SeniorPairingScreen from '../screens/senior/PairingScreen';
 import SeniorHomeScreen from '../screens/senior/HomeScreen';
 import SeniorBlockScreen from '../screens/senior/BlockScreen';
 import SeniorSettingsScreen from '../screens/senior/SeniorSettingsScreen';
+import SeniorShareEmailScreen from '../screens/senior/ShareEmailScreen';
 import VerifyEmailScreen from '../screens/auth/VerifyEmailScreen';
 
 type SavedMode = 'senior' | 'tutor' | null;
@@ -52,6 +53,7 @@ export default function RootNavigator({ initialMode, hasDeviceId }: RootNavigato
         component={SeniorBlockScreen}
         options={{ headerShown: false, gestureEnabled: false, animation: 'fade' }}
       />
+      <Stack.Screen name="SeniorShareEmail" component={SeniorShareEmailScreen} options={{ headerShown: false }} />
       <Stack.Screen name="VerifyEmail" component={VerifyEmailScreen} options={{ headerShown: false }} />
     </Stack.Navigator>
   );
