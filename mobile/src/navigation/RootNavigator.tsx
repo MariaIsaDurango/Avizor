@@ -16,7 +16,6 @@ import SeniorBlockScreen from '../screens/senior/BlockScreen';
 import SeniorSettingsScreen from '../screens/senior/SeniorSettingsScreen';
 import SeniorShareEmailScreen from '../screens/senior/ShareEmailScreen';
 import VerifyEmailScreen from '../screens/auth/VerifyEmailScreen';
-import SeniorSoloLoginScreen from '../screens/auth/SeniorSoloLoginScreen';
 import SeniorSoloAlertsScreen from '../screens/senior/SeniorSoloAlertsScreen';
 
 type SavedMode = 'senior' | 'tutor' | 'senior_solo' | null;
@@ -58,7 +57,6 @@ export default function RootNavigator({ initialMode, hasDeviceId }: RootNavigato
       />
       <Stack.Screen name="SeniorShareEmail" component={SeniorShareEmailScreen} options={{ headerShown: false }} />
       <Stack.Screen name="VerifyEmail" component={VerifyEmailScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="SeniorSoloLogin" component={SeniorSoloLoginScreen} options={{ headerShown: false }} />
       <Stack.Screen name="SeniorSoloAlerts" component={SeniorSoloAlertsScreen} options={{ headerShown: false }} />
     </Stack.Navigator>
   );

@@ -22,11 +22,7 @@ export default function VerifyEmailScreen({ navigation, route }: Props) {
     setError(null);
     try {
       await verifyEmail(email, code);
-      if (flow === 'senior_solo') {
-        navigation.reset({ index: 0, routes: [{ name: 'SeniorSoloLogin', params: { email } }] });
-      } else {
-        navigation.reset({ index: 0, routes: [{ name: 'TutorLogin', params: { email } }] });
-      }
+      navigation.reset({ index: 0, routes: [{ name: 'TutorLogin', params: { email } }] });
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Código incorrecto. Inténtalo de nuevo.');
     } finally {

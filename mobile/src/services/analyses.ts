@@ -29,13 +29,13 @@ function normalizeUrl(input: string): string {
 }
 
 export async function submitAnalysis(
-  deviceId: string,
+  deviceId: string | null,
   inputType: InputType,
   value: string,
   options?: { channel?: 'manual' | 'screen' | 'sms'; origin?: 'manual' | 'automatic' },
 ): Promise<Verdict> {
   const body: Record<string, unknown> = {
-    device_id: deviceId,
+    ...(deviceId ? { device_id: deviceId } : {}),
     channel: options?.channel ?? 'manual',
     origin: options?.origin ?? 'manual',
     input_type: inputType,

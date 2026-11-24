@@ -46,7 +46,9 @@ export default function SeniorSettingsScreen({ navigation }: Props) {
   function handleLogout() {
     Alert.alert(
       '¿Estás seguro?',
-      'Necesitarás un nuevo código de tu familiar para volver a entrar.',
+      isSeniorSolo
+        ? 'Necesitarás tu email y contraseña para volver a entrar.'
+        : 'Necesitarás un nuevo código de tu familiar para volver a entrar.',
       [
         { text: 'Cancelar', style: 'cancel' },
         {

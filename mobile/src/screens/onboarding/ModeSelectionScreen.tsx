@@ -41,7 +41,7 @@ export default function ModeSelectionScreen({ navigation }: Props) {
         >
           <MaterialIcons name="favorite" size={44} color={colors.primary} />
           <Text style={styles.cardTitle}>Iniciar sesión / Registro</Text>
-          <Text style={styles.cardSubtitle}>Quiero proteger el dispositivo de un familiar</Text>
+          <Text style={styles.cardSubtitle}>Gestiona tu protección o la de alguien cercano</Text>
         </Pressable>
       </View>
     </Screen>

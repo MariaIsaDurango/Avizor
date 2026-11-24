@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import * as SecureStore from 'expo-secure-store';
@@ -30,13 +30,21 @@ export default function ShareEmailScreen({ route, navigation }: Props) {
   const [loading, setLoading] = useState(false);
   const [verdict, setVerdict] = useState<Verdict | null>(null);
   const [error, setError] = useState('');
+  const [deviceId, setDeviceId] = useState<string | null>(null);
+  const [isSeniorSolo, setIsSeniorSolo] = useState(false);
+
+  useEffect(() => {
+    SecureStore.getItemAsync(STORAGE_KEYS.DEVICE_ID).then(setDeviceId).catch(() => {});
+    SecureStore.getItemAsync(STORAGE_KEYS.USER_MODE)
+      .then(mode => setIsSeniorSolo(mode === 'senior_solo'))
+      .catch(() => {});
+  }, []);
 
   async function handleAnalyze() {
     setLoading(true);
     setError('');
     try {
-      const deviceId = await SecureStore.getItemAsync(STORAGE_KEYS.DEVICE_ID);
-      if (!deviceId) throw new Error('Dispositivo no vinculado.');
+      if (!deviceId && !isSeniorSolo) throw new Error('Dispositivo no vinculado.');
       const result = await submitAnalysis(deviceId, 'text', text.slice(0, 5000));
       if (hardOfHearing) {
         await Haptics.notificationAsync(

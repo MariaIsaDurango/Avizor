@@ -60,7 +60,13 @@ export async function login(data: LoginData): Promise<void> {
     const expiresAt = Date.now() + result.expires_in * 1000;
     await SecureStore.setItemAsync(STORAGE_KEYS.TOKEN_EXPIRES_AT, String(expiresAt));
   }
-  await SecureStore.setItemAsync(STORAGE_KEYS.USER_MODE, 'tutor');
+  try {
+    const me = await getMe();
+    const mode = me.role === 'senior_solo' ? 'senior_solo' : 'tutor';
+    await SecureStore.setItemAsync(STORAGE_KEYS.USER_MODE, mode);
+  } catch {
+    await SecureStore.setItemAsync(STORAGE_KEYS.USER_MODE, 'tutor');
+  }
 }
 
 export async function verifyEmail(email: string, code: string): Promise<void> {
@@ -81,7 +87,7 @@ export async function resendVerification(email: string): Promise<void> {
   });
 }
 
-export async function getMe(): Promise<{ id: string; display_name: string; email: string | null; phone: string | null }> {
+export async function getMe(): Promise<{ id: string; display_name: string; email: string | null; phone: string | null; role: string }> {
   const response = await apiFetch('/api/v1/auth/me');
   if (!response.ok) throw new Error('Error al obtener el perfil.');
   return response.json();
