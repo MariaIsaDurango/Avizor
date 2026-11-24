@@ -161,6 +161,69 @@
     }
     .auth-back:hover { color: var(--color-primary); text-decoration: none; }
     .auth-back svg { width: 0.875rem; height: 0.875rem; }
+
+    /* Role toggle */
+    .role-toggle {
+      display: flex;
+      border: 1.5px solid var(--color-primary);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+    .role-pill {
+      flex: 1;
+      padding: 0.625rem;
+      background: transparent;
+      border: none;
+      font-family: var(--font-family);
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      color: var(--color-primary);
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .role-pill--active {
+      background: var(--color-primary);
+      color: var(--color-white);
+    }
+
+    /* Banner app-only */
+    .app-only-banner {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      background: var(--color-background);
+      border: 1.5px solid var(--color-primary);
+      border-radius: var(--radius-sm);
+      padding: 1.5rem 1.25rem;
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    .app-only-banner--visible { display: flex; }
+    .app-only-banner svg { width: 2rem; height: 2rem; color: var(--color-primary); opacity: 0.7; }
+    .app-only-banner-title {
+      font-size: var(--font-size-base);
+      font-weight: 700;
+      color: var(--color-primary);
+    }
+    .app-only-banner-text {
+      font-size: var(--font-size-sm);
+      color: var(--color-text-muted);
+      line-height: 1.5;
+    }
+    .app-only-banner-link {
+      display: inline-block;
+      padding: 0.6rem 1.25rem;
+      background: var(--color-primary);
+      color: var(--color-white);
+      border-radius: var(--radius-sm);
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      text-decoration: none;
+      transition: background 0.15s;
+    }
+    .app-only-banner-link:hover { background: var(--color-primary-light); }
   </style>
 </head>
 <body>
@@ -178,8 +241,22 @@
         <span class="auth-brand-name">Avizor</span>
       </a>
 
-      <h1 class="auth-heading">Crear cuenta de Tutor</h1>
-      <p class="auth-sub">Protege a quienes más quieres desde el portal web.</p>
+      <h1 class="auth-heading">Crear cuenta</h1>
+      <p class="auth-sub">¿Para quién es la app?</p>
+
+      <div class="role-toggle" role="group" aria-label="¿Para quién es la app?">
+        <button type="button" class="role-pill" id="pill-solo" data-role="senior_solo">Para mí</button>
+        <button type="button" class="role-pill role-pill--active" id="pill-tutor" data-role="tutor">Para un familiar</button>
+      </div>
+
+      <div class="app-only-banner" id="app-only-banner" role="status">
+        <i data-lucide="smartphone" aria-hidden="true"></i>
+        <p class="app-only-banner-title">Disponible solo en la app</p>
+        <p class="app-only-banner-text">
+          Para proteger tu propio dispositivo, descárgate la app de Avizor y regístrate desde ella.
+        </p>
+        <a href="/download" class="app-only-banner-link">Descargar la app</a>
+      </div>
 
       <div class="alert alert--error" id="alert-error" aria-live="polite" aria-atomic="true"></div>
       <div class="alert alert--success" id="alert-success" aria-live="polite" aria-atomic="true"></div>
@@ -275,6 +352,28 @@
   <script>
     lucide.createIcons();
 
+    // Toggle de rol
+    let selectedRole = 'tutor';
+    const form       = document.getElementById('register-form');
+    const banner     = document.getElementById('app-only-banner');
+
+    function applyRole(role) {
+      selectedRole = role;
+      document.querySelectorAll('.role-pill').forEach(b => b.classList.remove('role-pill--active'));
+      document.querySelector(`[data-role="${role}"]`).classList.add('role-pill--active');
+      if (role === 'senior_solo') {
+        form.style.display   = 'none';
+        banner.classList.add('app-only-banner--visible');
+      } else {
+        form.style.display   = '';
+        banner.classList.remove('app-only-banner--visible');
+      }
+      lucide.createIcons();
+    }
+
+    document.querySelectorAll('.role-pill').forEach(btn => {
+      btn.addEventListener('click', () => applyRole(btn.dataset.role));
+    });
 
     // Toggle visibilidad de contraseña
     document.querySelectorAll('.toggle-pw').forEach(btn => {
@@ -347,11 +446,18 @@
         const res = await fetch('/api/v1/auth/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ display_name: displayName, email, password }),
+          body: JSON.stringify({
+            display_name: displayName,
+            email,
+            password,
+            ...(selectedRole === 'senior_solo' ? { role: 'senior_solo' } : {}),
+          }),
         });
 
         if (res.status === 201) {
-          window.location.href = '/verify-email?email=' + encodeURIComponent(email);
+          let redirect = '/verify-email?email=' + encodeURIComponent(email);
+          if (selectedRole === 'senior_solo') redirect += '&role=senior_solo';
+          window.location.href = redirect;
         } else {
           const data = await res.json().catch(() => ({}));
           const msg = res.status === 409

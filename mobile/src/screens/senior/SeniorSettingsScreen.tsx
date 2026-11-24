@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { View, Text, Pressable, StyleSheet, Alert, AppState, Platform, NativeModules } from 'react-native';
+import * as SecureStore from 'expo-secure-store';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MaterialIcons } from '@expo/vector-icons';
-import * as SecureStore from 'expo-secure-store';
 import Screen from '../../components/Screen';
 import { colors } from '../../constants/colors';
 import { fontSize, fontWeight } from '../../constants/typography';
@@ -17,6 +17,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'SeniorSettings'>;
 
 export default function SeniorSettingsScreen({ navigation }: Props) {
   const { largeText } = useAccessibility();
+  const [isSeniorSolo, setIsSeniorSolo] = useState(false);
   const [notifEnabled, setNotifEnabled] = useState<boolean | null>(null);
   const [a11yEnabled, setA11yEnabled] = useState<boolean | null>(null);
   const appState = useRef(AppState.currentState);
@@ -25,6 +26,12 @@ export default function SeniorSettingsScreen({ navigation }: Props) {
     AvizorNotification?.isServiceEnabled().then(setNotifEnabled).catch(() => setNotifEnabled(false));
     AvizorAccessibility?.isServiceEnabled().then(setA11yEnabled).catch(() => setA11yEnabled(false));
   }
+
+  useEffect(() => {
+    SecureStore.getItemAsync(STORAGE_KEYS.USER_MODE)
+      .then(mode => setIsSeniorSolo(mode === 'senior_solo'))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (Platform.OS !== 'android') return;
@@ -139,6 +146,27 @@ export default function SeniorSettingsScreen({ navigation }: Props) {
               </Pressable>
             )}
           </View>
+        </View>
+      )}
+
+      {isSeniorSolo && (
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, largeText && styles.sectionTitleLarge]}>Actividad</Text>
+          <Pressable
+            style={styles.row}
+            onPress={() => navigation.navigate('SeniorSoloAlerts')}
+            accessibilityRole="button"
+            accessibilityLabel="Ver panel de alertas"
+          >
+            <View style={styles.rowLeft}>
+              <MaterialIcons name="notifications" size={20} color={colors.primary} style={{ opacity: 0.7 }} />
+              <View>
+                <Text style={[styles.rowLabel, largeText && styles.rowLabelLarge]}>Panel de alertas</Text>
+                <Text style={styles.rowSub}>Revisa las alertas detectadas</Text>
+              </View>
+            </View>
+            <MaterialIcons name="chevron-right" size={20} color={colors.primary} style={{ opacity: 0.4 }} />
+          </Pressable>
         </View>
       )}
 

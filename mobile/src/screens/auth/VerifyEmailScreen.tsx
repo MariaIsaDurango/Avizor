@@ -9,7 +9,7 @@ import { RootStackParamList } from '../../navigation/types';
 type Props = NativeStackScreenProps<RootStackParamList, 'VerifyEmail'>;
 
 export default function VerifyEmailScreen({ navigation, route }: Props) {
-  const { email }                         = route.params;
+  const { email, flow }                   = route.params;
   const [code, setCode]                   = useState('');
   const [loading, setLoading]             = useState(false);
   const [resending, setResending]         = useState(false);
@@ -22,7 +22,11 @@ export default function VerifyEmailScreen({ navigation, route }: Props) {
     setError(null);
     try {
       await verifyEmail(email, code);
-      navigation.reset({ index: 0, routes: [{ name: 'TutorLogin', params: { email } }] });
+      if (flow === 'senior_solo') {
+        navigation.reset({ index: 0, routes: [{ name: 'SeniorSoloLogin', params: { email } }] });
+      } else {
+        navigation.reset({ index: 0, routes: [{ name: 'TutorLogin', params: { email } }] });
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Código incorrecto. Inténtalo de nuevo.');
     } finally {

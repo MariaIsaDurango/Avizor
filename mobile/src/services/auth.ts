@@ -1,3 +1,5 @@
+import { Platform } from 'react-native';
+import Constants from 'expo-constants';
 import * as SecureStore from 'expo-secure-store';
 import { apiFetch, saveToken, clearToken } from './api';
 import { STORAGE_KEYS } from '../constants/storage';
@@ -113,6 +115,48 @@ export async function isTokenExpired(): Promise<boolean> {
   const raw = await SecureStore.getItemAsync(STORAGE_KEYS.TOKEN_EXPIRES_AT);
   if (!raw) return false;
   return Date.now() > Number(raw);
+}
+
+export async function registerSeniorSolo(data: Omit<RegisterData, 'role'>): Promise<void> {
+  const response = await apiFetch('/api/v1/auth/register', {
+    method: 'POST',
+    body: JSON.stringify({
+      ...data,
+      role: 'senior_solo',
+      device: {
+        platform: Platform.OS,
+        app_version: Constants.expoConfig?.version ?? '1.0.0',
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail ?? 'Error al registrarse.');
+  }
+}
+
+export async function loginSeniorSolo(data: LoginData): Promise<void> {
+  const response = await apiFetch('/api/v1/auth/login', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+
+  if (response.status === 403) {
+    throw new EmailNotVerifiedError(data.email);
+  }
+
+  if (!response.ok) {
+    throw new Error('Credenciales incorrectas. Verifica tu email y contraseña.');
+  }
+
+  const result: TokenResponse = await response.json();
+  await saveToken(result.access_token);
+  if (result.expires_in) {
+    const expiresAt = Date.now() + result.expires_in * 1000;
+    await SecureStore.setItemAsync(STORAGE_KEYS.TOKEN_EXPIRES_AT, String(expiresAt));
+  }
+  await SecureStore.setItemAsync(STORAGE_KEYS.USER_MODE, 'senior_solo');
 }
 
 export async function logout(): Promise<void> {

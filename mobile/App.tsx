@@ -15,7 +15,7 @@ import { AccessibilityProvider } from './src/contexts/AccessibilityContext';
 
 const { ShareModule } = NativeModules;
 
-type SavedMode = 'senior' | 'tutor' | null;
+type SavedMode = 'senior' | 'tutor' | 'senior_solo' | null;
 
 Notifications.setNotificationHandler({
   handleNotification: async () => {

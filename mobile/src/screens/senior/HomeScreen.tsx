@@ -9,6 +9,7 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import * as SecureStore from 'expo-secure-store';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -60,6 +61,7 @@ function verdictMessage(verdict: Verdict): string {
 type Props = NativeStackScreenProps<RootStackParamList, 'SeniorHome'>;
 
 export default function SeniorHomeScreen({ navigation }: Props) {
+  const insets = useSafeAreaInsets();
   const [inputType, setInputType] = useState<InputType>('text');
   const [value, setValue] = useState('');
   const [loading, setLoading] = useState(false);
@@ -155,7 +157,7 @@ if (verdict) {
   return (
     <Screen style={styles.screen}>
       <Pressable
-        style={styles.settingsBtn}
+        style={[styles.settingsBtn, { top: insets.top + 8 }]}
         onPress={() => navigation.navigate('SeniorSettings')}
         accessibilityRole="button"
         accessibilityLabel="Ajustes"
@@ -362,7 +364,6 @@ const styles = StyleSheet.create({
   },
   settingsBtn: {
     position: 'absolute',
-    top: 16,
     right: 16,
     padding: 8,
     zIndex: 1,
