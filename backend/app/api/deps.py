@@ -16,7 +16,7 @@ from sqlalchemy.orm import Session
 from app.core.errors import ApiError
 from app.core.security import InvalidTokenError, TokenPayload, decode_access_token
 from app.db.session import get_db
-from app.models.user import User
+from app.models.user import Device, User
 from app.schemas.enums import ErrorCode, UserRole
 
 # ES: auto_error=False para devolver nuestro error del contrato, no el de FastAPI.
@@ -39,18 +39,25 @@ def get_current_token(
             401, ErrorCode.UNAUTHENTICATED, "Token no válido o caducado."
         ) from None
 
-    # ES: Tutor y admin: el token debe tener la versión de sesión actual. Al
-    #     cambiar la contraseña sube la versión y se cierran todas las sesiones.
+    # ES: Tutor, admin y senior_solo (#174, tiene contraseña): el token debe tener
+    #     la versión de sesión actual. Al cambiar la contraseña sube la versión y
+    #     se cierran todas las sesiones. El token del senior_solo lleva su
+    #     dispositivo, así que el usuario se busca a través de él.
     #     (El Sénior se revoca al desvincular: ver identity.senior_id_from_device.)
-    # EN: Guardian and admin: the token must carry the current session version.
-    #     Changing the password bumps it and closes every session.
+    # EN: Guardian, admin and senior_solo (#174, has a password): the token must
+    #     carry the current session version. Changing the password bumps it and
+    #     closes every session. The senior_solo token carries its device, so the
+    #     user is found through it.
     #     (Seniors are revoked on unlink: see identity.senior_id_from_device.)
-    if token.role in (UserRole.GUARDIAN, UserRole.ADMIN):
-        current = db.scalar(
-            select(User.token_version).where(
-                User.id == token.sub, User.deleted_at.is_(None)
+    if token.role in (UserRole.GUARDIAN, UserRole.ADMIN, UserRole.SENIOR_SOLO):
+        query = select(User.token_version).where(User.deleted_at.is_(None))
+        if token.role == UserRole.SENIOR_SOLO:
+            query = query.join(Device, Device.user_id == User.id).where(
+                Device.id == token.sub
             )
-        )
+        else:
+            query = query.where(User.id == token.sub)
+        current = db.scalar(query)
         if current is None or current != token.tv:
             raise ApiError(
                 401,
@@ -79,4 +86,9 @@ def require_role(*roles: UserRole) -> Callable[..., TokenPayload]:
 # ES: Atajos para los endpoints. EN: Shortcuts for endpoints.
 GuardianToken = Annotated[TokenPayload, Depends(require_role(UserRole.GUARDIAN))]
 SeniorToken = Annotated[TokenPayload, Depends(require_role(UserRole.SENIOR))]
+# ES: Token con dispositivo: Sénior vinculado o Sénior sin Tutor (#174).
+# EN: Device token: paired senior or senior without a guardian (#174).
+DeviceToken = Annotated[
+    TokenPayload, Depends(require_role(UserRole.SENIOR, UserRole.SENIOR_SOLO))
+]
 AdminToken = Annotated[TokenPayload, Depends(require_role(UserRole.ADMIN))]

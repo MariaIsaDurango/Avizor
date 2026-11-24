@@ -23,7 +23,7 @@ from app.models.user import Consent
 from app.schemas.consent import Consent as ConsentSchema
 from app.schemas.consent import ConsentRead
 from app.schemas.enums import Channel, ConsentType, ErrorCode, UserRole
-from app.services.identity import is_paired, senior_id_from_device
+from app.services.identity import DEVICE_ROLES, is_paired, senior_id_from_device
 
 
 def _forbidden(detail: str) -> ApiError:
@@ -35,7 +35,7 @@ def _granted_by(db: Session, token: TokenPayload, body: ConsentSchema) -> uuid.U
     EN: Checks who may consent and returns the id of who consents.
     """
     if body.type == ConsentType.SELF:
-        if token.role != UserRole.SENIOR:
+        if token.role not in DEVICE_ROLES:
             raise _forbidden("Solo el usuario sénior puede dar su consentimiento.")
         senior_id = senior_id_from_device(db, token.sub)
         if senior_id != body.senior_id:
@@ -106,7 +106,7 @@ def revoke_consent(
 
     if consent.type == ConsentType.SELF:
         allowed = (
-            token.role == UserRole.SENIOR
+            token.role in DEVICE_ROLES
             and senior_id_from_device(db, token.sub) == consent.senior_id
         )
     else:

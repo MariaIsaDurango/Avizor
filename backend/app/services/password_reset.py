@@ -37,7 +37,7 @@ from app.schemas.enums import ErrorCode, UserRole
 PURPOSE = "reset_password"
 AUDIENCE = "avizor:reset-password"
 INVALID_LINK = "El enlace no es válido o ha caducado. Pide uno nuevo."
-RESET_ROLES = (UserRole.GUARDIAN, UserRole.ADMIN)
+RESET_ROLES = (UserRole.GUARDIAN, UserRole.ADMIN, UserRole.SENIOR_SOLO)
 
 
 def _fingerprint(password_hash: str) -> str:

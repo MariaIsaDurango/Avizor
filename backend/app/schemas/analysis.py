@@ -71,7 +71,9 @@ class AnalysisRequest(ContractModel):
     phone lookup. Always goes through the fast path (< 800 ms).
     """
 
-    device_id: UUID
+    # ES: Opcional solo para senior_solo (#174): se usa el de su token.
+    # EN: Optional only for senior_solo (#174): the token's device is used.
+    device_id: UUID | None = None
     channel: Channel
     origin: Origin
     input_type: InputType
@@ -161,7 +163,8 @@ class ManualAnalysisMetadata(ContractModel):
     EN: 'metadata' part of the multimodal manual forward (202 response).
     """
 
-    device_id: UUID
+    # ES: Opcional solo para senior_solo (#174). EN: Optional only for senior_solo.
+    device_id: UUID | None = None
     channel: Literal[Channel.MANUAL] = Channel.MANUAL
     origin: Literal[Origin.MANUAL] = Origin.MANUAL
     received_at: AwareDatetime

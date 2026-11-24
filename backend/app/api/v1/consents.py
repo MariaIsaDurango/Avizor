@@ -16,7 +16,8 @@ from app.services import consent as consent_service
 router = APIRouter(prefix="/consents", tags=["consents"])
 
 SeniorOrGuardian = Annotated[
-    TokenPayload, Depends(require_role(UserRole.SENIOR, UserRole.GUARDIAN))
+    TokenPayload,
+    Depends(require_role(UserRole.SENIOR, UserRole.SENIOR_SOLO, UserRole.GUARDIAN)),
 ]
 
 

@@ -6,17 +6,21 @@ ES: No están en el Contrato v1.0.0: es un añadido MINOR (campos y rutas nuevas
     - GET  /auth/me  → UserRead ahora incluye phone (str | None)
     - PATCH /auth/me → UpdateMeRequest acepta phone opcional; al cambiar,
       se propaga a guardian_phone en las vinculaciones activas.
+    - (#174) POST /auth/register acepta role "senior_solo" con device; login
+      devuelve device_id y GET /auth/me lo incluye para ese rol.
 EN: Not in Contract v1.0.0: a MINOR addition (new fields and routes).
     MINOR changes included:
     - GET  /auth/me  → UserRead now includes phone (str | None)
     - PATCH /auth/me → UpdateMeRequest accepts optional phone; on change,
       it propagates to guardian_phone in active pairings.
+    - (#174) POST /auth/register accepts role "senior_solo" with device; login
+      returns device_id and GET /auth/me includes it for that role.
 """
 
 from typing import Literal
 from uuid import UUID
 
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, model_validator
 
 from app.schemas.common import ContractModel
 from app.schemas.enums import UserRole
@@ -34,6 +38,32 @@ class GuardianRegister(ContractModel):
     @classmethod
     def normalize_email(cls, value: str) -> str:
         return value.strip().lower()
+
+
+class SoloDevice(ContractModel):
+    """ES: Dispositivo del Sénior sin Tutor, creado al registrarse.
+    EN: Device of the senior without a guardian, created on sign-up.
+    """
+
+    platform: Literal["android", "ios"]
+    app_version: str = Field(min_length=1, max_length=20)
+
+
+class RegisterRequest(GuardianRegister):
+    """ES: Tutor (por defecto) o Sénior sin Tutor, que necesita su dispositivo.
+    EN: Guardian (default) or senior without a guardian, who needs a device.
+    """
+
+    role: Literal[UserRole.GUARDIAN, UserRole.SENIOR_SOLO] = UserRole.GUARDIAN
+    device: SoloDevice | None = None
+
+    @model_validator(mode="after")
+    def device_matches_role(self) -> "RegisterRequest":
+        if self.role == UserRole.SENIOR_SOLO and self.device is None:
+            raise ValueError("senior_solo necesita device (platform y app_version).")
+        if self.role == UserRole.GUARDIAN and self.device is not None:
+            raise ValueError("device solo se usa con role senior_solo.")
+        return self
 
 
 class LoginRequest(ContractModel):
@@ -115,6 +145,8 @@ class TokenResponse(ContractModel):
     token_type: Literal["bearer"] = "bearer"
     # ES: Segundos hasta que caduca. EN: Seconds until it expires.
     expires_in: int
+    # ES: Solo senior_solo: su dispositivo. EN: senior_solo only: their device.
+    device_id: UUID | None = None
 
 
 class UserRead(ContractModel):
@@ -125,3 +157,5 @@ class UserRead(ContractModel):
     display_name: str
     email: str | None = None
     phone: str | None = None
+    # ES: Solo senior_solo. EN: senior_solo only.
+    device_id: UUID | None = None

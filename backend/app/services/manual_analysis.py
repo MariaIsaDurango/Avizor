@@ -57,7 +57,7 @@ from app.services.detection.decision import FastDecision, decide
 from app.services.detection.url_extract import extract_urls
 from app.services.detection.url_rules import domain_of
 from app.services.devices import touch_device
-from app.services.identity import senior_id_from_device
+from app.services.identity import request_device_id, senior_id_from_device
 
 logger = logging.getLogger(__name__)
 
@@ -123,8 +123,7 @@ def start_manual_analysis(
     metadata: ManualAnalysisMetadata,
     sizes: dict[str, int],
 ) -> ManualJob:
-    if metadata.device_id != token.sub:
-        raise ApiError(403, ErrorCode.FORBIDDEN, "El dispositivo no coincide.")
+    device_id = request_device_id(token, metadata.device_id)
     senior_id_from_device(db, token.sub)
     if not metadata.anonymization.applied:
         raise ApiError(422, ErrorCode.CONTENT_NOT_ANONYMIZED)
@@ -157,7 +156,7 @@ def start_manual_analysis(
     input_types += list(dict.fromkeys(a.type for a in metadata.attachments))
 
     analysis = Analysis(
-        device_id=metadata.device_id,
+        device_id=device_id,
         channel=Channel.MANUAL,
         origin=Origin.MANUAL,
         input_types=input_types,

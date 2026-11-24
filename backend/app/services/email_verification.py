@@ -56,7 +56,7 @@ def _pending_user(db: Session, email: str) -> User | None:
         select(User)
         .where(
             User.email == email,
-            User.role == UserRole.GUARDIAN,
+            User.role.in_((UserRole.GUARDIAN, UserRole.SENIOR_SOLO)),
             User.deleted_at.is_(None),
             User.is_verified.is_(False),
         )
