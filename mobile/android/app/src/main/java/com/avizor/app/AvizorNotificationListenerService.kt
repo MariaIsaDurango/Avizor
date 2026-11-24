@@ -12,10 +12,18 @@ class AvizorNotificationListenerService : NotificationListenerService() {
         const val EXTRA_PACKAGE = "packageName"
         const val EXTRA_TITLE = "title"
         const val EXTRA_TEXT = "text"
+
+        private val SMS_PACKAGES = setOf(
+            "com.android.mms",
+            "com.android.messaging",
+            "com.google.android.apps.messaging",
+            "com.samsung.android.messaging",
+        )
     }
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {
         if (sbn.packageName == packageName) return
+        if (sbn.packageName !in SMS_PACKAGES) return
 
         val extras = sbn.notification.extras
         val title = extras.getString(Notification.EXTRA_TITLE) ?: ""

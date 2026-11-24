@@ -111,6 +111,43 @@ export default function App() {
       },
     );
 
+    // ES: SMS detectado automáticamente por NotificationListenerService.
+    const smsSub = DeviceEventEmitter.addListener(
+      'AvizorNotificationEvent',
+      async ({ text }: { packageName: string; title: string; text: string }) => {
+        if (!text.trim()) return;
+        try {
+          const [mode, deviceId] = await Promise.all([
+            SecureStore.getItemAsync(STORAGE_KEYS.USER_MODE),
+            SecureStore.getItemAsync(STORAGE_KEYS.DEVICE_ID),
+          ]);
+          if (mode !== 'senior' || !deviceId) return;
+
+          const verdict = await submitAnalysis(deviceId, 'text', text, {
+            channel: 'sms',
+            origin: 'automatic',
+          });
+
+          if (verdict.risk_level === 'red' && verdict.block_template) {
+            if (navigationRef.isReady()) {
+              navigationRef.navigate('SeniorBlock', { template: verdict.block_template });
+            }
+          } else if (verdict.risk_level === 'amber') {
+            await Notifications.scheduleNotificationAsync({
+              content: {
+                title: 'SMS sospechoso',
+                body: 'Has recibido un SMS con indicios sospechosos. Consulta con un familiar.',
+                data: { verdict: verdict.risk_level },
+              },
+              trigger: null,
+            });
+          }
+        } catch {
+          // silent — no interrumpir al sénior si el análisis falla
+        }
+      },
+    );
+
     // ES: Texto compartido cuando la app estaba abierta (DeviceEventEmitter).
     const shareSub = DeviceEventEmitter.addListener('ShareIntentReceived', ({ text }: { text: string }) => {
       if (navigationRef.isReady()) {
@@ -123,6 +160,7 @@ export default function App() {
     );
     return () => {
       emailSub.remove();
+      smsSub.remove();
       shareSub.remove();
       subscription.remove();
     };
