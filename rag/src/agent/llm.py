@@ -11,6 +11,7 @@ EN: The text arrives anonymized, but the current anonymization (regex-v0) does n
 """
 
 import json
+import logging
 import os
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -39,6 +40,7 @@ SYSTEM = (
 )
 
 DEFAULT_MODEL = "openai/gpt-oss-20b"
+logger = logging.getLogger(__name__)
 
 
 def _completion(*, client, model: str, payload: dict, system: str, timeout: float,
@@ -52,6 +54,10 @@ def _completion(*, client, model: str, payload: dict, system: str, timeout: floa
         # Never log the credential or provider error body.
         if not os.environ.get("GROQ_API_KEY"):
             raise ValueError("GROQ_API_KEY not configured")
+        # ES: Sin reintentos (decisión): el agente tiene un plazo (15 s en manual) y
+        #     un reintento se lo comería; si Groq falla, se usa la vía rápida.
+        # EN: No retries (decision): the agent has a deadline and a retry would use
+        #     it up; if Groq fails, the fast path is used.
         client = Groq(api_key=os.environ["GROQ_API_KEY"], timeout=timeout, max_retries=0)
     result = client.chat.completions.create(
         model=model,
@@ -91,6 +97,8 @@ class GroqSelector:
         # Some Groq models use the synonym "template" despite a JSON-only prompt.
         # Translate ONLY this exact known shape; preserve strict validation below.
         if isinstance(response, dict) and set(response) == {"template", "references"}:
+            # ES/EN: fixed text only, never the model response (no content in logs).
+            logger.warning("Groq returned the 'template' alias instead of 'block_template'")
             response = {
                 "block_template": response["template"],
                 "references": response["references"],

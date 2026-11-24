@@ -126,6 +126,9 @@ la misma con la que se creó la base ChromaDB. Para volver atrás basta con
 `AVIZOR_RAG_ENABLED=false`; con `INSTALL_RAG=false` la imagen vuelve a su
 tamaño normal en el siguiente despliegue.
 
+Groq se llama sin reintentos (`max_retries=0`), por decisión: el agente tiene un
+plazo y un reintento lo agotaría. Si Groq falla, se usa la vía rápida.
+
 Privacidad: el texto anonimizado del análisis manual se envía a Groq. La
 anonimización actual no quita nombres de personas ni enlaces. Decisión pendiente
 de documentar por José (privacidad).

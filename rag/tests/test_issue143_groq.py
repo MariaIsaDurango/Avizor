@@ -22,8 +22,9 @@ def fake(content):
 
 def test_model_override(monkeypatch):
     monkeypatch.setenv("GROQ_MODEL", "openai/gpt-oss-120b")
-    assert GroqSelector(client=fake("{}")).model == "openai/gpt-oss-120b"
-    assert HybridSelector(client=fake("{}")).model == "openai/gpt-oss-120b"
+    # The model name is read at construction; no client call is needed.
+    assert GroqSelector().model == "openai/gpt-oss-120b"
+    assert HybridSelector().model == "openai/gpt-oss-120b"
 
 
 def test_rejects_empty_notices_without_external_request():
@@ -50,6 +51,29 @@ def test_groq_selector_accepts_canonical_and_known_template_alias(content):
     result = GroqSelector(client=fake(content)).select(payload, timeout=2)
     assert result.block_template == "FAKE_DO_NOT_TOUCH"
     assert result.references == [0]
+
+
+def test_template_alias_logs_fixed_warning_without_content(caplog):
+    payload = {"allowed_templates": ["FAKE_DO_NOT_TOUCH"],
+               "notices": [{"index": 0, "title": "Aviso", "excerpt": "SMS"}]}
+    with caplog.at_level("WARNING", logger="rag.src.agent.llm"):
+        GroqSelector(client=fake('{"template":"FAKE_DO_NOT_TOUCH","references":[0]}')).select(
+            payload, timeout=2
+        )
+    assert [r.getMessage() for r in caplog.records] == [
+        "Groq returned the 'template' alias instead of 'block_template'"
+    ]
+    assert "FAKE_DO_NOT_TOUCH" not in caplog.text
+
+
+def test_canonical_response_logs_nothing(caplog):
+    payload = {"allowed_templates": ["FAKE_DO_NOT_TOUCH"],
+               "notices": [{"index": 0, "title": "Aviso", "excerpt": "SMS"}]}
+    with caplog.at_level("WARNING", logger="rag.src.agent.llm"):
+        GroqSelector(client=fake('{"block_template":"FAKE_DO_NOT_TOUCH","references":[0]}')).select(
+            payload, timeout=2
+        )
+    assert caplog.records == []
 
 
 @pytest.mark.parametrize("content", [
