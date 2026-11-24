@@ -20,6 +20,7 @@ interface TokenResponse {
   access_token: string;
   token_type: string;
   expires_in?: number;
+  device_id?: string;
 }
 
 export class EmailNotVerifiedError extends Error {
@@ -163,6 +164,10 @@ export async function loginSeniorSolo(data: LoginData): Promise<void> {
     await SecureStore.setItemAsync(STORAGE_KEYS.TOKEN_EXPIRES_AT, String(expiresAt));
   }
   await SecureStore.setItemAsync(STORAGE_KEYS.USER_MODE, 'senior_solo');
+
+  if (result.device_id) {
+    await SecureStore.setItemAsync(STORAGE_KEYS.DEVICE_ID, result.device_id);
+  }
 }
 
 export async function logout(): Promise<void> {

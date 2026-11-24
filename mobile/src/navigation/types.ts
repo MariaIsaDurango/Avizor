@@ -18,5 +18,6 @@ export type RootStackParamList = {
   SeniorBlock: { template: BlockTemplate };
   SeniorShareEmail: { text: string };
   VerifyEmail: { email: string; flow?: 'senior_solo' };
+  SeniorSoloConsent: undefined;
   SeniorSoloAlerts: undefined;
 };

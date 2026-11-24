@@ -72,13 +72,13 @@ function formatDate(iso: string): string {
 const PAGE_SIZE = 20;
 
 export default function SeniorSoloAlertsScreen({ navigation }: Props) {
-  const { width }                                 = useWindowDimensions();
-  const [analyses, setAnalyses]                   = useState<MyAnalysis[]>([]);
-  const [total, setTotal]                         = useState(0);
-  const [offset, setOffset]                       = useState(0);
-  const [loading, setLoading]                     = useState(false);
-  const [loadingMore, setLoadingMore]             = useState(false);
-  const [error, setError]                         = useState<string | null>(null);
+  const { width }                     = useWindowDimensions();
+  const [analyses, setAnalyses]       = useState<MyAnalysis[]>([]);
+  const [total, setTotal]             = useState(0);
+  const [offset, setOffset]           = useState(0);
+  const [loading, setLoading]         = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [error, setError]             = useState<string | null>(null);
 
   const fetchAnalyses = useCallback(async () => {
     setLoading(true);
@@ -161,7 +161,6 @@ export default function SeniorSoloAlertsScreen({ navigation }: Props) {
                   <Text style={styles.statsValue}>{attacksTotal}</Text>
                 </View>
               )}
-
               {pieData.length > 0 && (
                 <View style={styles.chartCard}>
                   <Text style={styles.statsLabel}>Por tipo de amenaza</Text>
@@ -185,7 +184,6 @@ export default function SeniorSoloAlertsScreen({ navigation }: Props) {
                   </View>
                 </View>
               )}
-
               {analyses.length > 0 && (
                 <View style={styles.sectionHeader}>
                   <Text style={styles.sectionTitle}>Historial</Text>
