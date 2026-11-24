@@ -1,5 +1,5 @@
-"""Endpoints de registro e inicio de sesión del Tutor.
-Guardian sign-up and login endpoints.
+"""Endpoints de registro e inicio de sesión del Tutor y del Sénior sin Tutor.
+Sign-up and login endpoints for the guardian and the senior without a guardian.
 """
 
 import uuid
@@ -13,13 +13,13 @@ from app.core.config import settings
 from app.core.email import send_password_reset_email, send_verification_email
 from app.core.errors import ApiError
 from app.core.security import create_access_token, hash_password, verify_password
-from app.models.user import Pairing, User
+from app.models.user import Device, Pairing, User
 from app.schemas.auth import (
     ChangePasswordRequest,
     ForgotPasswordRequest,
-    GuardianRegister,
     LoginRequest,
     MessageResponse,
+    RegisterRequest,
     ResendVerificationRequest,
     ResetPasswordRequest,
     TokenResponse,
@@ -38,12 +38,21 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 #     (prevents discovering registered emails by timing).
 _DUMMY_HASH = hash_password("dummy-password-for-timing")
 
-LOGIN_ROLES = {UserRole.GUARDIAN, UserRole.ADMIN}
+LOGIN_ROLES = {UserRole.GUARDIAN, UserRole.ADMIN, UserRole.SENIOR_SOLO}
+
+
+def _solo_device_id(db: DbSession, user_id: uuid.UUID) -> uuid.UUID | None:
+    """ES: El senior_solo tiene un único dispositivo, creado al registrarse.
+    EN: A senior_solo has a single device, created on sign-up.
+    """
+    return db.scalar(
+        select(Device.id).where(Device.user_id == user_id).order_by(Device.id).limit(1)
+    )
 
 
 @router.post("/register", status_code=status.HTTP_201_CREATED)
-def register_guardian(
-    body: GuardianRegister, db: DbSession, background_tasks: BackgroundTasks
+def register(
+    body: RegisterRequest, db: DbSession, background_tasks: BackgroundTasks
 ) -> UserRead:
     # ES: Mensaje genérico: no confirma si el email ya existe.
     # EN: Generic message: does not confirm whether the email exists.
@@ -53,7 +62,7 @@ def register_guardian(
     if db.scalar(select(User.id).where(User.email == body.email)):
         raise duplicated
     user = User(
-        role=UserRole.GUARDIAN,
+        role=body.role,
         display_name=body.display_name,
         email=body.email,
         password_hash=hash_password(body.password),
@@ -61,6 +70,16 @@ def register_guardian(
     db.add(user)
     try:
         db.flush()
+        device = None
+        if body.device is not None:
+            # ES: senior_solo: su dispositivo se crea ya. EN: senior_solo device now.
+            device = Device(
+                user_id=user.id,
+                platform=body.device.platform,
+                app_version=body.device.app_version,
+            )
+            db.add(device)
+            db.flush()
         # ES: El código va por correo; aquí solo se guarda su HMAC.
         # EN: The code goes by email; only its HMAC is stored here.
         code = email_verification.issue_code(user)
@@ -72,7 +91,8 @@ def register_guardian(
     # ES: El correo sale después de responder (no hace esperar a la app).
     # EN: The email goes out after replying (the app does not wait for it).
     background_tasks.add_task(send_verification_email, user.email, code)
-    return UserRead.model_validate(user, from_attributes=True)
+    read = UserRead.model_validate(user, from_attributes=True)
+    return read.model_copy(update={"device_id": device.id if device else None})
 
 
 @router.post("/verify-email", status_code=status.HTTP_204_NO_CONTENT)
@@ -146,18 +166,38 @@ def login(body: LoginRequest, db: DbSession) -> TokenResponse:
             "Verifica tu email con el código que te enviamos antes de iniciar sesión.",
         )
 
-    token = create_access_token(user.id, user.role, token_version=user.token_version)
+    device_id = None
+    subject = user.id
+    if user.role == UserRole.SENIOR_SOLO:
+        # ES: Como el Sénior, su token lleva el dispositivo (sub = device_id).
+        # EN: Like the senior, the token carries the device (sub = device_id).
+        device_id = _solo_device_id(db, user.id)
+        if device_id is None:
+            raise ApiError(
+                401, ErrorCode.UNAUTHENTICATED, "Email o contraseña incorrectos."
+            )
+        subject = device_id
+    token = create_access_token(subject, user.role, token_version=user.token_version)
     return TokenResponse(
-        access_token=token, expires_in=settings.JWT_EXPIRE_MINUTES * 60
+        access_token=token,
+        expires_in=settings.JWT_EXPIRE_MINUTES * 60,
+        device_id=device_id,
     )
 
 
 @router.get("/me")
 def read_me(token: CurrentToken, db: DbSession) -> UserRead:
-    user = db.get(User, token.sub)
+    if token.role == UserRole.SENIOR_SOLO:
+        device = db.get(Device, token.sub)
+        user = db.get(User, device.user_id) if device else None
+    else:
+        user = db.get(User, token.sub)
     if user is None or user.deleted_at is not None:
         raise ApiError(401, ErrorCode.UNAUTHENTICATED, "Usuario no encontrado.")
-    return UserRead.model_validate(user, from_attributes=True)
+    read = UserRead.model_validate(user, from_attributes=True)
+    if token.role == UserRole.SENIOR_SOLO:
+        read = read.model_copy(update={"device_id": token.sub})
+    return read
 
 
 def _active_guardian(db: DbSession, guardian_id: uuid.UUID) -> User:

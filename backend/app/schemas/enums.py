@@ -14,6 +14,9 @@ class UserRole(StrEnum):
     SENIOR = "senior"
     GUARDIAN = "guardian"  # ES: Tutor / EN: guardian (family member)
     ADMIN = "admin"
+    # ES: Sénior sin Tutor (#174): se registra solo y tiene su propio dispositivo.
+    # EN: Senior without a guardian (#174): signs up alone, owns their device.
+    SENIOR_SOLO = "senior_solo"
 
 
 class Channel(StrEnum):

@@ -10,7 +10,8 @@ import pytest
 from app.schemas import enums
 
 CONTRACT = {
-    enums.UserRole: ["senior", "guardian", "admin"],
+    # ES/EN: senior_solo = MINOR addition (#174).
+    enums.UserRole: ["senior", "guardian", "admin", "senior_solo"],
     enums.Channel: ["sms", "notification", "screen", "call", "manual"],
     enums.InputType: [
         "text",

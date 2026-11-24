@@ -16,7 +16,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 
-from app.api.deps import DbSession, SeniorToken
+from app.api.deps import DbSession, DeviceToken
 from app.api.manual_form import read_manual_form
 from app.schemas.analysis import AnalysisRequest
 from app.schemas.verdict import AnalysisAccepted, Verdict
@@ -84,7 +84,7 @@ def _accepted(body: AnalysisAccepted) -> JSONResponse:
 async def create_analysis(
     request: Request,
     db: DbSession,
-    token: SeniorToken,
+    token: DeviceToken,
     background_tasks: BackgroundTasks,
 ):
     """ES: JSON: respuesta síncrona (< 800 ms). Multipart: 202 y el agente
@@ -135,7 +135,7 @@ async def create_analysis(
 def get_verdict(
     analysis_id: uuid.UUID,
     db: DbSession,
-    token: SeniorToken,
+    token: DeviceToken,
     background_tasks: BackgroundTasks,
 ):
     """ES: La app consulta cada retry_after_ms hasta recibir el 200.
