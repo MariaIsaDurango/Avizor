@@ -61,11 +61,12 @@ export async function login(data: LoginData): Promise<void> {
     const expiresAt = Date.now() + result.expires_in * 1000;
     await SecureStore.setItemAsync(STORAGE_KEYS.TOKEN_EXPIRES_AT, String(expiresAt));
   }
-  try {
-    const me = await getMe();
-    const mode = me.role === 'senior_solo' ? 'senior_solo' : 'tutor';
-    await SecureStore.setItemAsync(STORAGE_KEYS.USER_MODE, mode);
-  } catch {
+  if (result.device_id) {
+    await Promise.all([
+      SecureStore.setItemAsync(STORAGE_KEYS.USER_MODE, 'senior_solo'),
+      SecureStore.setItemAsync(STORAGE_KEYS.DEVICE_ID, result.device_id),
+    ]);
+  } else {
     await SecureStore.setItemAsync(STORAGE_KEYS.USER_MODE, 'tutor');
   }
 }

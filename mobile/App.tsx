@@ -96,11 +96,13 @@ export default function App() {
       async ({ text, eventType }: { text: string; eventType: string }) => {
         if (eventType !== 'email_body') return;
         try {
-          const [mode, deviceId] = await Promise.all([
+          const [mode, deviceId, consentGiven] = await Promise.all([
             SecureStore.getItemAsync(STORAGE_KEYS.USER_MODE),
             SecureStore.getItemAsync(STORAGE_KEYS.DEVICE_ID),
+            SecureStore.getItemAsync(STORAGE_KEYS.CONSENT_GIVEN),
           ]);
           if ((mode !== 'senior' && mode !== 'senior_solo') || !deviceId) return;
+          if (mode === 'senior_solo' && consentGiven !== 'true') return;
 
           const verdict = await submitAnalysis(deviceId, 'text', text, {
             channel: 'screen',
@@ -135,11 +137,13 @@ export default function App() {
       async ({ text }: { packageName: string; title: string; text: string }) => {
         if (!text.trim()) return;
         try {
-          const [mode, deviceId] = await Promise.all([
+          const [mode, deviceId, consentGiven] = await Promise.all([
             SecureStore.getItemAsync(STORAGE_KEYS.USER_MODE),
             SecureStore.getItemAsync(STORAGE_KEYS.DEVICE_ID),
+            SecureStore.getItemAsync(STORAGE_KEYS.CONSENT_GIVEN),
           ]);
           if ((mode !== 'senior' && mode !== 'senior_solo') || !deviceId) return;
+          if (mode === 'senior_solo' && consentGiven !== 'true') return;
 
           const verdict = await submitAnalysis(deviceId, 'text', text, {
             channel: 'sms',

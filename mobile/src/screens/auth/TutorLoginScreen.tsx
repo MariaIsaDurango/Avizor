@@ -27,7 +27,15 @@ export default function TutorLoginScreen({ navigation, route }: Props) {
       await login({ email, password });
       const mode = await SecureStore.getItemAsync(STORAGE_KEYS.USER_MODE);
       if (mode === 'senior_solo') {
-        navigation.reset({ index: 0, routes: [{ name: 'SeniorHome' }] });
+        const [consentGiven, consentSkipped] = await Promise.all([
+          SecureStore.getItemAsync(STORAGE_KEYS.CONSENT_GIVEN),
+          SecureStore.getItemAsync(STORAGE_KEYS.CONSENT_SKIPPED),
+        ]);
+        const withinSkipWindow = consentSkipped
+          ? Date.now() - Number(consentSkipped) < 7 * 24 * 60 * 60 * 1000
+          : false;
+        const hasConsent = consentGiven === 'true' || withinSkipWindow;
+        navigation.reset({ index: 0, routes: [{ name: hasConsent ? 'SeniorHome' : 'SeniorSoloConsent' }] });
       } else {
         registerDevice().catch((e) => { if (__DEV__) console.warn('[devices] registerDevice failed:', e); });
         navigation.reset({ index: 0, routes: [{ name: 'TutorDashboard' }] });

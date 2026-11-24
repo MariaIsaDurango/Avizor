@@ -63,9 +63,17 @@ export default function SeniorSettingsScreen({ navigation }: Props) {
             try {
               const consentId = await SecureStore.getItemAsync(STORAGE_KEYS.CONSENT_ID);
               if (consentId) {
-                await apiFetch(`/api/v1/consents/${consentId}`, { method: 'DELETE' });
+                const response = await apiFetch(`/api/v1/consents/${consentId}/revoke`, { method: 'POST' });
+                if (!response.ok) {
+                  const err = await response.json().catch(() => ({}));
+                  Alert.alert('Error', err.detail ?? 'No se pudo retirar el consentimiento. Inténtalo más tarde.');
+                  return;
+                }
               }
-            } catch {}
+            } catch {
+              Alert.alert('Error', 'No se pudo retirar el consentimiento. Inténtalo más tarde.');
+              return;
+            }
             await Promise.allSettled([
               SecureStore.deleteItemAsync(STORAGE_KEYS.CONSENT_GIVEN),
               SecureStore.deleteItemAsync(STORAGE_KEYS.CONSENT_ID),
