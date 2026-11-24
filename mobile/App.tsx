@@ -80,13 +80,6 @@ export default function App() {
       }
     });
 
-    // ES: Texto compartido cuando la app arrancó en frío (ShareModule.getSharedText).
-    ShareModule?.getSharedText?.().then((text: string | null) => {
-      if (text && navigationRef.isReady()) {
-        navigationRef.navigate('SeniorShareEmail', { text });
-      }
-    });
-
     const subscription = Notifications.addNotificationResponseReceivedListener(
       handleNotificationResponse,
     );
@@ -107,6 +100,10 @@ export default function App() {
           // EN: Pending notification if the app was closed when the push arrived.
           Notifications.getLastNotificationResponseAsync().then((response) => {
             if (response) handleNotificationResponse(response);
+          });
+          // ES: Texto compartido en arranque en frío — aquí la navegación ya está lista.
+          ShareModule?.getSharedText?.().then((text: string | null) => {
+            if (text) navigationRef.navigate('SeniorShareEmail', { text });
           });
         }}
       >

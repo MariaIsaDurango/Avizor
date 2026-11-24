@@ -14,13 +14,11 @@ import { RootStackParamList } from '../../navigation/types';
 type Props = NativeStackScreenProps<RootStackParamList, 'SeniorShareEmail'>;
 
 const RISK_LABEL: Record<string, string> = {
-  green: 'Parece seguro',
   amber: 'Sospechoso',
   red: 'Peligroso — no hagas clic',
 };
 
 const RISK_COLOR: Record<string, string> = {
-  green: colors.success,
   amber: colors.warning,
   red: colors.alert,
 };
@@ -37,17 +35,18 @@ export default function ShareEmailScreen({ route, navigation }: Props) {
     try {
       const deviceId = await SecureStore.getItemAsync(STORAGE_KEYS.DEVICE_ID);
       if (!deviceId) throw new Error('Dispositivo no vinculado.');
-      const result = await submitAnalysis(deviceId, 'text', text);
-      setVerdict(result);
-      if (result.risk_level === 'red') {
-        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-        navigation.replace('SeniorBlock', { template: result.block_template ?? 'FAKE_DO_NOT_TOUCH' });
-      } else {
-        await Haptics.notificationAsync(
-          result.risk_level === 'amber'
+      const result = await submitAnalysis(deviceId, 'text', text.slice(0, 5000));
+      await Haptics.notificationAsync(
+        result.risk_level === 'red'
+          ? Haptics.NotificationFeedbackType.Error
+          : result.risk_level === 'amber'
             ? Haptics.NotificationFeedbackType.Warning
             : Haptics.NotificationFeedbackType.Success,
-        );
+      );
+      if (result.block_template) {
+        navigation.replace('SeniorBlock', { template: result.block_template });
+      } else {
+        setVerdict(result);
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Error al analizar.');
