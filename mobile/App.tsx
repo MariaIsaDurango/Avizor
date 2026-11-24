@@ -69,11 +69,15 @@ export default function App() {
       SecureStore.getItemAsync(STORAGE_KEYS.USER_MODE),
       SecureStore.getItemAsync(STORAGE_KEYS.DEVICE_ID),
       SecureStore.getItemAsync(STORAGE_KEYS.CONSENT_GIVEN),
+      SecureStore.getItemAsync(STORAGE_KEYS.CONSENT_SKIPPED),
     ])
-      .then(([mode, deviceId, consentGiven]) => {
+      .then(([mode, deviceId, consentGiven, consentSkipped]) => {
         setInitialMode((mode as SavedMode) ?? null);
         setHasDeviceId(deviceId !== null);
-        setHasConsent(consentGiven === 'true');
+        const withinSkipWindow = consentSkipped
+          ? Date.now() - Number(consentSkipped) < 7 * 24 * 60 * 60 * 1000
+          : false;
+        setHasConsent(consentGiven === 'true' || withinSkipWindow);
         if (mode === 'tutor') {
           registerDevice().catch((e) => {
             if (__DEV__) console.warn('[App] registerDevice failed:', e);

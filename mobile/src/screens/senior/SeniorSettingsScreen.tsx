@@ -18,6 +18,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'SeniorSettings'>;
 export default function SeniorSettingsScreen({ navigation }: Props) {
   const { largeText } = useAccessibility();
   const [isSeniorSolo, setIsSeniorSolo] = useState(false);
+  const [consentGiven, setConsentGiven] = useState(false);
   const [notifEnabled, setNotifEnabled] = useState<boolean | null>(null);
   const [a11yEnabled, setA11yEnabled] = useState<boolean | null>(null);
   const appState = useRef(AppState.currentState);
@@ -28,8 +29,14 @@ export default function SeniorSettingsScreen({ navigation }: Props) {
   }
 
   useEffect(() => {
-    SecureStore.getItemAsync(STORAGE_KEYS.USER_MODE)
-      .then(mode => setIsSeniorSolo(mode === 'senior_solo'))
+    Promise.all([
+      SecureStore.getItemAsync(STORAGE_KEYS.USER_MODE),
+      SecureStore.getItemAsync(STORAGE_KEYS.CONSENT_GIVEN),
+    ])
+      .then(([mode, consent]) => {
+        setIsSeniorSolo(mode === 'senior_solo');
+        setConsentGiven(consent === 'true');
+      })
       .catch(() => {});
   }, []);
 
@@ -42,6 +49,34 @@ export default function SeniorSettingsScreen({ navigation }: Props) {
     });
     return () => sub.remove();
   }, []);
+
+  function handleRevokeConsent() {
+    Alert.alert(
+      'Retirar consentimiento',
+      'Se desactivará el análisis automático de mensajes. Podrás volver a activarlo cuando quieras.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Retirar',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const consentId = await SecureStore.getItemAsync(STORAGE_KEYS.CONSENT_ID);
+              if (consentId) {
+                await apiFetch(`/api/v1/consents/${consentId}`, { method: 'DELETE' });
+              }
+            } catch {}
+            await Promise.allSettled([
+              SecureStore.deleteItemAsync(STORAGE_KEYS.CONSENT_GIVEN),
+              SecureStore.deleteItemAsync(STORAGE_KEYS.CONSENT_ID),
+              SecureStore.deleteItemAsync(STORAGE_KEYS.CONSENT_SKIPPED),
+            ]);
+            navigation.reset({ index: 0, routes: [{ name: 'SeniorSoloConsent' }] });
+          },
+        },
+      ],
+    );
+  }
 
   function handleLogout() {
     Alert.alert(
@@ -169,6 +204,28 @@ export default function SeniorSettingsScreen({ navigation }: Props) {
             </View>
             <MaterialIcons name="chevron-right" size={20} color={colors.primary} style={{ opacity: 0.4 }} />
           </Pressable>
+
+          {consentGiven && (
+            <>
+              <View style={styles.divider} />
+              <Pressable
+                style={styles.row}
+                onPress={handleRevokeConsent}
+                accessibilityRole="button"
+                accessibilityLabel="Retirar consentimiento de análisis automático"
+              >
+                <View style={styles.rowLeft}>
+                  <MaterialIcons name="shield" size={20} color={colors.alert} style={{ opacity: 0.8 }} />
+                  <View>
+                    <Text style={[styles.rowLabel, { color: colors.alert }, largeText && styles.rowLabelLarge]}>
+                      Retirar consentimiento
+                    </Text>
+                    <Text style={styles.rowSub}>Desactivar análisis automático</Text>
+                  </View>
+                </View>
+              </Pressable>
+            </>
+          )}
         </View>
       )}
 
