@@ -23,6 +23,10 @@ export default function SeniorSoloConsentScreen({ navigation }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState<string | null>(null);
 
+  function handleSkip() {
+    navigation.reset({ index: 0, routes: [{ name: 'SeniorHome' }] });
+  }
+
   async function handleAccept() {
     setLoading(true);
     setError(null);
@@ -72,7 +76,7 @@ export default function SeniorSoloConsentScreen({ navigation }: Props) {
         </View>
 
         <Text style={styles.note}>
-          El texto se analiza en el momento y no se almacena. Puedes retirar este consentimiento en cualquier momento desde Ajustes.
+          El texto original no sale de tu móvil. Solo se envía una versión sin tus datos personales, y si parece un fraude se guarda unos días para revisarlo.
         </Text>
 
         {error && (
@@ -94,6 +98,15 @@ export default function SeniorSoloConsentScreen({ navigation }: Props) {
             </Pressable>
           )
         }
+
+        <Pressable
+          onPress={handleSkip}
+          accessibilityRole="button"
+          accessibilityLabel="Ahora no, ir a inicio"
+          style={({ pressed }) => [styles.skipBtn, pressed && { opacity: 0.5 }]}
+        >
+          <Text style={styles.skipText}>Ahora no</Text>
+        </Pressable>
       </ScrollView>
     </Screen>
   );
@@ -168,5 +181,14 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontWeight: fontWeight.bold,
     fontSize: fontSize.body,
+  },
+  skipBtn: {
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  skipText: {
+    fontSize: fontSize.body,
+    color: colors.primary,
+    opacity: 0.55,
   },
 });

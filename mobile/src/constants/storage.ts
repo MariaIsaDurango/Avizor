@@ -9,4 +9,4 @@ export const STORAGE_KEYS = {
   CONSENT_GIVEN: 'consent_given',
 } as const;
 
-export const CONSENT_TEXT_VERSION = 'accessibility-notice-2026-11';
+export const CONSENT_TEXT_VERSION = 'accessibility-notice-2026-11-v2';
