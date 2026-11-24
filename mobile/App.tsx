@@ -15,6 +15,14 @@ import { AccessibilityProvider } from './src/contexts/AccessibilityContext';
 
 const { ShareModule } = NativeModules;
 
+const TEMPLATE_NOTIFICATION_BODY: Record<string, string> = {
+  FAKE_DO_NOT_TOUCH: 'No toques nada en este mensaje.',
+  DANGEROUS_LINK:    'No hagas clic en ningún enlace.',
+  SUSPICIOUS_CALL:   'No llames al número indicado sin consultar.',
+  ASKS_BANK_DETAILS: 'Nunca compartas tus datos bancarios ni contraseñas.',
+  UNSURE_CALL_FAMILY:'Consulta con un familiar antes de responder.',
+};
+
 type SavedMode = 'senior' | 'tutor' | null;
 
 Notifications.setNotificationHandler({
@@ -96,10 +104,12 @@ export default function App() {
               navigationRef.navigate('SeniorBlock', { template: verdict.block_template });
             }
           } else if (verdict.risk_level === 'amber') {
+            const advice = (verdict.block_template && TEMPLATE_NOTIFICATION_BODY[verdict.block_template])
+              ?? 'Consulta con un familiar antes de responder.';
             await Notifications.scheduleNotificationAsync({
               content: {
                 title: 'Revisa este email',
-                body: 'Tiene indicios sospechosos. Consulta con un familiar.',
+                body: advice,
                 data: { verdict: verdict.risk_level },
               },
               trigger: null,
@@ -133,10 +143,12 @@ export default function App() {
               navigationRef.navigate('SeniorBlock', { template: verdict.block_template });
             }
           } else if (verdict.risk_level === 'amber') {
+            const advice = (verdict.block_template && TEMPLATE_NOTIFICATION_BODY[verdict.block_template])
+              ?? 'Consulta con un familiar antes de responder.';
             await Notifications.scheduleNotificationAsync({
               content: {
                 title: 'SMS sospechoso',
-                body: 'Has recibido un SMS con indicios sospechosos. Consulta con un familiar.',
+                body: advice,
                 data: { verdict: verdict.risk_level },
               },
               trigger: null,

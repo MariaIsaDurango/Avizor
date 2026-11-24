@@ -17,6 +17,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'SeniorBlock'>;
 type Config = {
   message: string;
   empathy: string;
+  tip: string | null;
   icon: keyof typeof MaterialIcons.glyphMap;
   background: string;
   riskLabel: string;
@@ -26,6 +27,7 @@ const CONFIGS: Record<BlockTemplate, Config> = {
   FAKE_DO_NOT_TOUCH: {
     message: '¡Cuidado! Este mensaje es falso.\nNo toques nada.',
     empathy: 'Tranquilo/a, lo hemos bloqueado por ti.\nNo pasa nada.',
+    tip: '1. No pulses ningún enlace ni botón del mensaje.\n2. Cierra la app o el correo sin responder.\n3. Comenta a tu familiar lo que has recibido.',
     icon: 'dangerous',
     background: colors.alert,
     riskLabel: 'PELIGRO',
@@ -33,6 +35,7 @@ const CONFIGS: Record<BlockTemplate, Config> = {
   DANGEROUS_LINK: {
     message: 'Este enlace es peligroso.\nNo lo abras.',
     empathy: 'Tranquilo/a, lo hemos bloqueado por ti.\nNo pasa nada.',
+    tip: '1. No introduzcas ningún dato en la página que se abrió.\n2. Cierra el navegador.\n3. Cuéntaselo a tu familiar, no ha pasado nada grave.',
     icon: 'dangerous',
     background: colors.alert,
     riskLabel: 'PELIGRO',
@@ -40,6 +43,7 @@ const CONFIGS: Record<BlockTemplate, Config> = {
   SUSPICIOUS_CALL: {
     message: 'Esta llamada puede ser una estafa.\nDesconfía.',
     empathy: 'No respondas. Estás protegido/a.',
+    tip: '1. Si sigues en la llamada, cuelga sin dar ningún dato.\n2. No devuelvas la llamada a ese número.\n3. Avisa a tu familiar, juntos podéis verificar si era real.',
     icon: 'warning',
     background: colors.alert,
     riskLabel: 'PELIGRO',
@@ -47,6 +51,7 @@ const CONFIGS: Record<BlockTemplate, Config> = {
   ASKS_BANK_DETAILS: {
     message: 'Nunca des tus datos bancarios.\nEsto es un fraude.',
     empathy: 'Tranquilo/a, lo hemos bloqueado por ti.\nNo pasa nada.',
+    tip: '1. No des ningún dato por teléfono ni por mensaje.\n2. Llama a tu banco usando el número del reverso de tu tarjeta.\n3. Avisa a tu familiar.',
     icon: 'dangerous',
     background: colors.alert,
     riskLabel: 'PELIGRO',
@@ -54,6 +59,7 @@ const CONFIGS: Record<BlockTemplate, Config> = {
   LOOKS_SAFE: {
     message: 'Este mensaje parece seguro.',
     empathy: '¡Todo bien! No hay nada de qué preocuparse.',
+    tip: null,
     icon: 'check-circle',
     background: colors.success,
     riskLabel: 'SEGURO',
@@ -61,6 +67,7 @@ const CONFIGS: Record<BlockTemplate, Config> = {
   UNSURE_CALL_FAMILY: {
     message: 'No estamos seguros.\nConsulta con tu familiar\nantes de hacer nada.',
     empathy: 'Es mejor preguntar cuando hay dudas.',
+    tip: '1. No respondas ni hagas clic en nada todavía.\n2. Enséñale el mensaje a tu familiar.\n3. Entre los dos podéis decidir con calma qué hacer.',
     icon: 'warning',
     background: colors.warning,
     riskLabel: 'ATENCIÓN',
@@ -113,6 +120,12 @@ export default function SeniorBlockScreen({ navigation, route }: Props) {
         )}
         <Text style={[styles.message, largeText && styles.messageLarge]}>{config.message}</Text>
         <Text style={[styles.empathy, largeText && styles.empathyLarge]}>{config.empathy}</Text>
+        {config.tip && (
+          <View style={styles.tipBox}>
+            <MaterialIcons name="lightbulb" size={18} color={colors.white} style={{ opacity: 0.9 }} />
+            <Text style={[styles.tip, largeText && styles.tipLarge]}>{config.tip}</Text>
+          </View>
+        )}
       </View>
 
       <View style={styles.footer}>
@@ -187,6 +200,24 @@ const styles = StyleSheet.create({
     fontSize: 26,
     lineHeight: 36,
   },
+  tipBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    marginTop: 4,
+  },
+  tip: {
+    flex: 1,
+    fontSize: 16,
+    color: colors.white,
+    opacity: 0.9,
+    lineHeight: 22,
+  },
+  tipLarge: { fontSize: 20, lineHeight: 28 },
   footer: {
     backgroundColor: colors.white,
     borderRadius: 16,
