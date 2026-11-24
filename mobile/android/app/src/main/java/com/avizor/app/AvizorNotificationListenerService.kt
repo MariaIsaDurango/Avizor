@@ -19,17 +19,28 @@ class AvizorNotificationListenerService : NotificationListenerService() {
             "com.google.android.apps.messaging",
             "com.samsung.android.messaging",
         )
+
+        private const val MAX_HASH_CACHE = 100
     }
+
+    private val analyzedHashes = LinkedHashSet<Int>()
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {
         if (sbn.packageName == packageName) return
         if (sbn.packageName !in SMS_PACKAGES) return
+        // Ignorar resúmenes de grupo (ej. "2 mensajes nuevos" de Android).
+        if (sbn.notification.flags and Notification.FLAG_GROUP_SUMMARY != 0) return
 
         val extras = sbn.notification.extras
         val title = extras.getString(Notification.EXTRA_TITLE) ?: ""
-        val text = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString() ?: ""
+        // EXTRA_BIG_TEXT contiene el SMS completo; EXTRA_TEXT puede venir recortado.
+        val text = (extras.getCharSequence(Notification.EXTRA_BIG_TEXT)
+            ?: extras.getCharSequence(Notification.EXTRA_TEXT))?.toString() ?: ""
 
         if (title.isBlank() && text.isBlank()) return
+
+        val hash = (title + text).hashCode()
+        if (!addHash(hash)) return
 
         val intent = Intent(ACTION_NOTIFICATION_EVENT).apply {
             putExtra(EXTRA_PACKAGE, sbn.packageName)
@@ -38,6 +49,14 @@ class AvizorNotificationListenerService : NotificationListenerService() {
             setPackage(packageName)
         }
         sendBroadcast(intent)
+    }
+
+    private fun addHash(hash: Int): Boolean {
+        if (!analyzedHashes.add(hash)) return false
+        if (analyzedHashes.size > MAX_HASH_CACHE) {
+            analyzedHashes.remove(analyzedHashes.first())
+        }
+        return true
     }
 
     override fun onNotificationRemoved(sbn: StatusBarNotification) {}
