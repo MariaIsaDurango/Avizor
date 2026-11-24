@@ -19,5 +19,6 @@ export type RootStackParamList = {
   SeniorShareEmail: { text: string };
   VerifyEmail: { email: string; flow?: 'senior_solo' };
   SeniorSoloLogin: { email?: string } | undefined;
+  SeniorSoloConsent: undefined;
   SeniorSoloAlerts: undefined;
 };

@@ -4,7 +4,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Screen from '../../components/Screen';
 import { authStyles as a } from '../../styles/auth';
+import * as SecureStore from 'expo-secure-store';
 import { loginSeniorSolo, EmailNotVerifiedError } from '../../services/auth';
+import { STORAGE_KEYS } from '../../constants/storage';
 import { RootStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SeniorSoloLogin'>;
@@ -22,7 +24,9 @@ export default function SeniorSoloLoginScreen({ navigation, route }: Props) {
     setError(null);
     try {
       await loginSeniorSolo({ email, password });
-      navigation.reset({ index: 0, routes: [{ name: 'SeniorHome' }] });
+      const consentGiven = await SecureStore.getItemAsync(STORAGE_KEYS.CONSENT_GIVEN);
+      const target = consentGiven === 'true' ? 'SeniorHome' : 'SeniorSoloConsent';
+      navigation.reset({ index: 0, routes: [{ name: target }] });
     } catch (e) {
       if (e instanceof EmailNotVerifiedError) {
         navigation.navigate('VerifyEmail', { email: e.email, flow: 'senior_solo' });

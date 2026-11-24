@@ -2,7 +2,7 @@ import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 import * as SecureStore from 'expo-secure-store';
 import { apiFetch, saveToken, clearToken } from './api';
-import { STORAGE_KEYS, CONSENT_TEXT_VERSION } from '../constants/storage';
+import { STORAGE_KEYS } from '../constants/storage';
 import { unregisterDevice } from './devices';
 
 interface RegisterData {
@@ -160,24 +160,7 @@ export async function loginSeniorSolo(data: LoginData): Promise<void> {
   await SecureStore.setItemAsync(STORAGE_KEYS.USER_MODE, 'senior_solo');
 
   if (result.device_id) {
-    const isFirstLogin = !(await SecureStore.getItemAsync(STORAGE_KEYS.DEVICE_ID));
     await SecureStore.setItemAsync(STORAGE_KEYS.DEVICE_ID, result.device_id);
-    if (isFirstLogin) {
-      try {
-        const me = await getMe();
-        await apiFetch('/api/v1/consents', {
-          method: 'POST',
-          body: JSON.stringify({
-            senior_id: me.id,
-            type: 'self',
-            scope: ['sms', 'notification', 'screen'],
-            text_version: CONSENT_TEXT_VERSION,
-            granted_by: me.id,
-            granted_at: new Date().toISOString(),
-          }),
-        });
-      } catch {}
-    }
   }
 }
 

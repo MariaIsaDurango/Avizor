@@ -1,6 +1,6 @@
 import { apiFetch } from './api';
 
-export type RiskLevel = 'green' | 'yellow' | 'red';
+export type RiskLevel = 'green' | 'amber' | 'red';
 
 export type ThreatType =
   | 'phishing'
