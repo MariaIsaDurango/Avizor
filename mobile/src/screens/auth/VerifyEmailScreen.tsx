@@ -9,7 +9,7 @@ import { RootStackParamList } from '../../navigation/types';
 type Props = NativeStackScreenProps<RootStackParamList, 'VerifyEmail'>;
 
 export default function VerifyEmailScreen({ navigation, route }: Props) {
-  const { email, flow }                   = route.params;
+  const { email }                          = route.params;
   const [code, setCode]                   = useState('');
   const [loading, setLoading]             = useState(false);
   const [resending, setResending]         = useState(false);
