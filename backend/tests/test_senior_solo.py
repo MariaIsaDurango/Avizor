@@ -5,6 +5,7 @@ Senior without a guardian tests (#174). They need PostgreSQL.
 import uuid
 
 import pytest
+from conftest import ANALYSES, LOGIN, PHISHING, REGISTER, SOLO, analysis_body
 from sqlalchemy import select
 
 from app.api.v1 import auth as auth_routes
@@ -13,86 +14,8 @@ from app.models.analysis import Analysis
 from app.models.user import Device, User
 from app.schemas.enums import UserRole
 
-REGISTER = "/api/v1/auth/register"
-LOGIN = "/api/v1/auth/login"
 ME = "/api/v1/auth/me"
-ANALYSES = "/api/v1/analyses"
-CONSENTS = "/api/v1/consents"
 UNLOCKS = "/api/v1/unlocks"
-
-# ES: Datos inventados, nunca reales. EN: Fake data, never real.
-SOLO = {
-    "email": "Mayor.Solo@Example.com",
-    "password": "contraseña-larga-1",
-    "display_name": "Carmen",
-    "role": "senior_solo",
-    "device": {"platform": "android", "app_version": "1.0.0"},
-}
-PHISHING = (
-    "BBVA: su cuenta ha sido bloqueada. Introduzca su [IBAN] y su clave "
-    "urgente en https://bbva-seguro.top/login"
-)
-
-
-def analysis_body(text, device_id=None, channel="sms"):
-    body = {
-        "channel": channel,
-        "origin": "automatic",
-        "input_type": "text",
-        "received_at": "2026-11-24T13:12:05Z",
-        "content": {
-            "text": text,
-            "urls": [],
-            "language": "es",
-            "anonymization": {
-                "applied": True,
-                "ner_model_version": "regex-v0",
-                "redacted_entities": ["IBAN"],
-            },
-        },
-    }
-    if device_id is not None:
-        body["device_id"] = str(device_id)
-    return body
-
-
-@pytest.fixture
-def solo(api_client, db_session):
-    """ES: senior_solo registrado y verificado (la verificación se prueba aparte).
-    EN: Registered and verified senior_solo (verification is tested elsewhere).
-    """
-    response = api_client.post(REGISTER, json=SOLO)
-    assert response.status_code == 201
-    user = db_session.get(User, uuid.UUID(response.json()["id"]))
-    user.is_verified = True
-    db_session.flush()
-    login = api_client.post(
-        LOGIN, json={"email": SOLO["email"], "password": SOLO["password"]}
-    )
-    assert login.status_code == 200
-    data = login.json()
-    return {
-        "user_id": user.id,
-        "device_id": uuid.UUID(data["device_id"]),
-        "headers": {"Authorization": f"Bearer {data['access_token']}"},
-    }
-
-
-@pytest.fixture
-def consented_solo(api_client, solo):
-    body = {
-        "senior_id": str(solo["user_id"]),
-        "type": "self",
-        "scope": ["sms", "notification", "screen", "call"],
-        "text_version": "accessibility-notice-2026-11",
-        "granted_by": str(solo["user_id"]),
-        "evidence": None,
-        "granted_at": "2026-11-24T10:00:00Z",
-    }
-    response = api_client.post(CONSENTS, json=body, headers=solo["headers"])
-    assert response.status_code == 201
-    return solo
-
 
 # ---------- Registro / Sign-up ----------
 
