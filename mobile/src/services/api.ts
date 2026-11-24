@@ -1,4 +1,5 @@
 import * as SecureStore from 'expo-secure-store';
+import { Alert } from 'react-native';
 import { API_BASE_URL } from '../constants/api';
 import { navigationRef } from '../navigation/navigationRef';
 import { STORAGE_KEYS } from '../constants/storage';
@@ -35,7 +36,12 @@ export async function apiFetch(path: string, options: RequestInit = {}): Promise
       const mode = await SecureStore.getItemAsync(STORAGE_KEYS.USER_MODE);
       if (mode === 'senior') {
         await SecureStore.deleteItemAsync(STORAGE_KEYS.DEVICE_ID);
-        navigationRef.reset({ index: 0, routes: [{ name: 'SeniorPairing' }] });
+        Alert.alert(
+          'Sesión cerrada',
+          'Tu tutor ha cerrado tu sesión. Comunícate con él para volver a vincularte.',
+          [{ text: 'Entendido', onPress: () => navigationRef.reset({ index: 0, routes: [{ name: 'SeniorPairing' }] }) }],
+          { cancelable: false },
+        );
       } else {
         navigationRef.reset({ index: 0, routes: [{ name: 'TutorLogin' }] });
       }

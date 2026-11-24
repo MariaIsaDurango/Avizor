@@ -112,6 +112,8 @@ export async function getSeniorProfile(): Promise<SeniorProfile> {
 export interface GuardianSeniorInfo {
   senior_display_name: string;
   guardian_phone: string | null;
+  platform: 'android' | 'ios' | null;
+  last_seen_at: string | null;
 }
 
 export async function getSenior(): Promise<GuardianSeniorInfo | null> {

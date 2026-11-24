@@ -10,6 +10,7 @@ import { navigationRef } from './src/navigation/navigationRef';
 import { STORAGE_KEYS } from './src/constants/storage';
 import { getAlert } from './src/services/alerts';
 import { registerDevice } from './src/services/devices';
+import { submitAnalysis } from './src/services/analyses';
 import { AccessibilityProvider } from './src/contexts/AccessibilityContext';
 
 const { ShareModule } = NativeModules;
@@ -73,6 +74,43 @@ export default function App() {
         setHasDeviceId(false);
       });
 
+    // ES: Email detectado automáticamente por AccesibilityService en Gmail/Outlook.
+    const emailSub = DeviceEventEmitter.addListener(
+      'AvizorTextEvent',
+      async ({ text, eventType }: { text: string; eventType: string }) => {
+        if (eventType !== 'email_body') return;
+        try {
+          const [mode, deviceId] = await Promise.all([
+            SecureStore.getItemAsync(STORAGE_KEYS.USER_MODE),
+            SecureStore.getItemAsync(STORAGE_KEYS.DEVICE_ID),
+          ]);
+          if (mode !== 'senior' || !deviceId) return;
+
+          const verdict = await submitAnalysis(deviceId, 'text', text, {
+            channel: 'screen',
+            origin: 'automatic',
+          });
+
+          if (verdict.risk_level === 'red' && verdict.block_template) {
+            if (navigationRef.isReady()) {
+              navigationRef.navigate('SeniorBlock', { template: verdict.block_template });
+            }
+          } else if (verdict.risk_level === 'amber') {
+            await Notifications.scheduleNotificationAsync({
+              content: {
+                title: 'Revisa este email',
+                body: 'Tiene indicios sospechosos. Consulta con un familiar.',
+                data: { verdict: verdict.risk_level },
+              },
+              trigger: null,
+            });
+          }
+        } catch {
+          // silent — no interrumpir al sénior si el análisis falla
+        }
+      },
+    );
+
     // ES: Texto compartido cuando la app estaba abierta (DeviceEventEmitter).
     const shareSub = DeviceEventEmitter.addListener('ShareIntentReceived', ({ text }: { text: string }) => {
       if (navigationRef.isReady()) {
@@ -84,6 +122,7 @@ export default function App() {
       handleNotificationResponse,
     );
     return () => {
+      emailSub.remove();
       shareSub.remove();
       subscription.remove();
     };
