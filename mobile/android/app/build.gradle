@@ -84,6 +84,12 @@ def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
 android {
     ndkVersion rootProject.ext.ndkVersion
 
+    externalNativeBuild {
+        cmake {
+            version "3.31.6"
+        }
+    }
+
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
@@ -134,11 +140,6 @@ android {
     }
     androidResources {
         ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:!CVS:!thumbs.db:!picasa.ini:!*~'
-    }
-    externalNativeBuild {
-        cmake {
-            version "3.31.6"
-        }
     }
 }
 
