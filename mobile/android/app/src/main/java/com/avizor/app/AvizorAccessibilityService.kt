@@ -57,6 +57,10 @@ class AvizorAccessibilityService : AccessibilityService() {
         emitTextEvent(text, pkg, AccessibilityEvent.eventTypeToString(event.eventType))
     }
 
+    // No filtramos por className (ej. MailActivityGmail) porque TYPE_WINDOW_STATE_CHANGED
+    // no se dispara de forma fiable al abrir un email en todas las versiones de Gmail.
+    // En pruebas reales solo llegaban eventos FrameLayout, nunca MailActivityGmail.
+    // MIN_EMAIL_LENGTH y el hash de deduplicación evitan procesar la bandeja de entrada.
     private fun handleEmailApp(event: AccessibilityEvent, pkg: String) {
         when (event.eventType) {
             AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED,
