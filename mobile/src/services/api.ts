@@ -6,6 +6,8 @@ import { STORAGE_KEYS } from '../constants/storage';
 
 const AUTH_TOKEN_KEY = 'auth_token';
 
+let redirectingOn401 = false;
+
 export async function getToken(): Promise<string | null> {
   return SecureStore.getItemAsync(AUTH_TOKEN_KEY);
 }
@@ -31,6 +33,8 @@ export async function apiFetch(path: string, options: RequestInit = {}): Promise
 
   // no redirigir en endpoints de auth ni en redeem (son públicos)
   if (response.status === 401 && !path.startsWith('/api/v1/auth/') && !path.startsWith('/api/v1/pairings/redeem')) {
+    if (redirectingOn401) return response;
+    redirectingOn401 = true;
     await clearToken();
     if (navigationRef.isReady()) {
       const mode = await SecureStore.getItemAsync(STORAGE_KEYS.USER_MODE);
@@ -38,13 +42,19 @@ export async function apiFetch(path: string, options: RequestInit = {}): Promise
         await SecureStore.deleteItemAsync(STORAGE_KEYS.DEVICE_ID);
         Alert.alert(
           'Sesión cerrada',
-          'Tu tutor ha cerrado tu sesión. Comunícate con él para volver a vincularte.',
-          [{ text: 'Entendido', onPress: () => navigationRef.reset({ index: 0, routes: [{ name: 'SeniorPairing' }] }) }],
+          'Tu sesión se ha cerrado. Vuelve a vincularte con tu tutor.',
+          [{ text: 'Entendido', onPress: () => {
+            redirectingOn401 = false;
+            navigationRef.reset({ index: 0, routes: [{ name: 'SeniorPairing' }] });
+          }}],
           { cancelable: false },
         );
       } else {
+        redirectingOn401 = false;
         navigationRef.reset({ index: 0, routes: [{ name: 'TutorLogin' }] });
       }
+    } else {
+      redirectingOn401 = false;
     }
   }
 
