@@ -184,7 +184,7 @@ export default function TutorDashboardScreen({ navigation }: Props) {
                 <View style={styles.card}>
                   <Text style={styles.cardTitle}>Ataques detectados</Text>
                   <Text style={styles.statValue}>{attacksTotal}</Text>
-                  <Text style={styles.statLabel}>en los últimos 7 días</Text>
+                  <Text style={styles.statLabel}>en Avizor · últimos 7 días</Text>
                 </View>
               )}
 

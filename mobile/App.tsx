@@ -86,19 +86,25 @@ export default function App() {
           ]);
           if (mode !== 'senior' || !deviceId) return;
 
-          const verdict = await submitAnalysis(deviceId, 'text', text);
-
-          const notif =
-            verdict.risk_level === 'green'
-              ? { title: 'Email seguro', body: 'No detectamos señales de fraude en este email.' }
-              : verdict.risk_level === 'amber'
-                ? { title: 'Revisa este email', body: 'Tiene indicios sospechosos. Consulta con un familiar.' }
-                : { title: 'Email peligroso', body: 'Este email parece una estafa. No hagas clic en ningún enlace.' };
-
-          await Notifications.scheduleNotificationAsync({
-            content: { ...notif, data: { verdict: verdict.risk_level } },
-            trigger: null,
+          const verdict = await submitAnalysis(deviceId, 'text', text, {
+            channel: 'screen',
+            origin: 'automatic',
           });
+
+          if (verdict.risk_level === 'red' && verdict.block_template) {
+            if (navigationRef.isReady()) {
+              navigationRef.navigate('SeniorBlock', { template: verdict.block_template });
+            }
+          } else if (verdict.risk_level === 'amber') {
+            await Notifications.scheduleNotificationAsync({
+              content: {
+                title: 'Revisa este email',
+                body: 'Tiene indicios sospechosos. Consulta con un familiar.',
+                data: { verdict: verdict.risk_level },
+              },
+              trigger: null,
+            });
+          }
         } catch {
           // silent — no interrumpir al sénior si el análisis falla
         }

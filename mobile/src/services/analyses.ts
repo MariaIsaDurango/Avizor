@@ -32,11 +32,12 @@ export async function submitAnalysis(
   deviceId: string,
   inputType: InputType,
   value: string,
+  options?: { channel?: 'manual' | 'screen'; origin?: 'manual' | 'automatic' },
 ): Promise<Verdict> {
   const body: Record<string, unknown> = {
     device_id: deviceId,
-    channel: 'manual',
-    origin: 'manual',
+    channel: options?.channel ?? 'manual',
+    origin: options?.origin ?? 'manual',
     input_type: inputType,
     received_at: new Date().toISOString(),
   };

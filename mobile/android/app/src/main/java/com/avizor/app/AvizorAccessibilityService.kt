@@ -19,10 +19,15 @@ class AvizorAccessibilityService : AccessibilityService() {
         private const val GMAIL = "com.google.android.gm"
         private const val OUTLOOK = "com.microsoft.office.outlook"
         private const val MIN_EMAIL_LENGTH = 200
+        private const val MAX_EMAIL_LENGTH = 5000
         private const val DEBOUNCE_MS = 1500L
+        private const val MAX_HASH_CACHE = 100
+
+        // Clases de Gmail/Outlook que corresponden a la lista de correos, no al detalle.
+        private val INBOX_CLASS_KEYWORDS = listOf("ConversationList", "MailList", "InboxList")
     }
 
-    private val analyzedHashes = mutableSetOf<Int>()
+    private val analyzedHashes = LinkedHashSet<Int>()
     private var currentEmailPkg: String? = null
     private val handler = Handler(Looper.getMainLooper())
     private val extractRunnable = Runnable { tryExtractAndEmitEmail() }
@@ -58,6 +63,9 @@ class AvizorAccessibilityService : AccessibilityService() {
     private fun handleEmailApp(event: AccessibilityEvent, pkg: String) {
         when (event.eventType) {
             AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED -> {
+                val className = event.className?.toString() ?: ""
+                // Ignorar la bandeja de entrada y vistas de lista.
+                if (INBOX_CLASS_KEYWORDS.any { className.contains(it, ignoreCase = true) }) return
                 currentEmailPkg = pkg
                 handler.removeCallbacks(extractRunnable)
                 handler.postDelayed(extractRunnable, DEBOUNCE_MS)
@@ -75,14 +83,22 @@ class AvizorAccessibilityService : AccessibilityService() {
         val pkg = currentEmailPkg ?: return
         val root = rootInActiveWindow ?: return
         try {
-            val body = extractNodeText(root).trim()
+            val body = extractNodeText(root).trim().take(MAX_EMAIL_LENGTH)
             if (body.length < MIN_EMAIL_LENGTH) return
             val hash = body.hashCode()
-            if (!analyzedHashes.add(hash)) return
+            if (!addHash(hash)) return
             emitTextEvent(body, pkg, "email_body")
         } finally {
             root.recycle()
         }
+    }
+
+    private fun addHash(hash: Int): Boolean {
+        if (!analyzedHashes.add(hash)) return false
+        if (analyzedHashes.size > MAX_HASH_CACHE) {
+            analyzedHashes.remove(analyzedHashes.first())
+        }
+        return true
     }
 
     private fun emitTextEvent(text: String, pkg: String, eventType: String) {
