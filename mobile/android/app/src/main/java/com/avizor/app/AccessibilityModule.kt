@@ -45,6 +45,11 @@ class AccessibilityModule(reactContext: ReactApplicationContext) :
         reactApplicationContext.startActivity(intent)
     }
 
+    override fun invalidate() {
+        super.invalidate()
+        try { reactApplicationContext.unregisterReceiver(receiver) } catch (_: Exception) {}
+    }
+
     // Requeridos por RN para NativeEventEmitter
     @ReactMethod fun addListener(eventName: String) {}
     @ReactMethod fun removeListeners(count: Int) {}
