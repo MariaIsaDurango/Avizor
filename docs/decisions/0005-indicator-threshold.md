@@ -86,3 +86,22 @@ Cómo está aplicado:
   exponer a una persona concreta, mientras no se cuenten Sénior distintos.
 - **María (datos de reputación):** que el umbral de 5 encaje con los
   indicadores que llegan de las fuentes oficiales y las APIs de reputación.
+
+---
+
+## Actualización 2026-11-26: reporte manual de números (#170)
+
+- Nuevo `POST /api/v1/indicators`: el Sénior (o `senior_solo`) reporta un
+  número, por ejemplo tras una llamada sospechosa. Respuesta 201 si cuenta y
+  200 si ese dispositivo ya lo había reportado.
+- Tabla nueva `indicator_reports` (migración 0010): una fila por indicador y
+  dispositivo (UNIQUE). Así **los reportes manuales cuentan personas, no
+  repeticiones** (primer paso hacia la opción C solo para esta vía).
+- Las detecciones automáticas siguen sumando como antes (`record_indicator`),
+  así que la limitación de k-anonimato descrita arriba se mantiene para ellas.
+- Datos: el número solo se guarda como HMAC y enmascarado. La fila de reporte
+  guarda el `device_id` (dato seudonimizado) y se borra en cascada con el
+  indicador (retención de 12 meses) o con el dispositivo.
+- Efecto en la detección: 1 reporte → ámbar; 5 → rojo y entra en el ranking.
+- Pendiente para José: validar que guardar qué dispositivo reportó es
+  proporcional (necesario para no contar dos veces) y su retención.
