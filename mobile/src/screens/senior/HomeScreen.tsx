@@ -12,6 +12,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import * as SecureStore from 'expo-secure-store';
+import * as DocumentPicker from 'expo-document-picker';
+import * as ImagePicker from 'expo-image-picker';
 import { MaterialIcons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Screen from '../../components/Screen';
@@ -24,10 +26,15 @@ import { submitAnalysis, InputType, Verdict } from '../../services/analyses';
 import { useAccessibility } from '../../contexts/AccessibilityContext';
 import { RootStackParamList } from '../../navigation/types';
 
-const TABS: { key: InputType; label: string }[] = [
+type TabKey = InputType | 'file';
+
+const SUPPORTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+
+const TABS: { key: TabKey; label: string }[] = [
   { key: 'text', label: 'Texto' },
   { key: 'url', label: 'Enlace' },
   { key: 'phone_number', label: 'Teléfono' },
+  { key: 'file', label: 'Archivo' },
 ];
 
 const RISK_ICONS: Record<string, keyof typeof MaterialIcons.glyphMap> = {
@@ -68,10 +75,11 @@ type Props = NativeStackScreenProps<RootStackParamList, 'SeniorHome'>;
 
 export default function SeniorHomeScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
-  const [inputType, setInputType] = useState<InputType>('text');
+  const [inputType, setInputType] = useState<TabKey>('text');
   const [value, setValue] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
   const [verdict, setVerdict] = useState<Verdict | null>(null);
   const [deviceId, setDeviceId] = useState<string | null>(null);
   const [isSeniorSolo, setIsSeniorSolo] = useState(false);
@@ -86,14 +94,60 @@ export default function SeniorHomeScreen({ navigation }: Props) {
       .catch(() => {});
   }, []);
 
-  function handleTabChange(tab: InputType) {
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 4000);
+    return () => clearTimeout(t);
+  }, [toast]);
+
+  function handleTabChange(tab: TabKey) {
     setInputType(tab);
     setValue('');
     setError(null);
     setVerdict(null);
   }
 
+  async function pickPdf() {
+    setError(null);
+    try {
+      const result = await DocumentPicker.getDocumentAsync({ type: 'application/pdf', copyToCacheDirectory: true });
+      if (result.canceled || !result.assets?.[0]) return;
+      const asset = result.assets[0];
+      const mime = asset.mimeType ?? '';
+      if (mime !== 'application/pdf') {
+        setToast('Este formato no se acepta. Solo se admiten archivos PDF.');
+        return;
+      }
+      navigation.navigate('SeniorShareEmail', { fileUri: asset.uri, mimeType: mime });
+    } catch {
+      setError('No se pudo abrir el archivo.');
+    }
+  }
+
+  async function pickImage() {
+    setError(null);
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        quality: 0.85,
+        allowsEditing: false,
+      });
+      if (result.canceled || !result.assets?.[0]) return;
+      const asset = result.assets[0];
+      const mime = asset.mimeType ?? 'image/jpeg';
+      if (!SUPPORTED_IMAGE_TYPES.includes(mime)) {
+        const ext = mime.split('/')[1]?.toUpperCase() ?? mime;
+        setToast(`El formato ${ext} no se acepta. Usa JPG, PNG o WebP.`);
+        return;
+      }
+      navigation.navigate('SeniorShareEmail', { fileUri: asset.uri, mimeType: mime });
+    } catch {
+      setError('No se pudo abrir la imagen.');
+    }
+  }
+
   async function handleAnalyze() {
+    if (inputType === 'file') return;
     if (!value.trim()) {
       setError('Introduce el contenido a analizar.');
       return;
@@ -106,7 +160,7 @@ export default function SeniorHomeScreen({ navigation }: Props) {
     setError(null);
     setVerdict(null);
     try {
-      const result = await submitAnalysis(deviceId, inputType, value.trim());
+      const result = await submitAnalysis(deviceId, inputType as InputType, value.trim());
       if (result.block_template) {
         if (hardOfHearing) {
           await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch(() => {});
@@ -199,38 +253,54 @@ if (verdict) {
               ))}
             </View>
 
-            <TextInput
-              style={[
-                styles.input,
-                inputType === 'text' && styles.inputMultiline,
-                largeText && styles.inputLarge,
-              ]}
-              placeholder={
-                inputType === 'text'
-                  ? 'Pega aquí el mensaje sospechoso'
-                  : inputType === 'url'
-                  ? 'Pega aquí el enlace sospechoso'
-                  : 'Escribe el número, ej. 600 123 456'
-              }
-              placeholderTextColor={colors.primary}
-              value={value}
-              onChangeText={(v) => { setValue(v); setError(null); }}
-              multiline={inputType === 'text'}
-              numberOfLines={inputType === 'text' ? 5 : 1}
-              keyboardType={inputType === 'phone_number' ? 'phone-pad' : 'default'}
-              autoCapitalize="none"
-              autoCorrect={false}
-              accessibilityLabel={
-                inputType === 'text'
-                  ? 'Campo de texto del mensaje'
-                  : inputType === 'url'
-                  ? 'Campo del enlace'
-                  : 'Campo del número de teléfono'
-              }
-              accessibilityHint="Escribe o pega el contenido que quieres analizar y luego pulsa Analizar"
-            />
+            {inputType === 'file' ? (
+              <View style={styles.pickerArea}>
+                <Pressable
+                  style={[styles.pickerBtn, largeText && styles.pickerBtnLarge]}
+                  onPress={pickPdf}
+                  accessibilityRole="button"
+                  accessibilityLabel="Seleccionar PDF. Solo archivos PDF"
+                >
+                  <MaterialIcons name="picture-as-pdf" size={largeText ? 36 : 28} color={colors.primary} />
+                  <Text style={[styles.pickerBtnLabel, largeText && styles.pickerBtnLabelLarge]}>Subir PDF</Text>
+                  <Text style={[styles.pickerBtnHint, largeText && styles.pickerBtnHintLarge]}>Solo archivos PDF</Text>
+                </Pressable>
+                {/* IMAGE PICKER: oculto hasta que backend implemente OCR con Tesseract (issue #7) */}
+              </View>
+            ) : (
+              <TextInput
+                style={[
+                  styles.input,
+                  inputType === 'text' && styles.inputMultiline,
+                  largeText && styles.inputLarge,
+                ]}
+                placeholder={
+                  inputType === 'text'
+                    ? 'Pega aquí el mensaje sospechoso'
+                    : inputType === 'url'
+                    ? 'Pega aquí el enlace sospechoso'
+                    : 'Escribe el número, ej. 600 123 456'
+                }
+                placeholderTextColor={colors.primary}
+                value={value}
+                onChangeText={(v) => { setValue(v); setError(null); }}
+                multiline={inputType === 'text'}
+                numberOfLines={inputType === 'text' ? 5 : 1}
+                keyboardType={inputType === 'phone_number' ? 'phone-pad' : 'default'}
+                autoCapitalize="none"
+                autoCorrect={false}
+                accessibilityLabel={
+                  inputType === 'text'
+                    ? 'Campo de texto del mensaje'
+                    : inputType === 'url'
+                    ? 'Campo del enlace'
+                    : 'Campo del número de teléfono'
+                }
+                accessibilityHint="Escribe o pega el contenido que quieres analizar y luego pulsa Analizar"
+              />
+            )}
 
-            {inputType !== 'phone_number' && (
+            {inputType !== 'phone_number' && inputType !== 'file' && (
               <Text style={[styles.disclaimer, largeText && styles.disclaimerLarge]}>
                 No incluyas tu nombre, DNI, número de cuenta ni otros datos personales.
               </Text>
@@ -242,21 +312,31 @@ if (verdict) {
           </View>
 
           <View style={styles.footer}>
-            {loading
-              ? <ActivityIndicator size="large" color={colors.primary} />
-              : (
-                <Button
-                  label="Analizar"
-                  variant="action"
-                  disabled={!value.trim()}
-                  large={largeText}
-                  onPress={handleAnalyze}
-                />
-              )
-            }
+            {inputType !== 'file' && (
+              loading
+                ? <ActivityIndicator size="large" color={colors.primary} />
+                : (
+                  <Button
+                    label="Analizar"
+                    variant="action"
+                    disabled={!value.trim()}
+                    large={largeText}
+                    onPress={handleAnalyze}
+                  />
+                )
+            )}
           </View>
         </View>
       </TouchableWithoutFeedback>
+
+      {toast && (
+        <View style={styles.toast} accessibilityLiveRegion="assertive" accessibilityRole="alert">
+          <Text style={[styles.toastText, largeText && styles.toastTextLarge]} numberOfLines={2}>{toast}</Text>
+          <Pressable onPress={() => setToast(null)} accessibilityRole="button" accessibilityLabel="Cerrar">
+            <MaterialIcons name="close" size={largeText ? 26 : 20} color={colors.white} />
+          </Pressable>
+        </View>
+      )}
     </Screen>
   );
 }
@@ -306,12 +386,12 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
   },
   tabLabel: {
-    fontSize: fontSize.body,
+    fontSize: fontSize.caption,
     fontWeight: fontWeight.bold,
     color: colors.primary,
   },
   tabLabelLarge: {
-    fontSize: 22,
+    fontSize: 15,
   },
   tabLabelActive: {
     color: colors.white,
@@ -378,4 +458,59 @@ const styles = StyleSheet.create({
     padding: 8,
     zIndex: 1,
   },
+  pickerArea: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  pickerBtn: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    paddingVertical: 24,
+    borderWidth: 1.5,
+    borderColor: colors.primary,
+    borderRadius: 8,
+    backgroundColor: colors.white,
+  },
+  pickerBtnLarge: {
+    paddingVertical: 32,
+  },
+  pickerBtnLabel: {
+    fontSize: fontSize.body,
+    fontWeight: fontWeight.bold,
+    color: colors.primary,
+  },
+  pickerBtnLabelLarge: {
+    fontSize: 20,
+  },
+  pickerBtnHint: {
+    fontSize: 12,
+    color: colors.primary,
+    opacity: 0.55,
+    textAlign: 'center',
+  },
+  pickerBtnHintLarge: {
+    fontSize: 15,
+  },
+  toast: {
+    position: 'absolute',
+    bottom: 90,
+    left: 16,
+    right: 16,
+    backgroundColor: colors.alert,
+    borderRadius: 10,
+    padding: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    elevation: 10,
+  },
+  toastText: {
+    flex: 1,
+    color: colors.white,
+    fontSize: fontSize.caption,
+    fontWeight: fontWeight.bold,
+  },
+  toastTextLarge: { fontSize: 18 },
 });

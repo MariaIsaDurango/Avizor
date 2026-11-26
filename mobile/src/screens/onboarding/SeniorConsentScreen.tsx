@@ -32,6 +32,9 @@ export default function SeniorConsentScreen({ navigation }: Props) {
         <Text style={styles.paragraph}>
           Si detecta algo grave, avisará a tu familiar de confianza. Puedes retirar este permiso cuando quieras.
         </Text>
+        <Text style={styles.paragraph}>
+          Responsable del tratamiento de datos: Avizor.
+        </Text>
       </View>
       <Button
         label="Acepto que protejas mi móvil"

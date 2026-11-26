@@ -115,7 +115,7 @@ export default function TutorPairingScreen({ navigation }: Props) {
 
             <TextInput
               style={styles.input}
-              placeholder="Tu teléfono (opcional) — p.ej. +34 600 000 000"
+              placeholder="Tu teléfono (opcional), p.ej. +34 600 000 000"
               placeholderTextColor={colors.primary}
               value={guardianPhone}
               onChangeText={setGuardianPhone}
