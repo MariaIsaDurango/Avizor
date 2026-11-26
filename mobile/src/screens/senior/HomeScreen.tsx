@@ -13,7 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import * as SecureStore from 'expo-secure-store';
 import * as DocumentPicker from 'expo-document-picker';
-import * as ImagePicker from 'expo-image-picker';
+// expo-image-picker: importar cuando se reactive el picker (issue #7)
 import { MaterialIcons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Screen from '../../components/Screen';
@@ -28,7 +28,8 @@ import { RootStackParamList } from '../../navigation/types';
 
 type TabKey = InputType | 'file';
 
-const SUPPORTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+// SUPPORTED_IMAGE_TYPES: activar cuando se reactive el picker (issue #7)
+// const SUPPORTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
 
 const TABS: { key: TabKey; label: string }[] = [
   { key: 'text', label: 'Texto' },
@@ -124,27 +125,8 @@ export default function SeniorHomeScreen({ navigation }: Props) {
     }
   }
 
-  async function pickImage() {
-    setError(null);
-    try {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images'],
-        quality: 0.85,
-        allowsEditing: false,
-      });
-      if (result.canceled || !result.assets?.[0]) return;
-      const asset = result.assets[0];
-      const mime = asset.mimeType ?? 'image/jpeg';
-      if (!SUPPORTED_IMAGE_TYPES.includes(mime)) {
-        const ext = mime.split('/')[1]?.toUpperCase() ?? mime;
-        setToast(`El formato ${ext} no se acepta. Usa JPG, PNG o WebP.`);
-        return;
-      }
-      navigation.navigate('SeniorShareEmail', { fileUri: asset.uri, mimeType: mime });
-    } catch {
-      setError('No se pudo abrir la imagen.');
-    }
-  }
+  // IMAGE PICKER: oculto hasta que backend implemente OCR con Tesseract (issue #7)
+  // async function pickImage() { ... }
 
   async function handleAnalyze() {
     if (inputType === 'file') return;

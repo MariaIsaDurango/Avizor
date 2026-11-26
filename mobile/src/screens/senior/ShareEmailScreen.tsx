@@ -54,7 +54,13 @@ export default function ShareEmailScreen({ route, navigation }: Props) {
   const [loading, setLoading] = useState(false);
   const [verdict, setVerdict] = useState<Verdict | null>(null);
   const [showReason, setShowReason] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<string>(() => {
+    if (fileUri && mimeType && !SUPPORTED_MIME_TYPES.includes(mimeType)) {
+      const ext = mimeType.split('/')[1]?.toUpperCase() ?? mimeType;
+      return `El formato ${ext} no se acepta. Solo se admiten PDF, JPG, PNG y WebP.`;
+    }
+    return '';
+  });
   const [deviceId, setDeviceId] = useState<string | null>(null);
   const [isSeniorSolo, setIsSeniorSolo] = useState(false);
 
@@ -63,10 +69,6 @@ export default function ShareEmailScreen({ route, navigation }: Props) {
     SecureStore.getItemAsync(STORAGE_KEYS.USER_MODE)
       .then(mode => setIsSeniorSolo(mode === 'senior_solo'))
       .catch(() => {});
-    if (fileUri && mimeType && !SUPPORTED_MIME_TYPES.includes(mimeType)) {
-      const ext = mimeType.split('/')[1]?.toUpperCase() ?? mimeType;
-      setError(`El formato ${ext} no se acepta. Solo se admiten PDF, JPG, PNG y WebP.`);
-    }
   }, []);
 
   async function handleAnalyze() {
