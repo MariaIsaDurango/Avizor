@@ -188,7 +188,13 @@ export default function App() {
       (payload: { text?: string; uri?: string; mimeType?: string }) => {
         if (!navigationRef.isReady()) return;
         if (payload.uri) {
-          navigationRef.navigate('SeniorShareEmail', { fileUri: payload.uri, mimeType: payload.mimeType });
+          const isTel = payload.uri.startsWith('tel:');
+          if (isTel) {
+            const phone = payload.uri.replace('tel:', '').trim();
+            navigationRef.navigate('SeniorHome', { phoneNumber: phone });
+          } else {
+            navigationRef.navigate('SeniorShareEmail', { fileUri: payload.uri, mimeType: payload.mimeType });
+          }
         } else if (payload.text) {
           navigationRef.navigate('SeniorShareEmail', { text: payload.text });
         }

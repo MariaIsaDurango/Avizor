@@ -23,6 +23,7 @@ import { colors } from '../../constants/colors';
 import { fontSize, fontWeight } from '../../constants/typography';
 import { STORAGE_KEYS } from '../../constants/storage';
 import { submitAnalysis, InputType, Verdict } from '../../services/analyses';
+import { reportPhoneIndicator } from '../../services/indicators';
 import { useAccessibility } from '../../contexts/AccessibilityContext';
 import { RootStackParamList } from '../../navigation/types';
 
@@ -74,16 +75,18 @@ function verdictMessage(verdict: Verdict): string {
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SeniorHome'>;
 
-export default function SeniorHomeScreen({ navigation }: Props) {
+export default function SeniorHomeScreen({ navigation, route }: Props) {
   const insets = useSafeAreaInsets();
-  const [inputType, setInputType] = useState<TabKey>('text');
-  const [value, setValue] = useState('');
+  const [inputType, setInputType] = useState<TabKey>(route.params?.phoneNumber ? 'phone_number' : 'text');
+  const [value, setValue] = useState(route.params?.phoneNumber ?? '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [verdict, setVerdict] = useState<Verdict | null>(null);
   const [deviceId, setDeviceId] = useState<string | null>(null);
   const [isSeniorSolo, setIsSeniorSolo] = useState(false);
+  const [reporting, setReporting] = useState(false);
+  const [reported, setReported] = useState(false);
   const { largeText, colorBlind, hardOfHearing } = useAccessibility();
 
   useEffect(() => {
@@ -148,7 +151,10 @@ export default function SeniorHomeScreen({ navigation }: Props) {
           await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch(() => {});
         }
         handleReset();
-        navigation.navigate('SeniorBlock', { template: result.block_template });
+        navigation.navigate('SeniorBlock', {
+          template: result.block_template,
+          ...(inputType === 'phone_number' ? { phoneNumber: value.trim() } : {}),
+        });
       } else {
         if (hardOfHearing) {
           const feedbackType = result.risk_level === 'green'
@@ -171,12 +177,29 @@ export default function SeniorHomeScreen({ navigation }: Props) {
     setValue('');
     setVerdict(null);
     setError(null);
+    setReported(false);
+  }
+
+  async function handleReport() {
+    if (reported || reporting) return;
+    setReporting(true);
+    try {
+      await reportPhoneIndicator(deviceId, value);
+      setReported(true);
+      if (hardOfHearing) {
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+      }
+    } catch {
+      setToast('No se pudo reportar el número. Inténtalo de nuevo.');
+    } finally {
+      setReporting(false);
+    }
   }
 
 if (verdict) {
     const accentColor = (colorBlind ? RISK_COLORS_COLORBLIND : RISK_COLORS)[verdict.risk_level];
     return (
-      <Screen style={styles.screen}>
+      <Screen style={styles.screen} scrollable>
         <View style={[styles.verdictCard, { borderColor: accentColor }]}>
           <MaterialIcons
             name={RISK_ICONS[verdict.risk_level]}
@@ -194,6 +217,19 @@ if (verdict) {
           </BigText>
         </View>
         <View style={styles.footer}>
+          {inputType === 'phone_number' && (verdict.risk_level === 'amber' || verdict.risk_level === 'red') && (
+            reporting
+              ? <ActivityIndicator size="large" color={colors.primary} accessibilityLabel="Reportando número, por favor espera" />
+              : (
+                <Button
+                  label={reported ? 'Número reportado' : 'Reportar número'}
+                  variant={reported ? undefined : 'action'}
+                  disabled={reported}
+                  large={largeText}
+                  onPress={handleReport}
+                />
+              )
+          )}
           <Button label="Analizar otro mensaje" large={largeText} onPress={handleReset} />
         </View>
       </Screen>
@@ -416,7 +452,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   verdictCard: {
-    flex: 1,
+    minHeight: 200,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 20,
