@@ -13,9 +13,9 @@ export type RootStackParamList = {
   TutorAccount: undefined;
   AlertDetail: { alert: Alert };
   SeniorPairing: undefined;
-  SeniorHome: undefined;
+  SeniorHome: { phoneNumber?: string } | undefined;
   SeniorSettings: undefined;
-  SeniorBlock: { template: BlockTemplate };
+  SeniorBlock: { template: BlockTemplate; phoneNumber?: string };
   SeniorShareEmail: { text?: string; fileUri?: string; mimeType?: string };
   VerifyEmail: { email: string; flow?: 'senior_solo' };
   SeniorSoloConsent: undefined;

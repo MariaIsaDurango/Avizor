@@ -32,6 +32,8 @@ const RISK_COLOR_COLORBLIND: Record<string, string> = {
   red: colors.alert,
 };
 
+// issue #192: añadir image/* al intent-filter del Manifest y los tipos de abajo (sin gif — contrato solo acepta jpeg, png, webp, heic)
+// 'image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/heic'
 const SUPPORTED_MIME_TYPES = [
   'application/pdf',
 ];

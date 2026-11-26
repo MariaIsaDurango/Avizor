@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { View, Text, Pressable, StyleSheet, Linking, Animated } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Linking, Animated, ActivityIndicator } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MaterialIcons } from '@expo/vector-icons';
 import * as SecureStore from 'expo-secure-store';
@@ -11,6 +11,7 @@ import { colors } from '../../constants/colors';
 import { fontWeight } from '../../constants/typography';
 import { STORAGE_KEYS } from '../../constants/storage';
 import { useAccessibility } from '../../contexts/AccessibilityContext';
+import { reportPhoneIndicator } from '../../services/indicators';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SeniorBlock'>;
 
@@ -107,6 +108,11 @@ export default function SeniorBlockScreen({ navigation, route }: Props) {
   const [pulseAnim] = useState(() => new Animated.Value(1));
   const [guardianPhone, setGuardianPhone] = useState<string | null>(null);
   const [isSeniorSolo, setIsSeniorSolo] = useState(false);
+  const [deviceId, setDeviceId] = useState<string | null>(null);
+  const [reporting, setReporting] = useState(false);
+  const [reported, setReported] = useState(false);
+  const [reportError, setReportError] = useState(false);
+  const { phoneNumber } = route.params;
 
   useEffect(() => {
     SecureStore.getItemAsync(STORAGE_KEYS.GUARDIAN_PHONE)
@@ -115,7 +121,26 @@ export default function SeniorBlockScreen({ navigation, route }: Props) {
     SecureStore.getItemAsync(STORAGE_KEYS.USER_MODE)
       .then(mode => setIsSeniorSolo(mode === 'senior_solo'))
       .catch(() => {});
+    SecureStore.getItemAsync(STORAGE_KEYS.DEVICE_ID)
+      .then(setDeviceId)
+      .catch(() => {});
   }, []);
+
+  async function handleReport() {
+    if (!phoneNumber || reported || reporting) return;
+    setReporting(true);
+    try {
+      await reportPhoneIndicator(deviceId, phoneNumber);
+      setReported(true);
+      if (hardOfHearing) {
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+      }
+    } catch {
+      setReportError(true);
+    } finally {
+      setReporting(false);
+    }
+  }
 
   const config = (isSeniorSolo ? CONFIGS_SOLO : CONFIGS)[route.params.template];
 
@@ -172,6 +197,31 @@ export default function SeniorBlockScreen({ navigation, route }: Props) {
             <MaterialIcons name="phone" size={largeText ? 36 : 28} color={colors.success} />
             <Text style={[styles.callLabel, largeText && styles.callLabelLarge]}>Llamar a tu familiar</Text>
           </Pressable>
+        )}
+
+        {phoneNumber && (
+          reporting
+            ? <ActivityIndicator size="large" color={colors.primary} accessibilityLabel="Reportando número, por favor espera" />
+            : (
+              <>
+                <Pressable
+                  style={[styles.reportButton, largeText && styles.reportButtonLarge]}
+                  onPress={reported ? () => navigation.goBack() : handleReport}
+                  accessibilityRole="button"
+                  accessibilityLabel={reported ? 'Número reportado. Pulsa para cerrar' : 'Reportar este número como spam'}
+                >
+                  <MaterialIcons name={reported ? 'check' : 'flag'} size={largeText ? 26 : 20} color={colors.white} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" />
+                  <Text style={[styles.reportLabel, largeText && styles.reportLabelLarge]}>
+                    {reported ? 'Aceptar' : 'Reportar número'}
+                  </Text>
+                </Pressable>
+                {reportError && (
+                  <Text style={[styles.reportErrorText, largeText && styles.reportErrorTextLarge]} accessibilityLiveRegion="assertive">
+                    No se pudo reportar el número. Inténtalo de nuevo.
+                  </Text>
+                )}
+              </>
+            )
         )}
 
         <Pressable
@@ -279,6 +329,27 @@ const styles = StyleSheet.create({
   callLabelLarge: {
     fontSize: 28,
   },
+  reportButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: colors.alert,
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+  },
+  reportButtonLarge: {
+    paddingVertical: 20,
+  },
+  reportLabel: {
+    fontSize: 18,
+    fontWeight: fontWeight.bold,
+    color: colors.white,
+  },
+  reportLabelLarge: {
+    fontSize: 24,
+  },
   dismissButton: {
     alignItems: 'center',
     paddingVertical: 14,
@@ -294,4 +365,11 @@ const styles = StyleSheet.create({
   dismissLabelLarge: {
     fontSize: 22,
   },
+  reportErrorText: {
+    fontSize: 14,
+    color: colors.alert,
+    textAlign: 'center',
+    marginTop: 4,
+  },
+  reportErrorTextLarge: { fontSize: 18 },
 });

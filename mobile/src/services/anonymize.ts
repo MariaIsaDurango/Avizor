@@ -30,5 +30,6 @@ export function toE164(input: string): string | null {
   if (/^\+[1-9]\d{6,14}$/.test(digits)) return digits;
   if (/^00[1-9]\d{6,14}$/.test(digits)) return `+${digits.slice(2)}`;
   if (/^[6-9]\d{8}$/.test(digits)) return `+34${digits}`;  // ES: número español sin prefijo
+  if (/^400\d{6}$/.test(digits)) return `+34${digits}`;   // ES: rango 400 — llamadas comerciales (desde oct 2026)
   return null;
 }
