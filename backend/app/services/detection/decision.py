@@ -27,6 +27,18 @@ AMBER_THRESHOLD = 0.4
 # EN: Prior reports to treat an indicator as dangerous / suspicious.
 REPORTS_RED = 5
 REPORTS_AMBER = 1
+# ES: Rango 400 (desde el 17/10/2026): única numeración permitida para llamadas
+#     comerciales en España (Ley de Servicios de Atención a la Clientela). Es
+#     publicidad legal, no estafa: ámbar como spam, nunca rojo por sí solo.
+# EN: 400 range (since 2026-10-17): the only numbering allowed for commercial
+#     calls in Spain. Legal advertising, not fraud: amber spam, never red alone.
+COMMERCIAL_PREFIX = "+34400"
+COMMERCIAL_SCORE = 0.5
+
+
+def is_commercial_number(e164: str | None) -> bool:
+    """ES: +34 400 XXX XXX (9 cifras). EN: +34 400 XXX XXX (9 digits)."""
+    return bool(e164) and e164.startswith(COMMERCIAL_PREFIX) and len(e164) == 12
 
 
 @dataclass(frozen=True)
@@ -58,16 +70,35 @@ def _reputation_score(reports: int) -> float:
     return 0.0
 
 
-def decide_phone(origin: Origin, sender_reports: int) -> FastDecision:
+def decide_phone(
+    origin: Origin, sender_reports: int, sender_phone: str | None = None
+) -> FastDecision:
     """ES: Vishing: solo se mira el número, nunca la conversación.
     EN: Vishing: only the number is checked, never the conversation.
     """
-    level = _level(_reputation_score(sender_reports))
+    commercial = is_commercial_number(sender_phone)
+    score = max(
+        _reputation_score(sender_reports), COMMERCIAL_SCORE if commercial else 0.0
+    )
+    level = _level(score)
     reasons = (
         [f"Este número ya ha sido reportado {sender_reports} veces."]
         if sender_reports
         else []
     )
+    if commercial:
+        reasons.append("Es un número 400: solo se usa para llamadas comerciales.")
+    if commercial and level == RiskLevel.AMBER:
+        # ES: Regla fija, sin modelo ni API: seguro de que es publicidad.
+        # EN: Fixed rule, no model or API: certain it is advertising.
+        return FastDecision(
+            level,
+            ThreatType.SPAM,
+            Action.ALLOW,
+            BlockTemplate.SUSPICIOUS_CALL,
+            0.95,
+            reasons,
+        )
     if level == RiskLevel.RED:
         return FastDecision(
             level,
@@ -167,9 +198,10 @@ def decide(
     classifier: ThreatClassifier,
     sender_reports: int = 0,
     domain_reports: int = 0,
+    sender_phone: str | None = None,
 ) -> FastDecision:
     if input_type == InputType.PHONE_NUMBER:
-        return decide_phone(origin, sender_reports)
+        return decide_phone(origin, sender_reports, sender_phone)
     decision = decide_message(
         text=text,
         urls=urls,
@@ -227,5 +259,36 @@ def apply_url_reputation(
         confidence=round(score, 3),
         reasons=reasons + baseline.reasons,
         reputation_findings=findings,
+        reputation_only=baseline.risk_level == RiskLevel.GREEN,
+    )
+
+
+def apply_phone_reputation(
+    baseline: FastDecision, status: str, score: int, label: str
+) -> FastDecision:
+    """ES: Señal externa de un número (#168). Puede subir el riesgo, nunca bajarlo.
+    Si solo la señal externa lo marca, reputation_only=True: no se crea reporte
+    local del número (un tercero no cuenta como una persona de Avizor).
+    EN: External number signal (#168). Can raise risk, never lower it. If only
+    the external signal marks it, reputation_only=True: no local report is made.
+    """
+    if status not in ("malicious", "suspicious") or not 0 <= score <= 100:
+        return baseline
+    reason = f"{label} informa de reportes de la comunidad sobre este número."
+    level = _level(score / 100)
+    order = {RiskLevel.GREEN: 0, RiskLevel.AMBER: 1, RiskLevel.RED: 2}
+    if order[level] <= order[baseline.risk_level]:
+        if level == RiskLevel.GREEN:
+            return baseline
+        return replace(baseline, reasons=baseline.reasons + [reason])
+    red = level == RiskLevel.RED
+    return replace(
+        baseline,
+        risk_level=level,
+        threat_type=ThreatType.VISHING,
+        action=Action.BLOCK_AND_ALERT if red else Action.ALLOW,
+        block_template=BlockTemplate.SUSPICIOUS_CALL,
+        confidence=round(score / 100, 3),
+        reasons=baseline.reasons + [reason],
         reputation_only=baseline.risk_level == RiskLevel.GREEN,
     )
