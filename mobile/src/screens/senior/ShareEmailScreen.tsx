@@ -34,7 +34,6 @@ const RISK_COLOR_COLORBLIND: Record<string, string> = {
 
 const SUPPORTED_MIME_TYPES = [
   'application/pdf',
-  'image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif',
 ];
 
 const THREAT_LABEL: Record<string, string> = {
