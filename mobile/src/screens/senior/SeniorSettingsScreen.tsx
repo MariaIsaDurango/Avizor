@@ -266,7 +266,7 @@ export default function SeniorSettingsScreen({ navigation }: Props) {
         <Text style={[styles.sectionTitle, largeText && styles.sectionTitleLarge]}>Ayuda</Text>
         <Pressable
           style={styles.row}
-          onPress={() => Linking.openURL(SUPPORT_URL)}
+          onPress={() => Linking.openURL(SUPPORT_URL + (isSeniorSolo ? '#solo' : ''))}
           accessibilityRole="button"
           accessibilityLabel="Abrir centro de soporte"
         >

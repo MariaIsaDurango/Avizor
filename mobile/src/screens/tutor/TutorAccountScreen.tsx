@@ -324,7 +324,7 @@ export default function TutorAccountScreen({ navigation }: Props) {
         {showDeleteForm && (
           <View style={styles.deleteForm}>
             <Text style={styles.deleteHint}>
-              Se borrarán tu cuenta, el sénior vinculado y todos los datos asociados. Esta acción no se puede deshacer.
+              Se borrarán tu cuenta y tus datos. Si tu familiar no tiene otro tutor, dejará de estar protegido. Esta acción no se puede deshacer.
             </Text>
             <TextInput
               style={styles.deleteInput}
