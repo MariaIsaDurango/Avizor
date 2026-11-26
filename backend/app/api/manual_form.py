@@ -19,7 +19,8 @@ from starlette.formparsers import MultiPartException, MultiPartParser
 
 from app.core.errors import ApiError
 from app.schemas.analysis import ATTACHMENT_RULES, MB, ManualAnalysisMetadata
-from app.schemas.enums import ErrorCode
+from app.schemas.enums import ErrorCode, InputType
+from app.services.extraction import is_pdf
 
 # ES: Un vídeo (50 MB) + margen. EN: One video (50 MB) + margin.
 MAX_REQUEST_BYTES = 60 * MB
@@ -50,11 +51,13 @@ def _invalid(detail: str) -> ApiError:
 
 async def read_manual_form(
     request: Request,
-) -> tuple[ManualAnalysisMetadata, dict[str, int]]:
-    """ES: Devuelve la metadata validada y el tamaño real de cada adjunto.
-    El contenido de los archivos se lee y se descarta (no se guarda).
-    EN: Returns the validated metadata and the real size of each attachment.
-    File contents are read and discarded (not stored).
+) -> tuple[ManualAnalysisMetadata, dict[str, int], dict[str, bytes]]:
+    """ES: Devuelve la metadata validada, el tamaño real de cada adjunto y, en
+    memoria, los PDF que el servidor debe leer (#164): los que llegan sin
+    local_preprocessing. El resto se lee y se descarta. Nada se guarda.
+    EN: Returns the validated metadata, the real size of each attachment and,
+    in memory, the PDFs the server must read (#164): those without
+    local_preprocessing. The rest is read and discarded. Nothing is stored.
     """
     length = request.headers.get("content-length", "")
     if length.isdigit() and int(length) > MAX_REQUEST_BYTES:
@@ -89,12 +92,21 @@ async def read_manual_form(
             raise _invalid("Los archivos no coinciden con metadata.attachments.")
 
         sizes: dict[str, int] = {}
+        server_files: dict[str, bytes] = {}
         for field, upload in uploads:
-            size = len(await upload.read())
-            if size > ATTACHMENT_RULES[declared[field].type]["max_bytes"]:
+            data = await upload.read()
+            attachment = declared[field]
+            if len(data) > ATTACHMENT_RULES[attachment.type]["max_bytes"]:
                 raise _invalid(f"{field} supera el tamaño permitido.")
-            sizes[field] = size
-        return metadata, sizes
+            sizes[field] = len(data)
+            if (
+                attachment.type == InputType.DOCUMENT
+                and attachment.local_preprocessing is None
+            ):
+                if not is_pdf(data):
+                    raise _invalid(f"{field} no es un PDF válido.")
+                server_files[field] = data
+        return metadata, sizes, server_files
     finally:
         # ES: Libera la memoria de los archivos. EN: Frees the files' memory.
         await form.close()

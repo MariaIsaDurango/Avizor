@@ -94,9 +94,14 @@ async def create_analysis(
     """
     content_type = request.headers.get("content-type", "")
     if content_type.startswith("multipart/form-data"):
-        metadata, sizes = await read_manual_form(request)
+        metadata, sizes, server_files = await read_manual_form(request)
         job = await run_in_threadpool(
-            manual_service.start_manual_analysis, db, token, metadata, sizes
+            manual_service.start_manual_analysis,
+            db,
+            token,
+            metadata,
+            sizes,
+            server_files,
         )
         background_tasks.add_task(manual_service.run_manual_job, job)
         return _accepted(
