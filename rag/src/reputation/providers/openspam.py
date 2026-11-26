@@ -26,11 +26,13 @@ PER_DAY = 50
 # the cache, so a slow answer does not spend the daily quota twice.
 REQUEST_TIMEOUT = 3.0
 # Stored danger level -> (status, policy score 0-100). Not a probability.
+# Backend thresholds: >= 40 amber, >= 70 red. Any reported number is at least
+# amber (#168: "a known spam number returns amber or red").
 LEVELS = {
-    "bajo": ("suspicious", 40),
-    "medio": ("suspicious", 60),
-    "alto": ("malicious", 85),
-    "muy_alto": ("malicious", 95),
+    "bajo": ("suspicious", 40),  # amber
+    "medio": ("suspicious", 60),  # amber
+    "alto": ("malicious", 85),  # red
+    "muy_alto": ("malicious", 95),  # red
 }
 
 

@@ -114,11 +114,9 @@ class ReputationRuntime:
                 return None
 
         baseline, result = await asyncio.gather(asyncio.to_thread(classify), signal())
-        if (
-            result is None
-            or type(result.score) is not int
-            or result.status not in ("malicious", "suspicious")
-        ):
+        if result is None or result.status not in ("malicious", "suspicious"):
+            return baseline
+        if type(result.score) is not int:
             return baseline
         return apply_phone_reputation(baseline, result.status, result.score, "OpenSpam")
 

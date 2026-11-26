@@ -111,8 +111,11 @@ def test_openspam_positive_raises_to_red(
     assert db_session.scalars(select(Indicator)).all() == []
 
 
-def test_openspam_medium_is_amber(api_client, consented_senior, monkeypatch):
-    inject(monkeypatch, PhoneProvider("suspicious", 60))
+@pytest.mark.parametrize("score", [40, 60])  # bajo, medio
+def test_openspam_low_and_medium_are_amber(
+    api_client, consented_senior, monkeypatch, score
+):
+    inject(monkeypatch, PhoneProvider("suspicious", score))
     assert check(api_client, consented_senior, MOBILE)["risk_level"] == "amber"
 
 

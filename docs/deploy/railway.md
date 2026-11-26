@@ -158,7 +158,7 @@ privacidad** (el número viaja a un tercero dentro de la URL, por HTTPS):
   resultados hasta 24 h en planes de pago y no lo detalla para el gratuito.
 - Si OpenSpam tarda más que el presupuesto o falla, vale la decisión local; la
   consulta termina en segundo plano y llena la caché.
-- Un positivo de OpenSpam sube el riesgo (alto/muy alto → rojo; medio → ámbar)
-  pero no crea un reporte local del número.
+- Un positivo de OpenSpam sube el riesgo (alto/muy alto → rojo; medio/bajo →
+  ámbar) pero no crea un reporte local del número. No encontrado: sin cambio.
 - Para desactivarlo basta con `AVIZOR_EXTERNAL_PHONES=0`.
 
