@@ -1,6 +1,7 @@
 import { Text, StyleSheet, TextStyle } from 'react-native';
 import { colors } from '../constants/colors';
 import { fontSize, fontWeight } from '../constants/typography';
+import { useAccessibility } from '../contexts/AccessibilityContext';
 
 interface BigTextProps {
   children: React.ReactNode;
@@ -8,8 +9,10 @@ interface BigTextProps {
 }
 
 export default function BigText({ children, style }: BigTextProps) {
+  const { largeText } = useAccessibility();
+  const size = largeText ? fontSize.bigText * 1.4 : fontSize.bigText;
   return (
-    <Text style={[styles.text, style]} accessibilityRole="text">
+    <Text style={[styles.text, { fontSize: size, lineHeight: size * 1.4 }, style]} accessibilityRole="text">
       {children}
     </Text>
   );
@@ -17,9 +20,7 @@ export default function BigText({ children, style }: BigTextProps) {
 
 const styles = StyleSheet.create({
   text: {
-    fontSize: fontSize.bigText,
     fontWeight: fontWeight.bold,
     color: colors.primary,
-    lineHeight: fontSize.bigText * 1.4,
   },
 });

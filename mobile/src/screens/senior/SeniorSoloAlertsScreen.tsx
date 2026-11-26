@@ -9,6 +9,7 @@ import AlertCard from '../../components/AlertCard';
 import { colors } from '../../constants/colors';
 import { fontSize, fontWeight } from '../../constants/typography';
 import { getMyAnalyses, MyAnalysis, ThreatType } from '../../services/myAnalyses';
+import { useAccessibility } from '../../contexts/AccessibilityContext';
 import { RootStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SeniorSoloAlerts'>;
@@ -43,6 +44,15 @@ const CHANNEL_LABELS: Record<string, string> = {
   manual:       'Manual',
 };
 
+const BLOCK_TEMPLATE_LABELS: Record<string, string> = {
+  DANGEROUS_LINK:    'Enlace peligroso',
+  ASKS_BANK_DETAILS: 'Solicita datos bancarios',
+  SUSPICIOUS_CALL:   'Llamada sospechosa',
+  FAKE_DO_NOT_TOUCH: 'Contenido fraudulento',
+  UNSURE_CALL_FAMILY:'Dudoso — consulta con un familiar',
+  LOOKS_SAFE:        'Sin amenaza detectada',
+};
+
 const THREAT_COLORS = ['#164E55','#D93838','#D97706','#0F2C59','#2E8B57','#F4B19B','#1d6b74'];
 
 const RISK_MAP: Record<string, 'green' | 'amber' | 'red'> = {
@@ -73,6 +83,7 @@ const PAGE_SIZE = 20;
 
 export default function SeniorSoloAlertsScreen({ navigation }: Props) {
   const { width }                     = useWindowDimensions();
+  const { largeText }                 = useAccessibility();
   const [analyses, setAnalyses]       = useState<MyAnalysis[]>([]);
   const [total, setTotal]             = useState(0);
   const [offset, setOffset]           = useState(0);
@@ -128,7 +139,7 @@ export default function SeniorSoloAlertsScreen({ navigation }: Props) {
         >
           <MaterialIcons name="arrow-back" size={24} color={colors.primary} />
         </Pressable>
-        <Text style={styles.title}>Mis alertas</Text>
+        <Text style={[styles.title, largeText && { fontSize: 26 }]}>Mis alertas</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -157,13 +168,13 @@ export default function SeniorSoloAlertsScreen({ navigation }: Props) {
             <View>
               {attacksTotal > 0 && (
                 <View style={styles.statsCard}>
-                  <Text style={styles.statsLabel}>Amenazas detectadas</Text>
-                  <Text style={styles.statsValue}>{attacksTotal}</Text>
+                  <Text style={[styles.statsLabel, largeText && { fontSize: 14 }]}>Amenazas detectadas</Text>
+                  <Text style={[styles.statsValue, largeText && { fontSize: 52 }]}>{attacksTotal}</Text>
                 </View>
               )}
               {pieData.length > 0 && (
                 <View style={styles.chartCard}>
-                  <Text style={styles.statsLabel}>Por tipo de amenaza</Text>
+                  <Text style={[styles.statsLabel, largeText && { fontSize: 14 }]}>Por tipo de amenaza</Text>
                   <PieChart
                     data={pieData}
                     width={width - 40}
@@ -186,27 +197,37 @@ export default function SeniorSoloAlertsScreen({ navigation }: Props) {
               )}
               {analyses.length > 0 && (
                 <View style={styles.sectionHeader}>
-                  <Text style={styles.sectionTitle}>Historial</Text>
+                  <Text style={[styles.sectionTitle, largeText && { fontSize: 22 }]}>Historial</Text>
                   <View style={styles.badge}>
-                    <Text style={styles.badgeText}>{total}</Text>
+                    <Text style={[styles.badgeText, largeText && { fontSize: 14 }]}>{total}</Text>
                   </View>
                 </View>
               )}
             </View>
           }
-          renderItem={({ item }) => (
-            <AlertCard
-              icon={THREAT_ICONS[item.threat_type]}
-              title={THREAT_LABELS[item.threat_type] ?? item.threat_type}
-              description={`${CHANNEL_LABELS[item.channel] ?? item.channel} · ${formatDate(item.created_at)}`}
-              riskLevel={RISK_MAP[item.risk_level] ?? 'green'}
-            />
-          )}
+          renderItem={({ item }) => {
+            const templateLabel = item.block_template
+              ? (BLOCK_TEMPLATE_LABELS[item.block_template] ?? item.block_template)
+              : null;
+            const description = [
+              templateLabel,
+              CHANNEL_LABELS[item.channel] ?? item.channel,
+              formatDate(item.created_at),
+            ].filter(Boolean).join(' · ');
+            return (
+              <AlertCard
+                icon={THREAT_ICONS[item.threat_type]}
+                title={THREAT_LABELS[item.threat_type] ?? item.threat_type}
+                description={description}
+                riskLevel={RISK_MAP[item.risk_level] ?? 'green'}
+              />
+            );
+          }}
           ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
           ListEmptyComponent={
             <View style={styles.emptyState}>
               <MaterialIcons name="notifications-none" size={52} color={colors.primary} style={styles.emptyIcon} />
-              <Text style={styles.emptyText}>No tienes alertas por el momento.</Text>
+              <Text style={[styles.emptyText, largeText && { fontSize: 20 }]}>No tienes alertas por el momento.</Text>
             </View>
           }
           ListFooterComponent={

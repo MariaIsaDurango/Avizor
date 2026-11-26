@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { View, Text, Pressable, StyleSheet, Alert, AppState, Platform, NativeModules } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Alert, AppState, Platform, NativeModules, Linking } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -8,6 +8,7 @@ import { colors } from '../../constants/colors';
 import { fontSize, fontWeight } from '../../constants/typography';
 import { STORAGE_KEYS } from '../../constants/storage';
 import { apiFetch, clearToken } from '../../services/api';
+import { API_BASE_URL } from '../../constants/api';
 import { useAccessibility } from '../../contexts/AccessibilityContext';
 import { RootStackParamList } from '../../navigation/types';
 
@@ -236,6 +237,25 @@ export default function SeniorSettingsScreen({ navigation }: Props) {
           )}
         </View>
       )}
+
+      <View style={styles.section}>
+        <Text style={[styles.sectionTitle, largeText && styles.sectionTitleLarge]}>Ayuda</Text>
+        <Pressable
+          style={styles.row}
+          onPress={() => Linking.openURL(`${API_BASE_URL}/support${isSeniorSolo ? '#solo' : ''}`)}
+          accessibilityRole="button"
+          accessibilityLabel="Abrir centro de soporte"
+        >
+          <View style={styles.rowLeft}>
+            <MaterialIcons name="help-outline" size={20} color={colors.primary} style={{ opacity: 0.7 }} />
+            <View>
+              <Text style={[styles.rowLabel, largeText && styles.rowLabelLarge]}>Centro de soporte</Text>
+              <Text style={styles.rowSub}>Guías y preguntas frecuentes</Text>
+            </View>
+          </View>
+          <MaterialIcons name="open-in-new" size={16} color={colors.primary} style={{ opacity: 0.4 }} />
+        </Pressable>
+      </View>
 
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, largeText && styles.sectionTitleLarge]}>Cuenta</Text>

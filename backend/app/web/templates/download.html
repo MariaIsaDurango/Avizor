@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}Descarga Avizor{% endblock %}
-{% block meta_description %}Descarga la app Avizor para Android e iOS. Requisitos, permisos y guía de instalación.{% endblock %}
+{% block meta_description %}Descarga la app Avizor para Android. Requisitos, permisos y guía de instalación.{% endblock %}
 
 {% block extra_head %}
 <style>
@@ -33,11 +33,14 @@
   /* ── Mode cards ─────────────────────────────────────────── */
   .mode-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(3, 1fr);
     gap: 1.25rem;
     margin-bottom: 2rem;
   }
-  @media (max-width: 600px) {
+  @media (max-width: 768px) {
+    .mode-grid { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 480px) {
     .mode-grid { grid-template-columns: 1fr; }
   }
 
@@ -163,7 +166,7 @@
 
 <!-- ── Dos modos de uso ──────────────────────────────────── -->
 <section class="card" style="margin-bottom: 1.5rem;">
-  <h2 class="card__title">Dos modos de uso</h2>
+  <h2 class="card__title">Tres modos de uso</h2>
   <div class="mode-grid">
     <div class="mode-card">
       <div class="mode-card__icon">
@@ -185,6 +188,17 @@
       <p>
         Para el familiar o cuidador. Recibe alertas en tiempo real cuando se detecta una amenaza,
         gestiona los dispositivos vinculados y revisa el historial de fraudes.
+      </p>
+    </div>
+    <div class="mode-card">
+      <div class="mode-card__icon">
+        <i data-lucide="user" aria-hidden="true"></i>
+      </div>
+      <div class="mode-card__title">Modo Sénior Solo</div>
+      <span class="mode-card__platform mode-card__platform--android">Solo Android</span>
+      <p>
+        Para quien quiere protección sin vincular a un familiar. Avizor analiza los mensajes
+        de forma autónoma y guarda un historial de alertas accesible en cualquier momento.
       </p>
     </div>
   </div>

@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { View, Text, TextInput, Pressable, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, Pressable, StyleSheet, Alert, ActivityIndicator, Linking } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MaterialIcons } from '@expo/vector-icons';
 import Screen from '../../components/Screen';
 import { colors } from '../../constants/colors';
 import { fontSize, fontWeight } from '../../constants/typography';
 import { getMe, updateMe, changePassword, logout } from '../../services/auth';
+import { API_BASE_URL } from '../../constants/api';
 import { unlinkSenior } from '../../services/pairing';
 import { RootStackParamList } from '../../navigation/types';
 
@@ -246,6 +247,20 @@ export default function TutorAccountScreen({ navigation }: Props) {
             <Text style={styles.pwdHint}>Al cambiar la contraseña se cerrará la sesión en todos los dispositivos.</Text>
           </View>
         )}
+      </View>
+
+      {/* Ayuda */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Ayuda</Text>
+        <Pressable
+          style={styles.row}
+          onPress={() => Linking.openURL(`${API_BASE_URL}/support`)}
+          accessibilityRole="button"
+          accessibilityLabel="Abrir centro de soporte"
+        >
+          <Text style={styles.rowLabel}>Centro de soporte</Text>
+          <MaterialIcons name="open-in-new" size={16} color={colors.primary} style={{ opacity: 0.5 }} />
+        </Pressable>
       </View>
 
       {/* Acciones destructivas */}

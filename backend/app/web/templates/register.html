@@ -341,7 +341,7 @@
 
       </form>
 
-      <p class="auth-footer">
+      <p class="auth-footer" id="login-footer">
         ¿Ya tienes cuenta? <a href="/login">Inicia sesión</a>
       </p>
 
@@ -361,12 +361,15 @@
       selectedRole = role;
       document.querySelectorAll('.role-pill').forEach(b => b.classList.remove('role-pill--active'));
       document.querySelector(`[data-role="${role}"]`).classList.add('role-pill--active');
+      const footer = document.getElementById('login-footer');
       if (role === 'senior_solo') {
-        form.style.display   = 'none';
+        form.style.display    = 'none';
         banner.classList.add('app-only-banner--visible');
+        footer.style.display  = 'none';
       } else {
-        form.style.display   = '';
+        form.style.display    = '';
         banner.classList.remove('app-only-banner--visible');
+        footer.style.display  = '';
       }
       lucide.createIcons();
     }

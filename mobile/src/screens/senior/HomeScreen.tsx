@@ -48,6 +48,12 @@ const RISK_COLORS: Record<string, string> = {
   red: colors.alert,
 };
 
+const RISK_COLORS_COLORBLIND: Record<string, string> = {
+  green: colors.successColorBlind,
+  amber: colors.warning,
+  red: colors.alert,
+};
+
 const RISK_MESSAGES: Record<string, string> = {
   green: 'Parece seguro',
   amber: 'Podría ser sospechoso',
@@ -132,7 +138,7 @@ export default function SeniorHomeScreen({ navigation }: Props) {
   }
 
 if (verdict) {
-    const accentColor = RISK_COLORS[verdict.risk_level];
+    const accentColor = (colorBlind ? RISK_COLORS_COLORBLIND : RISK_COLORS)[verdict.risk_level];
     return (
       <Screen style={styles.screen}>
         <View style={[styles.verdictCard, { borderColor: accentColor }]}>
@@ -204,7 +210,7 @@ if (verdict) {
                   ? 'Pega aquí el mensaje sospechoso'
                   : inputType === 'url'
                   ? 'Pega aquí el enlace sospechoso'
-                  : 'Número en formato +34 600 000 000'
+                  : 'Escribe el número, ej. 600 123 456'
               }
               placeholderTextColor={colors.primary}
               value={value}
