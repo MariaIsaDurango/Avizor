@@ -11,7 +11,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
 from app.models.types import TZ, created_at, pg_enum, uuid_pk
-from app.schemas.enums import CaseStatus, IndicatorType
+from app.schemas.enums import CaseStatus, IndicatorType, ThreatType
 
 
 class Indicator(Base):
@@ -29,6 +29,28 @@ class Indicator(Base):
     report_count: Mapped[int] = mapped_column(Integer, server_default="1")
     first_seen_at: Mapped[datetime] = mapped_column(TZ)
     last_seen_at: Mapped[datetime] = mapped_column(TZ)
+
+
+class IndicatorReport(Base):
+    """ES: Reporte manual de un indicador por un dispositivo (#170). Un mismo
+    dispositivo cuenta una sola vez por indicador. Se borra con el indicador
+    (retención de 12 meses) o con el dispositivo.
+    EN: Manual report of an indicator by a device (#170). A device counts once
+    per indicator. Deleted with the indicator (12-month retention) or device.
+    """
+
+    __tablename__ = "indicator_reports"
+    __table_args__ = (UniqueConstraint("indicator_id", "device_id"),)
+
+    id: Mapped[uuid.UUID] = uuid_pk()
+    indicator_id: Mapped[uuid.UUID] = mapped_column(
+        UUID, ForeignKey("indicators.id", ondelete="CASCADE"), index=True
+    )
+    device_id: Mapped[uuid.UUID] = mapped_column(
+        UUID, ForeignKey("devices.id", ondelete="CASCADE")
+    )
+    threat_type: Mapped[ThreatType] = mapped_column(pg_enum(ThreatType, "threat_type"))
+    created_at: Mapped[datetime] = created_at()
 
 
 class Case(Base):
