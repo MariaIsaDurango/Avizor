@@ -13,6 +13,14 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /app/backend
 ENV PYTHONPATH=/app:/app/backend
 
+# ES: Tesseract para el OCR de imágenes (#192), local: la imagen no sale del
+#     servidor. Solo español; sin paquetes recomendados para no inflar la imagen.
+# EN: Tesseract for image OCR (#192), local: the image never leaves the server.
+#     Spanish only; no recommended packages to keep the image small.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends tesseract-ocr tesseract-ocr-spa \
+    && rm -rf /var/lib/apt/lists/*
+
 # ES: Primero las dependencias (capa en caché si no cambian).
 # EN: Dependencies first (cached layer while they do not change).
 COPY backend/requirements.txt ./requirements.txt
