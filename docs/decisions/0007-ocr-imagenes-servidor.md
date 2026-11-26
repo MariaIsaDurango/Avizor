@@ -42,5 +42,5 @@ Opciones valoradas:
 ## Consecuencias
 
 - HEIC no se lee (Leptonica no lo soporta): sale AMBER "no pudimos leer".
-- Los nombres de personas no se tapan todavía (`regex-v0`): pendiente en #193.
+- Los nombres de personas se tapan desde #193 (ADR 0009).
 - Los datos médicos no los cubre ningún NER: limitación documentada.

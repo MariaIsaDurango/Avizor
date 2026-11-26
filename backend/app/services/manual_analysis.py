@@ -55,6 +55,7 @@ from app.services.analysis import (
 )
 from app.services.detection.anonymize import anonymize
 from app.services.detection.decision import FastDecision, decide
+from app.services.detection.names import mask_names
 from app.services.detection.url_extract import extract_urls
 from app.services.detection.url_rules import domain_of
 from app.services.devices import touch_device
@@ -146,9 +147,11 @@ def _attachment_text(
         extractor = SERVER_EXTRACTORS.get(attachment.type)
         if extractor is not None and data is not None:
             extract, engine = extractor
-            # ES: El texto sin anonimizar no sale de esta función.
-            # EN: The raw text never leaves this function.
-            return anonymize(extract(data)), engine, "server"
+            # ES: El texto sin anonimizar no sale de esta función. Primero las
+            #     reglas del móvil (regex-v0) y luego los nombres (#193).
+            # EN: The raw text never leaves this function. First the phone's
+            #     rules (regex-v0), then names (#193).
+            return mask_names(anonymize(extract(data))), engine, "server"
         return "", SERVER_EXTRACTION_ENGINE, "server"
     if not local.ner_applied:
         raise ApiError(422, ErrorCode.CONTENT_NOT_ANONYMIZED)

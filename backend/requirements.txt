@@ -18,3 +18,6 @@ numpy>=1.26
 onnxruntime>=1.18     # ES: modelo de IA sin torch (#38) / EN: AI model without torch (#38)
 tokenizers>=0.20
 pypdf>=5.0           # ES: texto de PDF adjuntos (#164), sin dependencias / EN: PDF attachment text
+# ES: NER de nombres en PDF e imágenes (#193), local. EN: Name NER, local (#193).
+spacy>=3.8,<3.9
+es_core_news_md @ https://github.com/explosion/spacy-models/releases/download/es_core_news_md-3.8.0/es_core_news_md-3.8.0-py3-none-any.whl
