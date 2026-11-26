@@ -20,7 +20,7 @@ from starlette.formparsers import MultiPartException, MultiPartParser
 from app.core.errors import ApiError
 from app.schemas.analysis import ATTACHMENT_RULES, MB, ManualAnalysisMetadata
 from app.schemas.enums import ErrorCode, InputType
-from app.services.extraction import is_pdf
+from app.services.extraction import is_image, is_pdf
 
 # ES: Un vídeo (50 MB) + margen. EN: One video (50 MB) + margin.
 MAX_REQUEST_BYTES = 60 * MB
@@ -53,11 +53,13 @@ async def read_manual_form(
     request: Request,
 ) -> tuple[ManualAnalysisMetadata, dict[str, int], dict[str, bytes]]:
     """ES: Devuelve la metadata validada, el tamaño real de cada adjunto y, en
-    memoria, los PDF que el servidor debe leer (#164): los que llegan sin
-    local_preprocessing. El resto se lee y se descarta. Nada se guarda.
+    memoria, los PDF (#164) e imágenes (#192) que el servidor debe leer: los
+    que llegan sin local_preprocessing. El resto se lee y se descarta. Nada se
+    guarda.
     EN: Returns the validated metadata, the real size of each attachment and,
-    in memory, the PDFs the server must read (#164): those without
-    local_preprocessing. The rest is read and discarded. Nothing is stored.
+    in memory, the PDFs (#164) and images (#192) the server must read: those
+    without local_preprocessing. The rest is read and discarded. Nothing is
+    stored.
     """
     length = request.headers.get("content-length", "")
     if length.isdigit() and int(length) > MAX_REQUEST_BYTES:
@@ -99,12 +101,15 @@ async def read_manual_form(
             if len(data) > ATTACHMENT_RULES[attachment.type]["max_bytes"]:
                 raise _invalid(f"{field} supera el tamaño permitido.")
             sizes[field] = len(data)
-            if (
-                attachment.type == InputType.DOCUMENT
-                and attachment.local_preprocessing is None
-            ):
+            if attachment.local_preprocessing is not None:
+                continue
+            if attachment.type == InputType.DOCUMENT:
                 if not is_pdf(data):
                     raise _invalid(f"{field} no es un PDF válido.")
+                server_files[field] = data
+            elif attachment.type == InputType.IMAGE:
+                if not is_image(data):
+                    raise _invalid(f"{field} no es una imagen válida.")
                 server_files[field] = data
         return metadata, sizes, server_files
     finally:

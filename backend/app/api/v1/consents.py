@@ -7,7 +7,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, status
 
-from app.api.deps import DbSession, require_role
+from app.api.deps import DbSession, DeviceToken, require_role
 from app.core.security import TokenPayload
 from app.schemas.consent import Consent, ConsentRead
 from app.schemas.enums import UserRole
@@ -29,6 +29,16 @@ def create_consent(
     EN: Records the senior's consent or the guardian's legal guardianship.
     """
     return consent_service.create_consent(db, token, body)
+
+
+@router.post("/me/revoke")
+def revoke_my_consents(db: DbSession, token: DeviceToken) -> list[ConsentRead]:
+    """ES: Retira el consentimiento activo del Sénior sin su id (#184). Va antes
+    de /{consent_id}/revoke para que "me" no se lea como un id.
+    EN: Withdraws the senior's active consent without its id (#184). Declared
+    before /{consent_id}/revoke so "me" is not read as an id.
+    """
+    return consent_service.revoke_my_consents(db, token)
 
 
 @router.post("/{consent_id}/revoke")

@@ -58,7 +58,12 @@ from app.services.detection.decision import FastDecision, decide
 from app.services.detection.url_extract import extract_urls
 from app.services.detection.url_rules import domain_of
 from app.services.devices import touch_device
-from app.services.extraction import PDF_ENGINE, extract_pdf_text
+from app.services.extraction import (
+    IMAGE_ENGINE,
+    PDF_ENGINE,
+    extract_image_text,
+    extract_pdf_text,
+)
 from app.services.identity import request_device_id, senior_id_from_device
 
 logger = logging.getLogger(__name__)
@@ -67,13 +72,23 @@ RETRY_AFTER_MS = 2000
 # ES: Si el agente no termina en este tiempo, vale la vía rápida.
 # EN: If the agent does not finish in this time, the fast path wins.
 AGENT_TIMEOUT = timedelta(seconds=15)
-# ES: OCR/Whisper en servidor: decisión abierta (#7). Imágenes, audio y vídeo
-#     sin local_preprocessing no aportan texto. Los PDF sí (#164): se leen en
-#     memoria y se anonimizan aquí antes de usarlos.
-# EN: Server OCR/Whisper: open decision (#7). Images, audio and video without
-#     local_preprocessing add no text. PDFs do (#164): read in memory and
-#     anonymized here before any use.
+# ES: Los PDF (#164) y las imágenes (#192) se leen en memoria y se anonimizan
+#     aquí antes de usarlos. Audio y vídeo sin local_preprocessing aún no
+#     aportan texto (Whisper en servidor: pendiente).
+# EN: PDFs (#164) and images (#192) are read in memory and anonymized here
+#     before any use. Audio and video without local_preprocessing add no text
+#     yet (server Whisper: pending).
 SERVER_EXTRACTION_ENGINE = "server-extraction-pending"
+SERVER_EXTRACTORS = {
+    InputType.DOCUMENT: (extract_pdf_text, PDF_ENGINE),
+    InputType.IMAGE: (extract_image_text, IMAGE_ENGINE),
+}
+# ES: Si no se pudo leer nada, no decimos "seguro" (#192): AMBER con la
+#     plantilla de consultar a un familiar, confianza baja y sin alerta.
+# EN: If nothing could be read we do not say "safe" (#192): AMBER with the
+#     ask-family template, low confidence and no alert.
+UNREADABLE_CONFIDENCE = 0.3
+UNREADABLE_REASON = "No se pudo leer el contenido del archivo."
 
 ACTION_BY_LEVEL = {
     RiskLevel.GREEN: Action.ALLOW,
@@ -109,6 +124,17 @@ def _fast_decision(text: str, urls: list[str]) -> FastDecision:
     )
 
 
+def _unreadable() -> FastDecision:
+    return FastDecision(
+        RiskLevel.AMBER,
+        ThreatType.NONE,
+        Action.SILENT_BLOCK,
+        BlockTemplate.UNSURE_CALL_FAMILY,
+        UNREADABLE_CONFIDENCE,
+        [UNREADABLE_REASON],
+    )
+
+
 def _attachment_text(
     attachment: Attachment, data: bytes | None = None
 ) -> tuple[str, str, str]:
@@ -117,10 +143,12 @@ def _attachment_text(
     """
     local = attachment.local_preprocessing
     if local is None:
-        if attachment.type == InputType.DOCUMENT and data is not None:
+        extractor = SERVER_EXTRACTORS.get(attachment.type)
+        if extractor is not None and data is not None:
+            extract, engine = extractor
             # ES: El texto sin anonimizar no sale de esta función.
             # EN: The raw text never leaves this function.
-            return anonymize(extract_pdf_text(data)), PDF_ENGINE, "server"
+            return anonymize(extract(data)), engine, "server"
         return "", SERVER_EXTRACTION_ENGINE, "server"
     if not local.ner_applied:
         raise ApiError(422, ErrorCode.CONTENT_NOT_ANONYMIZED)
@@ -164,7 +192,7 @@ def start_manual_analysis(
 
     text = "\n\n".join(texts)
     urls = extract_urls(text)
-    fast = _fast_decision(text, urls)
+    fast = _fast_decision(text, urls) if text else _unreadable()
     input_types = [InputType.TEXT] if metadata.text else []
     input_types += list(dict.fromkeys(a.type for a in metadata.attachments))
 
@@ -296,7 +324,9 @@ def finish_manual_analysis(db: Session, job: ManualJob) -> list[uuid.UUID]:
     budget = min(13.0, (deadline - datetime.now(UTC)).total_seconds() - 0.5)
     agent = get_agent(fast, timeout=budget)
     output = None
-    if budget > 0 and len(job.text) <= 30_000:
+    # ES: Sin texto no hay nada que contrastar: vale la vía rápida.
+    # EN: Without text there is nothing to check: the fast path stands.
+    if budget > 0 and 0 < len(job.text) <= 30_000:
         output = run_agent(
             agent,
             AgentInput(

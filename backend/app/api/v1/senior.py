@@ -10,10 +10,9 @@ POST   /api/v1/senior/logout         (senior)   → 200
 
 import logging
 import uuid
-from datetime import UTC, datetime
 
 from fastapi import APIRouter, Response, status
-from sqlalchemy import select, update
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.api.deps import DbSession, GuardianToken, SeniorToken
@@ -23,6 +22,7 @@ from app.schemas.accessibility import AccessibilityProfile
 from app.schemas.enums import ErrorCode
 from app.schemas.senior import PhoneUpdate, SeniorProfileRead, SeniorRead
 from app.services import push as push_service
+from app.services.account import retire_senior_if_unpaired
 
 logger = logging.getLogger(__name__)
 
@@ -169,21 +169,7 @@ def unlink_senior(db: DbSession, token: GuardianToken):
         raise ApiError(404, ErrorCode.NOT_FOUND, NO_SENIOR)
     pairing.active = False
     db.flush()
-
-    still_linked = db.scalar(
-        select(Pairing.id).where(
-            Pairing.senior_id == pairing.senior_id, Pairing.active.is_(True)
-        )
-    )
-    if still_linked is None:
-        senior = db.get(User, pairing.senior_id)
-        if senior is not None and senior.deleted_at is None:
-            senior.deleted_at = datetime.now(UTC)
-        db.execute(
-            update(Device)
-            .where(Device.user_id == pairing.senior_id)
-            .values(push_token=None)
-        )
+    retire_senior_if_unpaired(db, pairing.senior_id)
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 

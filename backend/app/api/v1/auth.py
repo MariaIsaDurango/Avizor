@@ -16,6 +16,7 @@ from app.core.security import create_access_token, hash_password, verify_passwor
 from app.models.user import Device, Pairing, User
 from app.schemas.auth import (
     ChangePasswordRequest,
+    DeleteAccountRequest,
     ForgotPasswordRequest,
     LoginRequest,
     MessageResponse,
@@ -28,7 +29,7 @@ from app.schemas.auth import (
     VerifyEmailRequest,
 )
 from app.schemas.enums import ErrorCode, UserRole
-from app.services import email_verification, password_reset
+from app.services import account, email_verification, password_reset
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -198,6 +199,18 @@ def read_me(token: CurrentToken, db: DbSession) -> UserRead:
     if token.role == UserRole.SENIOR_SOLO:
         read = read.model_copy(update={"device_id": token.sub})
     return read
+
+
+@router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
+def delete_me(body: DeleteAccountRequest, token: CurrentToken, db: DbSession):
+    """ES: Borra la cuenta y todos sus datos (#194). Solo Tutor y senior_solo;
+    el Sénior vinculado no tiene cuenta propia (403). Pide la contraseña.
+    EN: Deletes the account and all its data (#194). Guardian and senior_solo
+    only; the paired senior has no account of their own (403). Asks for the
+    password.
+    """
+    account.delete_account(db, token, body.password)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 def _active_guardian(db: DbSession, guardian_id: uuid.UUID) -> User:
