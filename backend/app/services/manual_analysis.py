@@ -53,10 +53,12 @@ from app.services.analysis import (
     explain,
     record_indicator,
 )
+from app.services.detection.anonymize import anonymize
 from app.services.detection.decision import FastDecision, decide
 from app.services.detection.url_extract import extract_urls
 from app.services.detection.url_rules import domain_of
 from app.services.devices import touch_device
+from app.services.extraction import PDF_ENGINE, extract_pdf_text
 from app.services.identity import request_device_id, senior_id_from_device
 
 logger = logging.getLogger(__name__)
@@ -65,10 +67,12 @@ RETRY_AFTER_MS = 2000
 # ES: Si el agente no termina en este tiempo, vale la vía rápida.
 # EN: If the agent does not finish in this time, the fast path wins.
 AGENT_TIMEOUT = timedelta(seconds=15)
-# ES: OCR/Whisper en servidor: decisión abierta (#7). De momento no se extrae
-#     nada, así que ningún dato sin anonimizar llega al agente.
-# EN: Server OCR/Whisper: open decision (#7). For now nothing is extracted,
-#     so no non-anonymized data reaches the agent.
+# ES: OCR/Whisper en servidor: decisión abierta (#7). Imágenes, audio y vídeo
+#     sin local_preprocessing no aportan texto. Los PDF sí (#164): se leen en
+#     memoria y se anonimizan aquí antes de usarlos.
+# EN: Server OCR/Whisper: open decision (#7). Images, audio and video without
+#     local_preprocessing add no text. PDFs do (#164): read in memory and
+#     anonymized here before any use.
 SERVER_EXTRACTION_ENGINE = "server-extraction-pending"
 
 ACTION_BY_LEVEL = {
@@ -105,12 +109,18 @@ def _fast_decision(text: str, urls: list[str]) -> FastDecision:
     )
 
 
-def _attachment_text(attachment: Attachment) -> tuple[str, str, str]:
+def _attachment_text(
+    attachment: Attachment, data: bytes | None = None
+) -> tuple[str, str, str]:
     """ES: Devuelve (texto, motor de extracción, dónde se aplicó el NER).
     EN: Returns (text, extraction engine, where NER was applied).
     """
     local = attachment.local_preprocessing
     if local is None:
+        if attachment.type == InputType.DOCUMENT and data is not None:
+            # ES: El texto sin anonimizar no sale de esta función.
+            # EN: The raw text never leaves this function.
+            return anonymize(extract_pdf_text(data)), PDF_ENGINE, "server"
         return "", SERVER_EXTRACTION_ENGINE, "server"
     if not local.ner_applied:
         raise ApiError(422, ErrorCode.CONTENT_NOT_ANONYMIZED)
@@ -122,6 +132,7 @@ def start_manual_analysis(
     token: TokenPayload,
     metadata: ManualAnalysisMetadata,
     sizes: dict[str, int],
+    server_files: dict[str, bytes] | None = None,
 ) -> ManualJob:
     device_id = request_device_id(token, metadata.device_id)
     senior_id_from_device(db, token.sub)
@@ -134,7 +145,9 @@ def start_manual_analysis(
     texts = [metadata.text] if metadata.text else []
     rows = []
     for attachment in metadata.attachments:
-        text, engine, ner_applied_on = _attachment_text(attachment)
+        text, engine, ner_applied_on = _attachment_text(
+            attachment, (server_files or {}).get(attachment.file_field)
+        )
         if text:
             texts.append(text)
         rows.append(

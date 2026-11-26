@@ -17,3 +17,4 @@ beautifulsoup4>=4.12
 numpy>=1.26
 onnxruntime>=1.18     # ES: modelo de IA sin torch (#38) / EN: AI model without torch (#38)
 tokenizers>=0.20
+pypdf>=5.0           # ES: texto de PDF adjuntos (#164), sin dependencias / EN: PDF attachment text
