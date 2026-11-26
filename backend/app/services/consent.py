@@ -121,3 +121,28 @@ def revoke_consent(
         consent.revoked_at = datetime.now(UTC)
         db.commit()
     return ConsentRead.model_validate(consent, from_attributes=True)
+
+
+def revoke_my_consents(db: Session, token: TokenPayload) -> list[ConsentRead]:
+    """ES: Retira los consentimientos propios (self) activos del Sénior del token,
+    sin necesitar su id (#184): sirve si el móvil no guardó el CONSENT_ID.
+    Devuelve los que se retiraron ahora; lista vacía si no quedaba ninguno.
+    EN: Withdraws the active own (self) consents of the token's senior without
+    needing their id (#184): useful when the phone did not store CONSENT_ID.
+    Returns those withdrawn now; empty list when none was left.
+    """
+    senior_id = senior_id_from_device(db, token.sub)
+    consents = db.scalars(
+        select(Consent)
+        .where(
+            Consent.senior_id == senior_id,
+            Consent.type == ConsentType.SELF,
+            Consent.revoked_at.is_(None),
+        )
+        .with_for_update()
+    ).all()
+    now = datetime.now(UTC)
+    for consent in consents:
+        consent.revoked_at = now
+    db.commit()
+    return [ConsentRead.model_validate(c, from_attributes=True) for c in consents]
