@@ -205,3 +205,192 @@ def test_senior_cannot_approve_own_request(api_client, consented_senior, pending
         headers=consented_senior.headers,
     )
     assert response.status_code == 403
+
+
+# ---------- Respuestas simultáneas / Simultaneous answers (#142, ADR 0004) ----------
+
+
+@pytest.fixture
+def committed_unlock():
+    """ES: Desbloqueo pendiente GUARDADO (commit) con dos Tutores vinculados.
+    Las dos respuestas usan conexiones distintas, así que no sirve la sesión de
+    test (no se confirma). Se borra todo al terminar.
+    EN: Pending unlock COMMITTED with two paired guardians. Both answers use
+    different connections, so the test session (never committed) is not enough.
+    Everything is deleted afterwards.
+    """
+    from sqlalchemy import delete
+    from sqlalchemy.exc import OperationalError
+
+    from app.db.session import SessionLocal
+    from app.models.analysis import Analysis
+    from app.models.user import Device, Pairing
+    from app.schemas.enums import (
+        Action,
+        Channel,
+        InputType,
+        Origin,
+        RiskLevel,
+        ThreatType,
+        UnlockStatus,
+        VerdictPhase,
+    )
+
+    try:
+        session = SessionLocal()
+        session.connection()
+    except OperationalError:
+        pytest.skip("PostgreSQL no disponible / PostgreSQL not available")
+
+    now = datetime.now(UTC)
+    suffix = uuid.uuid4().hex[:8]
+    guardians = [
+        User(
+            role=UserRole.GUARDIAN,
+            display_name=name,
+            email=f"{name.lower()}.{suffix}@example.com",
+            password_hash=hash_password("contraseña-larga-1"),
+            is_verified=True,
+        )
+        for name in ("Lucia", "Pablo")
+    ]
+    senior = User(role=UserRole.SENIOR, display_name="Carmen")
+    session.add_all([*guardians, senior])
+    session.flush()
+    device = Device(user_id=senior.id, platform="android", app_version="0.4.0")
+    session.add(device)
+    session.add_all(
+        Pairing(
+            guardian_id=guardian.id,
+            senior_id=senior.id,
+            code=f"{index:06d}",
+            senior_display_name="Carmen",
+            expires_at=now + timedelta(minutes=10),
+            redeemed_at=now,
+        )
+        for index, guardian in enumerate(guardians)
+    )
+    session.flush()
+    analysis = Analysis(
+        device_id=device.id,
+        channel=Channel.SMS,
+        origin=Origin.AUTOMATIC,
+        input_types=[InputType.TEXT],
+        received_at=now,
+        risk_level=RiskLevel.RED,
+        threat_type=ThreatType.SMISHING,
+        action=Action.BLOCK_AND_ALERT,
+        block_template="DANGEROUS_LINK",
+        phase=VerdictPhase.FAST,
+        model_version="test",
+    )
+    session.add(analysis)
+    session.flush()
+    unlock = UnlockModel(
+        analysis_id=analysis.id,
+        status=UnlockStatus.PENDING_GUARDIAN,
+        expires_at=now + timedelta(minutes=30),
+    )
+    session.add(unlock)
+    session.commit()
+    ids = {
+        "unlock": unlock.id,
+        "analysis": analysis.id,
+        "device": device.id,
+        "users": [g.id for g in guardians] + [senior.id],
+        "guardians": [g.id for g in guardians],
+    }
+    session.close()
+    yield ids
+
+    with SessionLocal() as cleanup:
+        cleanup.execute(delete(UnlockModel).where(UnlockModel.id == ids["unlock"]))
+        cleanup.execute(delete(Analysis).where(Analysis.id == ids["analysis"]))
+        cleanup.execute(delete(Pairing).where(Pairing.senior_id == ids["users"][-1]))
+        cleanup.execute(delete(Device).where(Device.id == ids["device"]))
+        cleanup.execute(delete(User).where(User.id.in_(ids["users"])))
+        cleanup.commit()
+
+
+def _waiting_on_lock(session) -> int:
+    from sqlalchemy import text
+
+    count = session.scalar(
+        text(
+            "SELECT count(*) FROM pg_stat_activity "
+            "WHERE wait_event_type = 'Lock' AND datname = current_database()"
+        )
+    )
+    # ES: pg_stat_activity se congela dentro de una transacción: cerrarla para
+    #     ver el estado actual en la siguiente consulta.
+    # EN: pg_stat_activity is frozen within a transaction: end it to see the
+    #     current state on the next query.
+    session.rollback()
+    return count
+
+
+def test_simultaneous_answers_first_wins(committed_unlock):
+    """ES: Dos Tutores responden a la vez. Se fuerza el choque: una tercera
+    conexión bloquea la fila, las dos peticiones esperan en el FOR UPDATE y
+    después se libera. Una recibe 200, la otra 409 y queda guardada la primera.
+    EN: Two guardians answer at once. The clash is forced: a third connection
+    locks the row, both requests wait on FOR UPDATE, then it is released. One
+    gets 200, the other 409, and the first answer is the one stored.
+    """
+    import threading
+    import time
+
+    from fastapi.testclient import TestClient
+    from sqlalchemy import select
+
+    from app.db.session import SessionLocal
+    from app.main import app
+
+    url = f"{UNLOCKS}/{committed_unlock['unlock']}"
+    answers = dict(zip(committed_unlock["guardians"], ("approved", "rejected")))
+    results: dict[uuid.UUID, int] = {}
+
+    def answer(guardian_id: uuid.UUID) -> None:
+        token = create_access_token(guardian_id, UserRole.GUARDIAN)
+        response = TestClient(app).patch(
+            url,
+            json={"status": answers[guardian_id]},
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        results[guardian_id] = response.status_code
+
+    holder = SessionLocal()
+    observer = SessionLocal()
+    try:
+        holder.scalar(
+            select(UnlockModel)
+            .where(UnlockModel.id == committed_unlock["unlock"])
+            .with_for_update()
+        )
+        threads = [
+            threading.Thread(target=answer, args=(g,))
+            for g in committed_unlock["guardians"]
+        ]
+        for thread in threads:
+            thread.start()
+
+        # ES/EN: wait until both requests are blocked on the row lock
+        deadline = time.monotonic() + 10
+        while _waiting_on_lock(observer) < 2:
+            assert time.monotonic() < deadline, "requests never reached the lock"
+            time.sleep(0.05)
+        holder.rollback()  # ES/EN: release the lock: both race for it now
+
+        for thread in threads:
+            thread.join(timeout=10)
+            assert not thread.is_alive()
+    finally:
+        holder.close()
+        observer.close()
+
+    assert sorted(results.values()) == [200, 409]
+    winner = next(g for g, code in results.items() if code == 200)
+    with SessionLocal() as check:
+        stored = check.get(UnlockModel, committed_unlock["unlock"])
+        assert stored.status == answers[winner]
+        assert stored.resolved_by == winner
