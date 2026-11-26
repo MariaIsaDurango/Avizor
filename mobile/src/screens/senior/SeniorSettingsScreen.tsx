@@ -63,13 +63,14 @@ export default function SeniorSettingsScreen({ navigation }: Props) {
           onPress: async () => {
             try {
               const consentId = await SecureStore.getItemAsync(STORAGE_KEYS.CONSENT_ID);
-              if (consentId) {
-                const response = await apiFetch(`/api/v1/consents/${consentId}/revoke`, { method: 'POST' });
-                if (!response.ok) {
-                  const err = await response.json().catch(() => ({}));
-                  Alert.alert('Error', err.detail ?? 'No se pudo retirar el consentimiento. Inténtalo más tarde.');
-                  return;
-                }
+              const endpoint = consentId
+                ? `/api/v1/consents/${consentId}/revoke`
+                : '/api/v1/consents/me/revoke';
+              const response = await apiFetch(endpoint, { method: 'POST' });
+              if (!response.ok) {
+                const err = await response.json().catch(() => ({}));
+                Alert.alert('Error', err.detail ?? 'No se pudo retirar el consentimiento. Inténtalo más tarde.');
+                return;
               }
             } catch {
               Alert.alert('Error', 'No se pudo retirar el consentimiento. Inténtalo más tarde.');
