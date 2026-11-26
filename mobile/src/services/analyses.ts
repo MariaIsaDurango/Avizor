@@ -108,49 +108,53 @@ export async function submitAnalysisWithFile(
   const ext = mimeType === 'application/pdf' ? 'pdf' : (mimeType.split('/')[1] ?? 'jpg');
   const cacheUri = `${FileSystem.cacheDirectory}attachment.${ext}`;
   await FileSystem.copyAsync({ from: fileUri, to: cacheUri });
-  const fileResponse = await fetch(cacheUri);
-  const blob = await fileResponse.blob();
+  try {
+    const fileResponse = await fetch(cacheUri);
+    const blob = await fileResponse.blob();
 
-  if (blob.size > MAX_FILE_BYTES) {
-    throw new Error('El archivo supera los 10 MB. Prueba con un archivo más pequeño.');
+    if (blob.size > MAX_FILE_BYTES) {
+      throw new Error('El archivo supera los 10 MB. Prueba con un archivo más pequeño.');
+    }
+
+    const metadata = {
+      ...(deviceId ? { device_id: deviceId } : {}),
+      channel: 'manual',
+      origin: 'manual',
+      received_at: new Date().toISOString(),
+      anonymization: { applied: true, ner_model_version: 'none', redacted_entities: [] },
+      attachments: [{
+        file_field: 'attachment_0',
+        type: attachmentType(mimeType),
+        mime: mimeType,
+        size_bytes: blob.size,
+      }],
+    };
+
+    const formData = new FormData();
+    formData.append('metadata', JSON.stringify(metadata));
+    formData.append('attachment_0', blob, `attachment.${ext}`);
+
+    const token = await getToken();
+    const response = await fetch(`${API_BASE_URL}/api/v1/analyses`, {
+      method: 'POST',
+      body: formData,
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.detail ?? 'Error al analizar el archivo.');
+    }
+
+    if (response.status === 202) {
+      const accepted = await response.json() as { analysis_id: string; retry_after_ms: number };
+      return pollVerdict(accepted.analysis_id, accepted.retry_after_ms);
+    }
+
+    return response.json();
+  } finally {
+    FileSystem.deleteAsync(cacheUri, { idempotent: true }).catch(() => {});
   }
-
-  const metadata = {
-    ...(deviceId ? { device_id: deviceId } : {}),
-    channel: 'manual',
-    origin: 'manual',
-    received_at: new Date().toISOString(),
-    anonymization: { applied: true, ner_model_version: 'none', redacted_entities: [] },
-    attachments: [{
-      file_field: 'attachment_0',
-      type: attachmentType(mimeType),
-      mime: mimeType,
-      size_bytes: blob.size,
-    }],
-  };
-
-  const formData = new FormData();
-  formData.append('metadata', JSON.stringify(metadata));
-  formData.append('attachment_0', blob, `attachment.${ext}`);
-
-  const token = await getToken();
-  const response = await fetch(`${API_BASE_URL}/api/v1/analyses`, {
-    method: 'POST',
-    body: formData,
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-  });
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    throw new Error(error.detail ?? 'Error al analizar el archivo.');
-  }
-
-  if (response.status === 202) {
-    const accepted = await response.json() as { analysis_id: string; retry_after_ms: number };
-    return pollVerdict(accepted.analysis_id, accepted.retry_after_ms);
-  }
-
-  return response.json();
 }
 
 export async function getVerdict(analysisId: string): Promise<Verdict> {
