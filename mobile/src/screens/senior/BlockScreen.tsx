@@ -74,17 +74,50 @@ const CONFIGS: Record<BlockTemplate, Config> = {
   },
 };
 
+const CONFIGS_SOLO: Record<BlockTemplate, Config> = {
+  FAKE_DO_NOT_TOUCH: {
+    ...CONFIGS.FAKE_DO_NOT_TOUCH,
+    tip: '1. No pulses ningún enlace ni botón del mensaje.\n2. Cierra la app o el correo sin responder.\n3. Si tienes dudas, contacta con la entidad a través de sus canales oficiales.',
+  },
+  DANGEROUS_LINK: {
+    ...CONFIGS.DANGEROUS_LINK,
+    tip: '1. No abras el enlace.\n2. Si ya lo abriste, no escribas ningún dato.\n3. Busca el contacto oficial de la entidad para verificar.',
+  },
+  SUSPICIOUS_CALL: {
+    ...CONFIGS.SUSPICIOUS_CALL,
+    tip: '1. Si sigues en la llamada, cuelga sin dar ningún dato.\n2. No devuelvas la llamada a ese número.\n3. Llama al número oficial de la entidad para verificar.',
+  },
+  ASKS_BANK_DETAILS: {
+    ...CONFIGS.ASKS_BANK_DETAILS,
+    tip: '1. No des ningún dato por teléfono ni por mensaje.\n2. Llama a tu banco usando el número del reverso de tu tarjeta.\n3. No respondas a este mensaje bajo ningún concepto.',
+  },
+  LOOKS_SAFE: CONFIGS.LOOKS_SAFE,
+  UNSURE_CALL_FAMILY: {
+    message: 'No estamos seguros.\nNo respondas todavía.\nVerifica antes de actuar.',
+    empathy: 'Es mejor comprobar antes de hacer nada.',
+    tip: '1. No respondas ni hagas clic en nada todavía.\n2. Busca el número oficial de la entidad.\n3. Llama para verificar si el mensaje es real.',
+    icon: 'warning',
+    background: colors.warning,
+    riskLabel: 'ATENCIÓN',
+  },
+};
+
 export default function SeniorBlockScreen({ navigation, route }: Props) {
-  const config = CONFIGS[route.params.template];
   const { largeText, colorBlind, hardOfHearing } = useAccessibility();
   const [pulseAnim] = useState(() => new Animated.Value(1));
   const [guardianPhone, setGuardianPhone] = useState<string | null>(null);
+  const [isSeniorSolo, setIsSeniorSolo] = useState(false);
 
   useEffect(() => {
     SecureStore.getItemAsync(STORAGE_KEYS.GUARDIAN_PHONE)
       .then(setGuardianPhone)
       .catch(() => {});
+    SecureStore.getItemAsync(STORAGE_KEYS.USER_MODE)
+      .then(mode => setIsSeniorSolo(mode === 'senior_solo'))
+      .catch(() => {});
   }, []);
+
+  const config = (isSeniorSolo ? CONFIGS_SOLO : CONFIGS)[route.params.template];
 
   useEffect(() => {
     if (!hardOfHearing) return;

@@ -1,6 +1,7 @@
 package com.avizor.app
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 
@@ -17,6 +18,8 @@ class MainActivity : ReactActivity() {
 
   companion object {
     var pendingSharedText: String? = null
+    var pendingSharedUri: String? = null
+    var pendingSharedMimeType: String? = null
   }
 
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,6 +35,36 @@ class MainActivity : ReactActivity() {
 
   private fun handleShareIntent(intent: Intent) {
     if (intent.action != Intent.ACTION_SEND) return
+    val mimeType = intent.type ?: ""
+
+    val streamUri: Uri? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+      intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java)
+    } else {
+      @Suppress("DEPRECATION")
+      intent.getParcelableExtra(Intent.EXTRA_STREAM)
+    }
+
+    if (streamUri != null && (mimeType.startsWith("image/") || mimeType == "application/pdf")) {
+      pendingSharedUri = streamUri.toString()
+      pendingSharedMimeType = mimeType
+      try {
+        val ctx = (application as MainApplication).reactHost.currentReactContext
+        if (ctx != null) {
+          val params = Arguments.createMap().apply {
+            putString("uri", streamUri.toString())
+            putString("mimeType", mimeType)
+          }
+          ctx.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+            .emit("ShareIntentReceived", params)
+          pendingSharedUri = null
+          pendingSharedMimeType = null
+        }
+      } catch (_: Exception) {
+        // React context not ready — ShareModule.getSharedFile() picks it up on cold start
+      }
+      return
+    }
+
     val text = intent.getStringExtra(Intent.EXTRA_TEXT)?.trim()
     if (text.isNullOrBlank()) return
     pendingSharedText = text

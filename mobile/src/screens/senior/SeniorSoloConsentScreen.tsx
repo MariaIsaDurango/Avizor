@@ -87,6 +87,10 @@ export default function SeniorSoloConsentScreen({ navigation }: Props) {
           El texto original no sale de tu móvil. Solo se envía una versión sin tus datos personales, y si parece un fraude se guarda unos días para revisarlo.
         </Text>
 
+        <Text style={[styles.note, largeText && { fontSize: 16 }]}>
+          Responsable del tratamiento de datos: Avizor.
+        </Text>
+
         {error && (
           <View style={styles.errorBox}>
             <Text style={styles.errorText}>{error}</Text>

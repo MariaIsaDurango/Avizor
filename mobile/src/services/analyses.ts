@@ -1,4 +1,6 @@
-import { apiFetch } from './api';
+import * as FileSystem from 'expo-file-system/legacy';
+import { apiFetch, getToken } from './api';
+import { API_BASE_URL } from '../constants/api';
 import { anonymize, toE164, NER_MODEL_VERSION } from './anonymize';
 
 export type InputType = 'text' | 'url' | 'phone_number';
@@ -71,6 +73,88 @@ export async function submitAnalysis(
   }
 
   return response.json();
+}
+
+const MAX_FILE_BYTES = 10 * 1024 * 1024;
+
+function attachmentType(mimeType: string): 'document' | 'image' {
+  return mimeType === 'application/pdf' ? 'document' : 'image';
+}
+
+const MAX_POLL_ATTEMPTS = 24;
+
+async function pollVerdict(analysisId: string, retryAfterMs: number): Promise<Verdict> {
+  const delay = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms));
+  let interval = retryAfterMs;
+  for (let i = 0; i < MAX_POLL_ATTEMPTS; i++) {
+    await delay(interval);
+    const res = await apiFetch(`/api/v1/analyses/${analysisId}/verdict`);
+    if (res.status === 200) return res.json();
+    if (res.status !== 202) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail ?? 'Error al obtener el resultado.');
+    }
+    const body = await res.json().catch(() => ({}));
+    interval = body.retry_after_ms ?? interval;
+  }
+  throw new Error('El análisis tardó demasiado. Inténtalo de nuevo.');
+}
+
+export async function submitAnalysisWithFile(
+  deviceId: string | null,
+  fileUri: string,
+  mimeType: string,
+): Promise<Verdict> {
+  const ext = mimeType === 'application/pdf' ? 'pdf' : (mimeType.split('/')[1] ?? 'jpg');
+  const cacheUri = `${FileSystem.cacheDirectory}attachment.${ext}`;
+  await FileSystem.copyAsync({ from: fileUri, to: cacheUri });
+  try {
+    const fileResponse = await fetch(cacheUri);
+    const blob = await fileResponse.blob();
+
+    if (blob.size > MAX_FILE_BYTES) {
+      throw new Error('El archivo supera los 10 MB. Prueba con un archivo más pequeño.');
+    }
+
+    const metadata = {
+      ...(deviceId ? { device_id: deviceId } : {}),
+      channel: 'manual',
+      origin: 'manual',
+      received_at: new Date().toISOString(),
+      anonymization: { applied: true, ner_model_version: 'none', redacted_entities: [] },
+      attachments: [{
+        file_field: 'attachment_0',
+        type: attachmentType(mimeType),
+        mime: mimeType,
+        size_bytes: blob.size,
+      }],
+    };
+
+    const formData = new FormData();
+    formData.append('metadata', JSON.stringify(metadata));
+    formData.append('attachment_0', blob, `attachment.${ext}`);
+
+    const token = await getToken();
+    const response = await fetch(`${API_BASE_URL}/api/v1/analyses`, {
+      method: 'POST',
+      body: formData,
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.detail ?? 'Error al analizar el archivo.');
+    }
+
+    if (response.status === 202) {
+      const accepted = await response.json() as { analysis_id: string; retry_after_ms: number };
+      return pollVerdict(accepted.analysis_id, accepted.retry_after_ms);
+    }
+
+    return response.json();
+  } finally {
+    FileSystem.deleteAsync(cacheUri, { idempotent: true }).catch(() => {});
+  }
 }
 
 export async function getVerdict(analysisId: string): Promise<Verdict> {

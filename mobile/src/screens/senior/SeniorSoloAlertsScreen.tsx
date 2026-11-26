@@ -49,7 +49,7 @@ const BLOCK_TEMPLATE_LABELS: Record<string, string> = {
   ASKS_BANK_DETAILS: 'Solicita datos bancarios',
   SUSPICIOUS_CALL:   'Llamada sospechosa',
   FAKE_DO_NOT_TOUCH: 'Contenido fraudulento',
-  UNSURE_CALL_FAMILY:'Dudoso — consulta con un familiar',
+  UNSURE_CALL_FAMILY:'Dudoso, consulta con un familiar',
   LOOKS_SAFE:        'Sin amenaza detectada',
 };
 

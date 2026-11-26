@@ -23,6 +23,14 @@ const TEMPLATE_NOTIFICATION_BODY: Record<string, string> = {
   UNSURE_CALL_FAMILY:'Consulta con un familiar antes de responder.',
 };
 
+const TEMPLATE_NOTIFICATION_BODY_SOLO: Record<string, string> = {
+  FAKE_DO_NOT_TOUCH: 'No toques nada en este mensaje.',
+  DANGEROUS_LINK:    'No hagas clic en ningún enlace.',
+  SUSPICIOUS_CALL:   'No llames a ese número. Verifica llamando al número oficial de la entidad.',
+  ASKS_BANK_DETAILS: 'Nunca compartas tus datos bancarios ni contraseñas.',
+  UNSURE_CALL_FAMILY:'No respondas. Verifica contactando con la entidad a través de sus canales oficiales.',
+};
+
 type SavedMode = 'senior' | 'tutor' | 'senior_solo' | null;
 
 Notifications.setNotificationHandler({
@@ -114,8 +122,9 @@ export default function App() {
               navigationRef.navigate('SeniorBlock', { template: verdict.block_template });
             }
           } else if (verdict.risk_level === 'amber') {
-            const advice = (verdict.block_template && TEMPLATE_NOTIFICATION_BODY[verdict.block_template])
-              ?? 'Consulta con un familiar antes de responder.';
+            const bodyMap = mode === 'senior_solo' ? TEMPLATE_NOTIFICATION_BODY_SOLO : TEMPLATE_NOTIFICATION_BODY;
+            const fallback = mode === 'senior_solo' ? 'Verifica contactando con la entidad a través de sus canales oficiales.' : 'Consulta con un familiar antes de responder.';
+            const advice = (verdict.block_template && bodyMap[verdict.block_template]) ?? fallback;
             await Notifications.scheduleNotificationAsync({
               content: {
                 title: 'Revisa este email',
@@ -155,8 +164,9 @@ export default function App() {
               navigationRef.navigate('SeniorBlock', { template: verdict.block_template });
             }
           } else if (verdict.risk_level === 'amber') {
-            const advice = (verdict.block_template && TEMPLATE_NOTIFICATION_BODY[verdict.block_template])
-              ?? 'Consulta con un familiar antes de responder.';
+            const bodyMap = mode === 'senior_solo' ? TEMPLATE_NOTIFICATION_BODY_SOLO : TEMPLATE_NOTIFICATION_BODY;
+            const fallback = mode === 'senior_solo' ? 'Verifica contactando con la entidad a través de sus canales oficiales.' : 'Consulta con un familiar antes de responder.';
+            const advice = (verdict.block_template && bodyMap[verdict.block_template]) ?? fallback;
             await Notifications.scheduleNotificationAsync({
               content: {
                 title: 'SMS sospechoso',
@@ -172,12 +182,18 @@ export default function App() {
       },
     );
 
-    // ES: Texto compartido cuando la app estaba abierta (DeviceEventEmitter).
-    const shareSub = DeviceEventEmitter.addListener('ShareIntentReceived', ({ text }: { text: string }) => {
-      if (navigationRef.isReady()) {
-        navigationRef.navigate('SeniorShareEmail', { text });
-      }
-    });
+    // ES: Contenido compartido cuando la app estaba abierta (DeviceEventEmitter).
+    const shareSub = DeviceEventEmitter.addListener(
+      'ShareIntentReceived',
+      (payload: { text?: string; uri?: string; mimeType?: string }) => {
+        if (!navigationRef.isReady()) return;
+        if (payload.uri) {
+          navigationRef.navigate('SeniorShareEmail', { fileUri: payload.uri, mimeType: payload.mimeType });
+        } else if (payload.text) {
+          navigationRef.navigate('SeniorShareEmail', { text: payload.text });
+        }
+      },
+    );
 
     const subscription = Notifications.addNotificationResponseReceivedListener(
       handleNotificationResponse,
@@ -202,9 +218,12 @@ export default function App() {
           Notifications.getLastNotificationResponseAsync().then((response) => {
             if (response) handleNotificationResponse(response);
           });
-          // ES: Texto compartido en arranque en frío — aquí la navegación ya está lista.
+          // ES: Contenido compartido en arranque en frío — aquí la navegación ya está lista.
           ShareModule?.getSharedText?.().then((text: string | null) => {
             if (text) navigationRef.navigate('SeniorShareEmail', { text });
+          });
+          ShareModule?.getSharedFile?.().then((file: { uri: string; mimeType: string } | null) => {
+            if (file) navigationRef.navigate('SeniorShareEmail', { fileUri: file.uri, mimeType: file.mimeType });
           });
         }}
       >
