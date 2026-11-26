@@ -5,10 +5,11 @@ import { MaterialIcons } from '@expo/vector-icons';
 import Screen from '../../components/Screen';
 import { colors } from '../../constants/colors';
 import { fontSize, fontWeight } from '../../constants/typography';
-import { getMe, updateMe, changePassword, logout } from '../../services/auth';
-import { API_BASE_URL } from '../../constants/api';
+import { getMe, updateMe, changePassword, logout, deleteAccount } from '../../services/auth';
 import { unlinkSenior } from '../../services/pairing';
 import { RootStackParamList } from '../../navigation/types';
+
+const SUPPORT_URL = 'https://avizor-production.up.railway.app/support';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TutorAccount'>;
 
@@ -31,6 +32,11 @@ export default function TutorAccountScreen({ navigation }: Props) {
   const [confirmPwd, setConfirmPwd] = useState('');
   const [pwdSaving, setPwdSaving] = useState(false);
   const [pwdError, setPwdError] = useState('');
+
+  const [showDeleteForm, setShowDeleteForm] = useState(false);
+  const [deletePwd, setDeletePwd] = useState('');
+  const [deleteError, setDeleteError] = useState('');
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     getMe()
@@ -86,6 +92,20 @@ export default function TutorAccountScreen({ navigation }: Props) {
     } catch (e) {
       setPwdError(e instanceof Error ? e.message : 'Error al cambiar la contraseña.');
       setPwdSaving(false);
+    }
+  }
+
+  async function handleDeleteAccount() {
+    if (!deletePwd.trim()) { setDeleteError('Introduce tu contraseña.'); return; }
+    setDeleting(true);
+    setDeleteError('');
+    try {
+      await deleteAccount(deletePwd);
+      await logout();
+      navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] });
+    } catch (e) {
+      setDeleteError(e instanceof Error ? e.message : 'No se pudo eliminar la cuenta.');
+      setDeleting(false);
     }
   }
 
@@ -254,7 +274,7 @@ export default function TutorAccountScreen({ navigation }: Props) {
         <Text style={styles.sectionTitle}>Ayuda</Text>
         <Pressable
           style={styles.row}
-          onPress={() => Linking.openURL(`${API_BASE_URL}/support`)}
+          onPress={() => Linking.openURL(SUPPORT_URL)}
           accessibilityRole="button"
           accessibilityLabel="Abrir centro de soporte"
         >
@@ -287,6 +307,49 @@ export default function TutorAccountScreen({ navigation }: Props) {
           <MaterialIcons name="logout" size={20} color={colors.alert} />
           <Text style={styles.dangerText}>Cerrar sesión</Text>
         </Pressable>
+
+        <View style={styles.divider} />
+
+        <Pressable
+          style={styles.dangerRow}
+          onPress={() => { setShowDeleteForm(v => !v); setDeleteError(''); setDeletePwd(''); }}
+          accessibilityRole="button"
+          accessibilityLabel="Eliminar mi cuenta"
+          accessibilityState={{ expanded: showDeleteForm }}
+        >
+          <MaterialIcons name="delete-forever" size={20} color={colors.alert} />
+          <Text style={styles.dangerText}>Eliminar mi cuenta</Text>
+        </Pressable>
+
+        {showDeleteForm && (
+          <View style={styles.deleteForm}>
+            <Text style={styles.deleteHint}>
+              Se borrarán tu cuenta y tus datos. Si tu familiar no tiene otro tutor, dejará de estar protegido. Esta acción no se puede deshacer.
+            </Text>
+            <TextInput
+              style={styles.deleteInput}
+              placeholder="Contraseña actual"
+              placeholderTextColor={colors.primary}
+              secureTextEntry
+              value={deletePwd}
+              onChangeText={t => { setDeletePwd(t); setDeleteError(''); }}
+              autoComplete="current-password"
+              accessibilityLabel="Contraseña actual para confirmar eliminación"
+            />
+            {deleteError !== '' && (
+              <Text style={styles.deleteError} accessibilityLiveRegion="assertive">{deleteError}</Text>
+            )}
+            <Pressable
+              style={[styles.deleteConfirmBtn, deleting && styles.deleteConfirmBtnDisabled]}
+              onPress={handleDeleteAccount}
+              disabled={deleting}
+              accessibilityRole="button"
+              accessibilityLabel="Confirmar eliminación de cuenta"
+            >
+              <Text style={styles.deleteConfirmText}>{deleting ? 'Eliminando…' : 'Confirmar eliminación'}</Text>
+            </Pressable>
+          </View>
+        )}
       </View>
     </Screen>
   );
@@ -399,4 +462,25 @@ const styles = StyleSheet.create({
     opacity: 0.08,
     marginVertical: 2,
   },
+  deleteForm: { marginTop: 12, gap: 10 },
+  deleteHint: { fontSize: 13, color: colors.alert, opacity: 0.85, lineHeight: 18 },
+  deleteInput: {
+    borderWidth: 1.5,
+    borderColor: colors.alert,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: fontSize.body,
+    color: colors.primary,
+    backgroundColor: colors.background,
+  },
+  deleteError: { fontSize: 13, color: colors.alert, marginTop: 2 },
+  deleteConfirmBtn: {
+    backgroundColor: colors.alert,
+    borderRadius: 8,
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
+  deleteConfirmBtnDisabled: { opacity: 0.6 },
+  deleteConfirmText: { color: colors.white, fontWeight: fontWeight.bold, fontSize: fontSize.body },
 });

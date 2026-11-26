@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { View, Text, Pressable, StyleSheet, Alert, AppState, Platform, NativeModules, Linking } from 'react-native';
+import { View, Text, TextInput, Pressable, StyleSheet, Alert, AppState, Platform, NativeModules, Linking } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -8,9 +8,11 @@ import { colors } from '../../constants/colors';
 import { fontSize, fontWeight } from '../../constants/typography';
 import { STORAGE_KEYS } from '../../constants/storage';
 import { apiFetch, clearToken } from '../../services/api';
-import { API_BASE_URL } from '../../constants/api';
+import { deleteAccount } from '../../services/auth';
 import { useAccessibility } from '../../contexts/AccessibilityContext';
 import { RootStackParamList } from '../../navigation/types';
+
+const SUPPORT_URL = 'https://avizor-production.up.railway.app/support';
 
 const { AvizorNotification, AvizorAccessibility } = NativeModules;
 
@@ -22,6 +24,10 @@ export default function SeniorSettingsScreen({ navigation }: Props) {
   const [consentGiven, setConsentGiven] = useState(false);
   const [notifEnabled, setNotifEnabled] = useState<boolean | null>(null);
   const [a11yEnabled, setA11yEnabled] = useState<boolean | null>(null);
+  const [showDeleteForm, setShowDeleteForm] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleteError, setDeleteError] = useState('');
+  const [deleting, setDeleting] = useState(false);
   const appState = useRef(AppState.currentState);
 
   function checkPermissions() {
@@ -63,13 +69,14 @@ export default function SeniorSettingsScreen({ navigation }: Props) {
           onPress: async () => {
             try {
               const consentId = await SecureStore.getItemAsync(STORAGE_KEYS.CONSENT_ID);
-              if (consentId) {
-                const response = await apiFetch(`/api/v1/consents/${consentId}/revoke`, { method: 'POST' });
-                if (!response.ok) {
-                  const err = await response.json().catch(() => ({}));
-                  Alert.alert('Error', err.detail ?? 'No se pudo retirar el consentimiento. Inténtalo más tarde.');
-                  return;
-                }
+              const endpoint = consentId
+                ? `/api/v1/consents/${consentId}/revoke`
+                : '/api/v1/consents/me/revoke';
+              const response = await apiFetch(endpoint, { method: 'POST' });
+              if (!response.ok) {
+                const err = await response.json().catch(() => ({}));
+                Alert.alert('Error', err.detail ?? 'No se pudo retirar el consentimiento. Inténtalo más tarde.');
+                return;
               }
             } catch {
               Alert.alert('Error', 'No se pudo retirar el consentimiento. Inténtalo más tarde.');
@@ -85,6 +92,23 @@ export default function SeniorSettingsScreen({ navigation }: Props) {
         },
       ],
     );
+  }
+
+  async function handleDeleteAccount() {
+    if (!deletePassword.trim()) { setDeleteError('Introduce tu contraseña.'); return; }
+    setDeleting(true);
+    setDeleteError('');
+    try {
+      await deleteAccount(deletePassword);
+      await clearToken();
+      await Promise.allSettled(
+        Object.values(STORAGE_KEYS).map(k => SecureStore.deleteItemAsync(k)),
+      );
+      navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] });
+    } catch (e) {
+      setDeleteError(e instanceof Error ? e.message : 'No se pudo eliminar la cuenta.');
+      setDeleting(false);
+    }
   }
 
   function handleLogout() {
@@ -242,7 +266,7 @@ export default function SeniorSettingsScreen({ navigation }: Props) {
         <Text style={[styles.sectionTitle, largeText && styles.sectionTitleLarge]}>Ayuda</Text>
         <Pressable
           style={styles.row}
-          onPress={() => Linking.openURL(`${API_BASE_URL}/support${isSeniorSolo ? '#solo' : ''}`)}
+          onPress={() => Linking.openURL(SUPPORT_URL + (isSeniorSolo ? '#solo' : ''))}
           accessibilityRole="button"
           accessibilityLabel="Abrir centro de soporte"
         >
@@ -268,6 +292,53 @@ export default function SeniorSettingsScreen({ navigation }: Props) {
           <MaterialIcons name="logout" size={largeText ? 24 : 20} color={colors.alert} />
           <Text style={[styles.logoutText, largeText && styles.logoutTextLarge]}>Cerrar sesión</Text>
         </Pressable>
+
+        {isSeniorSolo && (
+          <>
+            <View style={styles.divider} />
+            <Pressable
+              style={styles.logoutBtn}
+              onPress={() => { setShowDeleteForm(v => !v); setDeleteError(''); setDeletePassword(''); }}
+              accessibilityRole="button"
+              accessibilityLabel="Eliminar mi cuenta"
+              accessibilityState={{ expanded: showDeleteForm }}
+            >
+              <MaterialIcons name="delete-forever" size={largeText ? 24 : 20} color={colors.alert} />
+              <Text style={[styles.logoutText, largeText && styles.logoutTextLarge]}>Eliminar mi cuenta</Text>
+            </Pressable>
+            {showDeleteForm && (
+              <View style={styles.deleteForm}>
+                <Text style={[styles.deleteHint, largeText && styles.deleteHintLarge]}>
+                  Se borrarán tu cuenta y todos tus datos. Esta acción no se puede deshacer.
+                </Text>
+                <TextInput
+                  style={[styles.deleteInput, largeText && styles.deleteInputLarge]}
+                  placeholder="Contraseña"
+                  placeholderTextColor={colors.primary}
+                  secureTextEntry
+                  value={deletePassword}
+                  onChangeText={t => { setDeletePassword(t); setDeleteError(''); }}
+                  autoComplete="current-password"
+                  accessibilityLabel="Contraseña para confirmar eliminación de cuenta"
+                />
+                {deleteError !== '' && (
+                  <Text style={[styles.deleteError, largeText && styles.deleteErrorLarge]} accessibilityLiveRegion="assertive">{deleteError}</Text>
+                )}
+                <Pressable
+                  style={[styles.deleteConfirmBtn, deleting && styles.deleteConfirmBtnDisabled]}
+                  onPress={handleDeleteAccount}
+                  disabled={deleting}
+                  accessibilityRole="button"
+                  accessibilityLabel="Confirmar eliminación de cuenta"
+                >
+                  <Text style={[styles.deleteConfirmText, largeText && styles.deleteConfirmTextLarge]}>
+                    {deleting ? 'Eliminando…' : 'Confirmar eliminación'}
+                  </Text>
+                </Pressable>
+              </View>
+            )}
+          </>
+        )}
       </View>
     </Screen>
   );
@@ -340,4 +411,27 @@ const styles = StyleSheet.create({
     fontWeight: fontWeight.bold,
   },
   logoutTextLarge: { fontSize: 20 },
+  deleteForm: { marginTop: 12, gap: 10 },
+  deleteHint: { fontSize: 13, color: colors.alert, opacity: 0.8, lineHeight: 18 },
+  deleteHintLarge: { fontSize: 17 },
+  deleteInput: {
+    borderWidth: 1.5,
+    borderColor: colors.alert,
+    borderRadius: 8,
+    padding: 12,
+    fontSize: fontSize.body,
+    color: colors.primary,
+  },
+  deleteInputLarge: { fontSize: 20 },
+  deleteError: { fontSize: 13, color: colors.alert },
+  deleteErrorLarge: { fontSize: 17 },
+  deleteConfirmBtn: {
+    backgroundColor: colors.alert,
+    borderRadius: 8,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  deleteConfirmBtnDisabled: { opacity: 0.6 },
+  deleteConfirmText: { color: colors.white, fontWeight: fontWeight.bold, fontSize: fontSize.body },
+  deleteConfirmTextLarge: { fontSize: 20 },
 });

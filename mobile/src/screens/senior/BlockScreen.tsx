@@ -128,6 +128,7 @@ export default function SeniorBlockScreen({ navigation, route }: Props) {
 
   async function handleReport() {
     if (!phoneNumber || reported || reporting) return;
+    setReportError(false);
     setReporting(true);
     try {
       await reportPhoneIndicator(deviceId, phoneNumber);
