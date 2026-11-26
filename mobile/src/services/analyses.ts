@@ -1,3 +1,4 @@
+import * as FileSystem from 'expo-file-system/legacy';
 import { apiFetch, getToken } from './api';
 import { API_BASE_URL } from '../constants/api';
 import { anonymize, toE164, NER_MODEL_VERSION } from './anonymize';
@@ -104,14 +105,16 @@ export async function submitAnalysisWithFile(
   fileUri: string,
   mimeType: string,
 ): Promise<Verdict> {
-  const fileResponse = await fetch(fileUri);
+  const ext = mimeType === 'application/pdf' ? 'pdf' : (mimeType.split('/')[1] ?? 'jpg');
+  const cacheUri = `${FileSystem.cacheDirectory}attachment.${ext}`;
+  await FileSystem.copyAsync({ from: fileUri, to: cacheUri });
+  const fileResponse = await fetch(cacheUri);
   const blob = await fileResponse.blob();
 
   if (blob.size > MAX_FILE_BYTES) {
     throw new Error('El archivo supera los 10 MB. Prueba con un archivo más pequeño.');
   }
 
-  const ext = mimeType === 'application/pdf' ? 'pdf' : (mimeType.split('/')[1] ?? 'jpg');
   const metadata = {
     ...(deviceId ? { device_id: deviceId } : {}),
     channel: 'manual',
