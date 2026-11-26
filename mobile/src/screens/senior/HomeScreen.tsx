@@ -13,7 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import * as SecureStore from 'expo-secure-store';
 import * as DocumentPicker from 'expo-document-picker';
-// expo-image-picker: importar cuando se reactive el picker (issue #7)
+// expo-image-picker: importar cuando se reactive el picker (issue #192)
 import { MaterialIcons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Screen from '../../components/Screen';
@@ -29,8 +29,8 @@ import { RootStackParamList } from '../../navigation/types';
 
 type TabKey = InputType | 'file';
 
-// SUPPORTED_IMAGE_TYPES: activar cuando se reactive el picker (issue #7)
-// const SUPPORTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+// SUPPORTED_IMAGE_TYPES: activar cuando se reactive el picker (issue #192) — sin gif
+// const SUPPORTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/heic'];
 
 const TABS: { key: TabKey; label: string }[] = [
   { key: 'text', label: 'Texto' },
