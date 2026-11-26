@@ -22,7 +22,12 @@ from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.core.errors import ApiError
-from app.core.privacy import InvalidPhoneError, hash_indicator, public_value
+from app.core.privacy import (
+    InvalidPhoneError,
+    hash_indicator,
+    normalize_phone,
+    public_value,
+)
 from app.core.security import TokenPayload
 from app.models.alert import Alert
 from app.models.analysis import Analysis, TempContent
@@ -180,11 +185,15 @@ def analyze_fast(
     touch_device(db, token.sub, now)
 
     # ES: Remitente: solo HMAC. EN: Sender: HMAC only.
-    sender_hash, sender_reports, sender_type = None, 0, None
+    sender_hash, sender_reports, sender_type, sender_phone = None, 0, None, None
     if body.sender:
         sender_type = IndicatorType(body.sender.type)
         try:
             sender_hash = hash_indicator(sender_type, body.sender.value)
+            if sender_type == IndicatorType.PHONE:
+                # ES: Solo en memoria, para el prefijo 400 y OpenSpam (#168).
+                # EN: Memory only, for the 400 prefix and OpenSpam (#168).
+                sender_phone = normalize_phone(body.sender.value)
         except InvalidPhoneError:
             raise ApiError(
                 422, ErrorCode.VALIDATION_ERROR, "El número no es válido."
@@ -219,12 +228,21 @@ def analyze_fast(
         classifier=CLASSIFIER,
         sender_reports=sender_reports,
         domain_reports=domain_reports,
+        sender_phone=sender_phone,
     )
 
     is_phone = body.input_type == InputType.PHONE_NUMBER
     # SQLAlchemy stays in this worker. Only the pure decision and IO run concurrently.
-    # Phone analysis keeps the existing local HMAC route; no external phone calls.
-    if reputation is not None and urls and not is_phone:
+    # ES: Teléfono: OpenSpam solo si está activado (#168); si no, ruta local HMAC.
+    # EN: Phone: OpenSpam only if enabled (#168); otherwise the local HMAC route.
+    if (
+        is_phone
+        and sender_phone
+        and reputation is not None
+        and getattr(reputation, "phone_provider", None) is not None
+    ):
+        decision = run_on_app_loop(reputation.evaluate_phone, classify, sender_phone)
+    elif reputation is not None and urls and not is_phone:
         decision = run_on_app_loop(reputation.evaluate, classify, urls, body.channel)
     else:
         decision = classify()

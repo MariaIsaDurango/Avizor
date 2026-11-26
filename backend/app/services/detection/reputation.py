@@ -18,10 +18,14 @@ if str(ROOT) not in sys.path:
 from rag.src.reputation import validators
 from rag.src.reputation.config import Config
 from rag.src.reputation.models import Signal
+from rag.src.reputation.providers.openspam import OpenSpam
 from rag.src.reputation.providers.phishtank import PhishTank
 from rag.src.reputation.service import ReputationService, build_service
 
-from app.services.detection.decision import apply_url_reputation
+from app.services.detection.decision import (
+    apply_phone_reputation,
+    apply_url_reputation,
+)
 from app.services.detection.url_rules import UrlFinding, domain_of
 
 logger = logging.getLogger(__name__)
@@ -68,9 +72,55 @@ def _approved_urls(values):
 
 
 class ReputationRuntime:
-    def __init__(self, service, approved_urls=()):
+    def __init__(
+        self, service, approved_urls=(), phone_provider=None, phone_budget=0.6
+    ):
         self.service = service
         self.approved_urls = frozenset(approved_urls)
+        # ES: #168 OpenSpam, solo con AVIZOR_EXTERNAL_PHONES=1. EN: opt-in only.
+        self.phone_provider = phone_provider
+        self.phone_budget = phone_budget
+
+    async def _phone_signal(self, e164):
+        # ES: El número va en la URL: nunca a los logs de httpx.
+        # EN: The number is in the URL: never in httpx logs.
+        token = _private_request.set(True)
+        try:
+            return await self.phone_provider.check("phone", e164)
+        finally:
+            _private_request.reset(token)
+
+    async def evaluate_phone(self, classify, e164):
+        """ES: Decisión local (reportes, prefijo 400) + OpenSpam en paralelo.
+        Si OpenSpam tarda más del presupuesto o falla, vale la decisión local.
+        La consulta sigue en segundo plano y llena la caché de 24 h, así una
+        respuesta lenta no gasta la cuota dos veces.
+        EN: Local decision + OpenSpam in parallel. If OpenSpam is slow or fails,
+        the local decision stands. The lookup keeps running in the background
+        and fills the 24 h cache, so a slow answer does not spend quota twice.
+        """
+        if self.phone_provider is None:
+            return await asyncio.to_thread(classify)
+        lookup = asyncio.create_task(self._phone_signal(e164))
+
+        async def signal():
+            try:
+                return await asyncio.wait_for(
+                    asyncio.shield(lookup), timeout=self.phone_budget
+                )
+            except Exception:  # noqa: BLE001
+                # ES/EN: fixed text only, the number is never logged.
+                logger.warning("Phone reputation unavailable; preserving baseline")
+                return None
+
+        baseline, result = await asyncio.gather(asyncio.to_thread(classify), signal())
+        if (
+            result is None
+            or type(result.score) is not int
+            or result.status not in ("malicious", "suspicious")
+        ):
+            return baseline
+        return apply_phone_reputation(baseline, result.status, result.score, "OpenSpam")
 
     async def evaluate(self, classify, urls, channel):
         """Run pure baseline decision in a worker, network IO on the app loop."""
@@ -154,7 +204,19 @@ def create_runtime(client, settings):
     )
     external = build_service(client, config=config).providers
     providers = local + [_ReviewedProvider(p, approved) for p in external]
-    return ReputationRuntime(ReputationService(providers, config), approved)
+    # ES: #168 OpenSpam: solo con AVIZOR_EXTERNAL_PHONES=1 y clave.
+    # EN: #168 OpenSpam: only with AVIZOR_EXTERNAL_PHONES=1 and a key.
+    phone_provider = None
+    key = getattr(settings, "AVIZOR_OPENSPAM_KEY", None)
+    openspam_key = key.get_secret_value() if key else ""
+    if getattr(settings, "AVIZOR_EXTERNAL_PHONES", False) and openspam_key:
+        phone_provider = OpenSpam(client, openspam_key)
+    return ReputationRuntime(
+        ReputationService(providers, config),
+        approved,
+        phone_provider=phone_provider,
+        phone_budget=getattr(settings, "AVIZOR_PHONE_BUDGET_MS", 600) / 1000,
+    )
 
 
 def install_private_request_filters():

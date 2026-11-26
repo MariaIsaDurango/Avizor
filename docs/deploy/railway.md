@@ -132,3 +132,33 @@ plazo y un reintento lo agotaría. Si Groq falla, se usa la vía rápida.
 Privacidad: el texto anonimizado del análisis manual se envía a Groq. La
 anonimización actual no quita nombres de personas ni enlaces. Decisión pendiente
 de documentar por José (privacidad).
+
+## Teléfonos: prefijo 400 y OpenSpam (#168)
+
+**Prefijo 400 (siempre activo, sin API):** desde el 17/10/2026 las llamadas
+comerciales en España solo pueden hacerse desde números de 9 cifras que empiezan
+por 400. Al comprobar un número `+34 400 ...` la vía rápida devuelve ámbar
+`spam` con confianza 0,95. Es publicidad legal, no estafa: nunca rojo por sí
+solo (sí con 5 reportes de usuarios).
+
+**OpenSpam (apagado por defecto):** consulta `api.openspam.es` cuando se
+comprueba un número español. Para activarlo, **después de que José valide la
+privacidad** (el número viaja a un tercero dentro de la URL, por HTTPS):
+
+| Variable | Valor |
+|---|---|
+| `AVIZOR_EXTERNAL_PHONES` | `1` |
+| `AVIZOR_OPENSPAM_KEY` | clave de OpenSpam (nunca en el repo) |
+| `AVIZOR_PHONE_BUDGET_MS` | `600` (espera máxima; 100–700) |
+
+- Plan gratuito: solo uso no comercial; 50 consultas/día, 20/hora y 2 s entre
+  consultas. El backend respeta esos límites; si se agotan, sigue sin OpenSpam.
+- Caché en memoria de 24 h por número (claves HMAC, nunca en disco).
+  Pendiente de confirmar con OpenSpam: su documentación permite guardar
+  resultados hasta 24 h en planes de pago y no lo detalla para el gratuito.
+- Si OpenSpam tarda más que el presupuesto o falla, vale la decisión local; la
+  consulta termina en segundo plano y llena la caché.
+- Un positivo de OpenSpam sube el riesgo (alto/muy alto → rojo; medio → ámbar)
+  pero no crea un reporte local del número.
+- Para desactivarlo basta con `AVIZOR_EXTERNAL_PHONES=0`.
+

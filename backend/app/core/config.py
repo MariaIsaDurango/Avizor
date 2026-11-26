@@ -105,6 +105,15 @@ class Settings(BaseSettings):
     AVIZOR_REPUTATION_PUBLIC_URLS: list[str] = Field(default_factory=list)
     AVIZOR_VT_KEY: SecretStr = SecretStr("")
     AVIZOR_GSB_KEY: SecretStr = SecretStr("")
+    # ES: #168 OpenSpam. Envía el número a un tercero: apagado hasta que José
+    #     valide la privacidad. Clave solo en .env / Railway.
+    # EN: #168 OpenSpam. Sends the number to a third party: off until the
+    #     privacy review. Key only in .env / Railway.
+    AVIZOR_EXTERNAL_PHONES: bool = False
+    AVIZOR_OPENSPAM_KEY: SecretStr = SecretStr("")
+    # ES: Espera máxima en la vía rápida (< 800 ms en total).
+    # EN: Max wait in the fast path (< 800 ms overall).
+    AVIZOR_PHONE_BUDGET_MS: int = Field(default=600, ge=100, le=700)
 
 
 settings = Settings()
