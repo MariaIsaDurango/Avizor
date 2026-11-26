@@ -10,6 +10,7 @@ from app.api.v1 import (
     auth,
     consents,
     devices,
+    indicators,
     my_analyses,
     pairings,
     senior,
@@ -24,6 +25,7 @@ api_router.include_router(pairings.router)
 api_router.include_router(consents.router)
 api_router.include_router(analyses.router)
 api_router.include_router(my_analyses.router)
+api_router.include_router(indicators.router)
 api_router.include_router(alerts.router)
 api_router.include_router(unlocks.router)
 api_router.include_router(devices.router)

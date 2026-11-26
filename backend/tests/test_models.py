@@ -19,6 +19,8 @@ CONTRACT_TABLES = {
     "unlocks",
     "indicators",
     "cases",
+    # ES/EN: MINOR addition (#170): one report per device and indicator.
+    "indicator_reports",
 }
 
 CONTRACT_PG_ENUMS = {
