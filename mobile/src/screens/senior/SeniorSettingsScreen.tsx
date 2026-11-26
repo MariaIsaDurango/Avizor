@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { View, Text, TextInput, Pressable, StyleSheet, Alert, AppState, Platform, NativeModules, Linking } from 'react-native';
+import { View, Text, TextInput, Pressable, Switch, StyleSheet, Alert, AppState, Platform, NativeModules, Linking } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -28,6 +28,7 @@ export default function SeniorSettingsScreen({ navigation }: Props) {
   const [deletePassword, setDeletePassword] = useState('');
   const [deleteError, setDeleteError] = useState('');
   const [deleting, setDeleting] = useState(false);
+  const [ttsEnabled, setTtsEnabled] = useState(false);
   const appState = useRef(AppState.currentState);
 
   function checkPermissions() {
@@ -39,10 +40,12 @@ export default function SeniorSettingsScreen({ navigation }: Props) {
     Promise.all([
       SecureStore.getItemAsync(STORAGE_KEYS.USER_MODE),
       SecureStore.getItemAsync(STORAGE_KEYS.CONSENT_GIVEN),
+      SecureStore.getItemAsync(STORAGE_KEYS.TTS_ENABLED),
     ])
-      .then(([mode, consent]) => {
+      .then(([mode, consent, tts]) => {
         setIsSeniorSolo(mode === 'senior_solo');
         setConsentGiven(consent === 'true');
+        setTtsEnabled(tts === 'true');
       })
       .catch(() => {});
   }, []);
@@ -137,6 +140,11 @@ export default function SeniorSettingsScreen({ navigation }: Props) {
         },
       ],
     );
+  }
+
+  function handleToggleTts(val: boolean) {
+    setTtsEnabled(val);
+    SecureStore.setItemAsync(STORAGE_KEYS.TTS_ENABLED, String(val)).catch(() => {});
   }
 
   const dotColor = (val: boolean | null) =>
@@ -261,6 +269,26 @@ export default function SeniorSettingsScreen({ navigation }: Props) {
           )}
         </View>
       )}
+
+      <View style={styles.section}>
+        <Text style={[styles.sectionTitle, largeText && styles.sectionTitleLarge]}>Preferencias</Text>
+        <View style={styles.row}>
+          <View style={styles.rowLeft}>
+            <MaterialIcons name="volume-up" size={20} color={colors.primary} style={{ opacity: 0.7 }} />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.rowLabel, largeText && styles.rowLabelLarge]}>Leer alertas en voz alta</Text>
+              <Text style={styles.rowSub}>El teléfono leerá el aviso cuando algo sea peligroso</Text>
+            </View>
+          </View>
+          <Switch
+            value={ttsEnabled}
+            onValueChange={handleToggleTts}
+            trackColor={{ false: '#d4d4d8', true: colors.primary }}
+            thumbColor={colors.white}
+            accessibilityLabel="Activar o desactivar lectura de alertas en voz alta"
+          />
+        </View>
+      </View>
 
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, largeText && styles.sectionTitleLarge]}>Ayuda</Text>

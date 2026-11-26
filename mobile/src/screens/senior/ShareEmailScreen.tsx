@@ -90,7 +90,7 @@ export default function ShareEmailScreen({ route, navigation }: Props) {
         );
       }
       if (result.block_template) {
-        navigation.replace('SeniorBlock', { template: result.block_template });
+        navigation.replace('SeniorBlock', { template: result.block_template, evidence: result.evidence });
       } else {
         setVerdict(result);
       }

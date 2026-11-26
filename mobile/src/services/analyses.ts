@@ -13,6 +13,22 @@ export type BlockTemplate =
   | 'LOOKS_SAFE'
   | 'UNSURE_CALL_FAMILY';
 
+export type RagSource = 'incibe' | 'osi' | 'policia_nacional' | 'banco_espana';
+
+export interface OfficialNoticeEvidence {
+  type: 'official_notice';
+  source: RagSource;
+  url: string;
+}
+
+export interface IndicatorEvidence {
+  type: 'domain' | 'url' | 'phone' | 'alphanumeric_sender';
+  value: string;
+  reason: string;
+}
+
+export type Evidence = OfficialNoticeEvidence | IndicatorEvidence;
+
 export interface Verdict {
   analysis_id: string;
   phase: 'fast' | 'agent';
@@ -24,6 +40,7 @@ export interface Verdict {
   final: boolean;
   retry_after_ms: number | null;
   issued_at: string;
+  evidence?: Evidence[];
 }
 
 function normalizeUrl(input: string): string {

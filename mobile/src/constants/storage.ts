@@ -9,6 +9,7 @@ export const STORAGE_KEYS = {
   CONSENT_GIVEN: 'consent_given',
   CONSENT_SKIPPED: 'consent_skipped',
   CONSENT_ID: 'consent_id',
+  TTS_ENABLED: 'tts_enabled',
 } as const;
 
 export const CONSENT_TEXT_VERSION = 'accessibility-notice-2026-11-v2';
