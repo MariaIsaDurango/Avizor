@@ -177,3 +177,17 @@ export async function logout(): Promise<void> {
   await SecureStore.deleteItemAsync(STORAGE_KEYS.USER_MODE);
   await SecureStore.deleteItemAsync(STORAGE_KEYS.TOKEN_EXPIRES_AT).catch(() => {});
 }
+
+export async function deleteAccount(password: string): Promise<void> {
+  const response = await apiFetch('/api/v1/auth/me', {
+    method: 'DELETE',
+    body: JSON.stringify({ password }),
+  });
+  if (response.status === 400) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.detail ?? 'Contraseña incorrecta.');
+  }
+  if (!response.ok) {
+    throw new Error('No se pudo eliminar la cuenta. Inténtalo más tarde.');
+  }
+}
