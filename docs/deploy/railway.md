@@ -162,3 +162,20 @@ privacidad** (el número viaja a un tercero dentro de la URL, por HTTPS):
   ámbar) pero no crea un reporte local del número. No encontrado: sin cambio.
 - Para desactivarlo basta con `AVIZOR_EXTERNAL_PHONES=0`.
 
+
+## OCR y nombres en archivos (#192, #193)
+
+- **OCR de imágenes:** Tesseract va dentro de la imagen Docker. No hay que
+  configurar nada.
+- **Nombres de personas** en el texto de PDF e imágenes: spaCy local, sin
+  terceros. El modelo se instala con `requirements.txt` y se carga la primera
+  vez que alguien envía un archivo.
+
+| Variable | Valor |
+|---|---|
+| `AVIZOR_NER_MODEL` | `es_core_news_md` (por defecto, unos 350 MB de RAM al cargarse) |
+
+- Con el plan Free (0,5 GB por servicio) el modelo md no cabe: usar
+  `es_core_news_sm` (unos 160 MB, falla más) o dejar la variable vacía para
+  desactivarlo. Con `sm` hay que añadir ese modelo a `requirements.txt`.
+- Sin modelo sigue activa la regla de tratamientos (Sr., Doña, Titular:...).

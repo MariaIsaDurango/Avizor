@@ -114,6 +114,11 @@ class Settings(BaseSettings):
     # ES: Espera máxima en la vía rápida (< 800 ms en total).
     # EN: Max wait in the fast path (< 800 ms overall).
     AVIZOR_PHONE_BUDGET_MS: int = Field(default=600, ge=100, le=700)
+    # ES: #193 NER de nombres en el texto de PDF e imágenes (spaCy, local). "md"
+    #     acierta más; "es_core_news_sm" gasta menos RAM; vacío lo desactiva.
+    # EN: #193 name NER for PDF and image text (spaCy, local). "md" is more
+    #     accurate; "es_core_news_sm" uses less RAM; empty disables it.
+    AVIZOR_NER_MODEL: str = "es_core_news_md"
 
 
 settings = Settings()
