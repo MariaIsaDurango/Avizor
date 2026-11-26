@@ -2,6 +2,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '../constants/colors';
 import { fontSize, fontWeight } from '../constants/typography';
+import { useAccessibility } from '../contexts/AccessibilityContext';
 
 export type RiskLevel = 'green' | 'amber' | 'red';
 
@@ -18,6 +19,12 @@ const RISK_COLORS: Record<RiskLevel, string> = {
   red: colors.alert,
 };
 
+const RISK_COLORS_COLORBLIND: Record<RiskLevel, string> = {
+  green: colors.successColorBlind,
+  amber: colors.warning,
+  red: colors.alert,
+};
+
 const RISK_LABELS: Record<RiskLevel, string> = {
   green: 'seguro',
   amber: 'sospechoso',
@@ -25,7 +32,10 @@ const RISK_LABELS: Record<RiskLevel, string> = {
 };
 
 export default function AlertCard({ icon, title, description, riskLevel }: AlertCardProps) {
-  const accentColor = RISK_COLORS[riskLevel];
+  const { largeText, colorBlind } = useAccessibility();
+  const accentColor = (colorBlind ? RISK_COLORS_COLORBLIND : RISK_COLORS)[riskLevel];
+  const bodySize = largeText ? fontSize.body * 1.3 : fontSize.body;
+  const iconSize = largeText ? 36 : 28;
 
   return (
     <View
@@ -33,10 +43,17 @@ export default function AlertCard({ icon, title, description, riskLevel }: Alert
       accessible
       accessibilityLabel={`Alerta ${RISK_LABELS[riskLevel]}: ${title}. ${description}`}
     >
-      <MaterialIcons name={icon} size={28} color={accentColor} style={styles.icon} />
+      <MaterialIcons name={icon} size={iconSize} color={accentColor} style={styles.icon} />
       <View style={styles.content}>
-        <Text style={styles.title}>{title}</Text>
-        <Text style={styles.description}>{description}</Text>
+        <View style={styles.titleRow}>
+          <Text style={[styles.title, { fontSize: bodySize }]}>{title}</Text>
+          {colorBlind && (
+            <Text style={[styles.riskBadge, { color: accentColor, fontSize: largeText ? 13 : 11 }]}>
+              {RISK_LABELS[riskLevel].toUpperCase()}
+            </Text>
+          )}
+        </View>
+        <Text style={[styles.description, { fontSize: bodySize }]}>{description}</Text>
       </View>
     </View>
   );
@@ -58,14 +75,21 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
-  title: {
-    fontSize: fontSize.body,
-    fontWeight: fontWeight.bold,
-    color: colors.primary,
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
     marginBottom: 4,
   },
+  title: {
+    fontWeight: fontWeight.bold,
+    color: colors.primary,
+  },
+  riskBadge: {
+    fontWeight: fontWeight.bold,
+    opacity: 0.8,
+  },
   description: {
-    fontSize: fontSize.body,
     color: colors.primary,
   },
 });

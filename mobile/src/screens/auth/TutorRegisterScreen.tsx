@@ -227,6 +227,16 @@ export default function TutorRegisterScreen({ navigation }: Props) {
               accessibilityLabel="Dificultad para escuchar"
             />
           </View>
+
+          <View style={s.talkbackBanner} accessibilityRole="text">
+            <Ionicons name="mic-outline" size={18} color={colors.primary} style={{ opacity: 0.8 }} />
+            <View style={s.talkbackTextBlock}>
+              <Text style={s.talkbackTitle}>Compatible con TalkBack</Text>
+              <Text style={s.talkbackDesc}>
+                Si usas el lector de pantalla de Android, Avizor lo detecta automáticamente y se adapta.
+              </Text>
+            </View>
+          </View>
         </View>
       )}
 
@@ -310,6 +320,30 @@ const s = StyleSheet.create({
     fontSize: 15,
     color: colors.primary,
     fontWeight: '500',
+  },
+  talkbackBanner: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    marginTop: 12,
+    backgroundColor: '#EAF2F3',
+    borderRadius: 8,
+    padding: 12,
+  },
+  talkbackTextBlock: {
+    flex: 1,
+    gap: 2,
+  },
+  talkbackTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.primary,
+  },
+  talkbackDesc: {
+    fontSize: 13,
+    color: colors.primary,
+    opacity: 0.7,
+    lineHeight: 18,
   },
   divider: {
     height: 1,

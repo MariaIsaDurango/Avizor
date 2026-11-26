@@ -154,6 +154,7 @@
 
 <nav class="section-nav" aria-label="Secciones de soporte" role="tablist">
   <button class="section-nav__btn section-nav__btn--active" data-tab="tutor" role="tab" aria-selected="true">Guía del Tutor</button>
+  <button class="section-nav__btn" data-tab="solo" role="tab" aria-selected="false">Guía Sénior Solo</button>
   <button class="section-nav__btn" data-tab="ia" role="tab" aria-selected="false">Cómo funciona la IA</button>
   <button class="section-nav__btn" data-tab="privacidad" role="tab" aria-selected="false">Privacidad</button>
   <button class="section-nav__btn" data-tab="faq" role="tab" aria-selected="false">Preguntas frecuentes</button>
@@ -188,6 +189,51 @@
     <li>Si la persona mayor cree que un mensaje fue bloqueado por error, puede pedir un desbloqueo desde su app.</li>
     <li>Recibirás una solicitud en la sección <strong>Desbloqueos pendientes</strong>.</li>
     <li>Puedes aprobarla o rechazarla. La persona mayor verá tu respuesta en su móvil.</li>
+  </ol>
+</section>
+
+<!-- ── Guía Sénior Solo ───────────────────────────────── -->
+<section id="solo" class="card support-section" role="tabpanel">
+  <h2>
+    <i data-lucide="user" aria-hidden="true"></i>
+    Guía Sénior Solo
+  </h2>
+
+  <p>
+    El modo Sénior Solo es para quien quiere usar Avizor de forma independiente,
+    sin necesidad de vincular a un familiar o cuidador.
+  </p>
+
+  <h3>Cómo activar Avizor por primera vez</h3>
+  <ol class="steps">
+    <li>Abre la app Avizor y selecciona <strong>Para mí</strong>.</li>
+    <li>Lee el aviso de accesibilidad y pulsa <strong>Acepto, activar protección</strong>.
+        Esto permite a Avizor analizar tus mensajes entrantes.</li>
+    <li>Cuando el sistema Android te lo pida, activa el servicio de accesibilidad de Avizor
+        en los ajustes del móvil.</li>
+    <li>Ya está. Avizor empieza a protegerte de forma automática.</li>
+  </ol>
+
+  <h3>Cómo consultar el historial de alertas</h3>
+  <ol class="steps">
+    <li>En la pantalla principal verás el resumen de mensajes analizados y las alertas detectadas.</li>
+    <li>Cada alerta muestra el canal, el tipo de fraude detectado y la fecha.</li>
+    <li>El historial se organiza por fecha, con las alertas más recientes primero.</li>
+  </ol>
+
+  <h3>Cómo analizar un mensaje o número manualmente</h3>
+  <ol class="steps">
+    <li>Desde cualquier app (correo, WhatsApp, Teléfono…), selecciona el texto o número
+        que quieres comprobar y pulsa <strong>Compartir</strong>.</li>
+    <li>Elige Avizor en la lista de apps. Se abrirá la pantalla de análisis con el contenido ya cargado.</li>
+    <li>Pulsa <strong>Analizar</strong>. El resultado puede tardar hasta 15 segundos.</li>
+  </ol>
+
+  <h3>Cómo desactivar Avizor</h3>
+  <ol class="steps">
+    <li>Ve a <strong>Ajustes</strong> dentro de la app y pulsa <strong>Retirar consentimiento</strong>.</li>
+    <li>Avizor dejará de analizar tus mensajes de forma inmediata.</li>
+    <li>Puedes volver a activarlo en cualquier momento desde la misma pantalla.</li>
   </ol>
 </section>
 
@@ -227,9 +273,9 @@
 
   <h3>4. Reenvíos manuales</h3>
   <p>
-    La persona mayor también puede reenviar mensajes de forma manual (fotos, audios, capturas)
-    para que Avizor los analice con más detalle. En ese caso la respuesta puede tardar hasta
-    15 segundos mientras se realiza un análisis más profundo.
+    La persona mayor también puede enviar contenido de forma manual: un texto, un enlace,
+    un número de teléfono o un PDF e imagen adjunta. En ese caso la respuesta puede tardar
+    hasta 15 segundos mientras se realiza un análisis más profundo.
   </p>
 </section>
 
@@ -265,11 +311,15 @@
   <p>
     Según el Reglamento General de Protección de Datos (RGPD), tienes derecho a acceder a tus datos,
     rectificarlos, suprimirlos y oponerte a su tratamiento. Para ejercer estos derechos o si tienes
-    cualquier duda, escríbenos a <strong>[Pendiente de definir]</strong>.
+    cualquier duda, escríbenos a <strong><a href="mailto:avizorapp1.0@gmail.com">avizorapp1.0@gmail.com</a></strong>.
   </p>
   <p>
-    El responsable del tratamiento es <strong>[Pendiente de definir]</strong>.
-    Los datos no se ceden a terceros ni se usan para publicidad.
+    Los datos no se venden ni se usan para publicidad. Para prestar el servicio se utilizan
+    los siguientes encargados del tratamiento: <strong>Railway</strong> (servidor de la aplicación),
+    <strong>Brevo</strong> (envío de emails de verificación) y <strong>Groq</strong> (análisis de
+    texto anonimizado, cuando el módulo RAG esté activo). La identidad del responsable del
+    tratamiento está pendiente de registro: Escríbenos a
+    <strong><a href="mailto:avizorapp1.0@gmail.com">avizorapp1.0@gmail.com</a></strong> para cualquier consulta.
   </p>
 </section>
 
@@ -302,9 +352,9 @@
   <details class="faq-item">
     <summary>¿Avizor funciona con llamadas?</summary>
     <p>
-      Sí. En dispositivos Android compatibles, Avizor puede detectar llamadas sospechosas
-      (vishing). La persona mayor ve una pantalla de aviso antes de descolgar. Esta función
-      requiere activar el permiso de gestión de llamadas en el móvil.
+      Puedes comprobar cualquier número escribiéndolo en la pantalla principal de Avizor
+      y analizándolo manualmente antes de devolver la llamada. La protección automática
+      de llamadas entrantes está en desarrollo.
     </p>
   </details>
 
@@ -341,18 +391,22 @@
   const btns     = document.querySelectorAll('.section-nav__btn');
   const sections = document.querySelectorAll('.support-section');
 
-  btns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      btns.forEach(b => {
-        b.classList.remove('section-nav__btn--active');
-        b.setAttribute('aria-selected', 'false');
-      });
-      sections.forEach(s => s.classList.remove('support-section--active'));
+  function activateTab(tabId) {
+    const targetBtn = document.querySelector(`[data-tab="${tabId}"]`);
+    const targetSection = document.getElementById(tabId);
+    if (!targetBtn || !targetSection) return;
+    btns.forEach(b => { b.classList.remove('section-nav__btn--active'); b.setAttribute('aria-selected', 'false'); });
+    sections.forEach(s => s.classList.remove('support-section--active'));
+    targetBtn.classList.add('section-nav__btn--active');
+    targetBtn.setAttribute('aria-selected', 'true');
+    targetSection.classList.add('support-section--active');
+  }
 
-      btn.classList.add('section-nav__btn--active');
-      btn.setAttribute('aria-selected', 'true');
-      document.getElementById(btn.dataset.tab).classList.add('support-section--active');
-    });
+  btns.forEach(btn => {
+    btn.addEventListener('click', () => activateTab(btn.dataset.tab));
   });
+
+  const hash = window.location.hash.slice(1);
+  if (hash) activateTab(hash);
 </script>
 {% endblock %}

@@ -9,6 +9,7 @@ import { fontSize, fontWeight } from '../../constants/typography';
 import { STORAGE_KEYS, CONSENT_TEXT_VERSION } from '../../constants/storage';
 import { apiFetch } from '../../services/api';
 import { getMe } from '../../services/auth';
+import { useAccessibility } from '../../contexts/AccessibilityContext';
 import { RootStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SeniorSoloConsent'>;
@@ -20,6 +21,7 @@ const ANALYZED_ITEMS = [
 ];
 
 export default function SeniorSoloConsentScreen({ navigation }: Props) {
+  const { largeText } = useAccessibility();
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState<string | null>(null);
 
@@ -67,8 +69,8 @@ export default function SeniorSoloConsentScreen({ navigation }: Props) {
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
         <MaterialIcons name="shield" size={64} color={colors.primary} style={styles.icon} />
 
-        <Text style={styles.title}>Activa tu protección</Text>
-        <Text style={styles.subtitle}>
+        <Text style={[styles.title, largeText && { fontSize: 30 }]}>Activa tu protección</Text>
+        <Text style={[styles.subtitle, largeText && { fontSize: 20 }]}>
           Para detectar fraudes automáticamente, Avizor necesita analizar el contenido de:
         </Text>
 
@@ -76,12 +78,12 @@ export default function SeniorSoloConsentScreen({ navigation }: Props) {
           {ANALYZED_ITEMS.map((item) => (
             <View key={item.label} style={styles.listItem}>
               <MaterialIcons name={item.icon} size={22} color={colors.primary} style={{ opacity: 0.7 }} />
-              <Text style={styles.listLabel}>{item.label}</Text>
+              <Text style={[styles.listLabel, largeText && { fontSize: 22 }]}>{item.label}</Text>
             </View>
           ))}
         </View>
 
-        <Text style={styles.note}>
+        <Text style={[styles.note, largeText && { fontSize: 16 }]}>
           El texto original no sale de tu móvil. Solo se envía una versión sin tus datos personales, y si parece un fraude se guarda unos días para revisarlo.
         </Text>
 
@@ -100,7 +102,7 @@ export default function SeniorSoloConsentScreen({ navigation }: Props) {
               accessibilityRole="button"
               accessibilityLabel="Acepto y activo la protección"
             >
-              <Text style={styles.btnText}>Acepto — activar protección</Text>
+              <Text style={[styles.btnText, largeText && { fontSize: 22 }]}>Acepto, activar protección</Text>
             </Pressable>
           )
         }
@@ -111,7 +113,7 @@ export default function SeniorSoloConsentScreen({ navigation }: Props) {
           accessibilityLabel="Ahora no, ir a inicio"
           style={({ pressed }) => [styles.skipBtn, pressed && { opacity: 0.5 }]}
         >
-          <Text style={styles.skipText}>Ahora no</Text>
+          <Text style={[styles.skipText, largeText && { fontSize: 22 }]}>Ahora no</Text>
         </Pressable>
       </ScrollView>
     </Screen>

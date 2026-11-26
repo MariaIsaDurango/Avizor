@@ -2,6 +2,7 @@ import { Pressable, Text, StyleSheet, ViewStyle } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '../constants/colors';
 import { fontSize, fontWeight } from '../constants/typography';
+import { useAccessibility } from '../contexts/AccessibilityContext';
 
 export type ButtonVariant = 'primary' | 'alert' | 'action';
 
@@ -35,6 +36,8 @@ export default function Button({
   large = false,
   style,
 }: ButtonProps) {
+  const { largeText } = useAccessibility();
+  const isLarge = large || largeText;
   const resolvedIcon = icon ?? DEFAULT_ICONS[variant];
   const showIcon = variant === 'alert' || variant === 'action';
 
@@ -47,7 +50,7 @@ export default function Button({
       accessibilityState={{ disabled }}
       style={({ pressed }) => [
         styles.base,
-        large && styles.baseLarge,
+        isLarge && styles.baseLarge,
         variant === 'primary' && styles.primary,
         variant === 'alert' && styles.alert,
         variant === 'action' && styles.action,
@@ -59,12 +62,12 @@ export default function Button({
       {showIcon && resolvedIcon && (
         <MaterialIcons
           name={resolvedIcon}
-          size={large ? 36 : 28}
+          size={isLarge ? 36 : 28}
           color={LABEL_COLOR[variant]}
           style={styles.icon}
         />
       )}
-      <Text style={[styles.label, large && styles.labelLarge, { color: LABEL_COLOR[variant] }]}>
+      <Text style={[styles.label, isLarge && styles.labelLarge, { color: LABEL_COLOR[variant] }]}>
         {label}
       </Text>
     </Pressable>

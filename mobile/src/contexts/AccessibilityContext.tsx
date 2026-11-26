@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { AccessibilityInfo } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 import { STORAGE_KEYS } from '../constants/storage';
 import { AccessibilityProfile, getSeniorProfile } from '../services/pairing';
@@ -7,6 +8,7 @@ interface AccessibilityContextValue {
   largeText: boolean;
   colorBlind: boolean;
   hardOfHearing: boolean;
+  screenReaderActive: boolean;
   reload: () => void;
 }
 
@@ -14,11 +16,19 @@ const AccessibilityContext = createContext<AccessibilityContextValue>({
   largeText: false,
   colorBlind: false,
   hardOfHearing: false,
+  screenReaderActive: false,
   reload: () => {},
 });
 
 export function AccessibilityProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<AccessibilityProfile | null>(null);
+  const [screenReaderActive, setScreenReaderActive] = useState(false);
+
+  useEffect(() => {
+    AccessibilityInfo.isScreenReaderEnabled().then(setScreenReaderActive);
+    const sub = AccessibilityInfo.addEventListener('screenReaderChanged', setScreenReaderActive);
+    return () => sub.remove();
+  }, []);
 
   function load() {
     SecureStore.getItemAsync(STORAGE_KEYS.ACCESSIBILITY_PROFILE)
@@ -53,6 +63,7 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
     largeText: !!(profile?.low_vision || profile?.blindness),
     colorBlind: !!profile?.color_blindness,
     hardOfHearing: !!profile?.hearing_impairment,
+    screenReaderActive,
     reload: load,
   };
 

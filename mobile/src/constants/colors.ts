@@ -4,6 +4,7 @@ export const colors = {
   action: '#F4B19B',
   alert: '#D93838',
   success: '#2E8B57',
+  successColorBlind: '#1565C0',
   warning: '#D97706',
   deep: '#0F2C59',
   white: '#FFFFFF',
