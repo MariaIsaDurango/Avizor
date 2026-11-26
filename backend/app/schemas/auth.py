@@ -136,6 +136,14 @@ class ChangePasswordRequest(ContractModel):
     new_password: str = Field(min_length=10, max_length=128)
 
 
+class DeleteAccountRequest(ContractModel):
+    """ES: Confirmación con la contraseña para borrar la cuenta (#194).
+    EN: Password confirmation to delete the account (#194).
+    """
+
+    password: str = Field(min_length=1, max_length=128)
+
+
 class MessageResponse(ContractModel):
     message: str
 
