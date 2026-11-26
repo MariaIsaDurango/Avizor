@@ -37,9 +37,7 @@ class RecordingClient:
 def test_untrusted_text_is_json_data_separate_from_system_instructions():
     from rag.src.agent.llm import GroqSelector
 
-    client = RecordingClient(
-        {"block_template": "FAKE_DO_NOT_TOUCH", "references": [0]}
-    )
+    client = RecordingClient({"block_template": "FAKE_DO_NOT_TOUCH", "references": [0]})
     payload = {
         "anonymized_text": INJECTION,
         "fast_risk_level": "red",
