@@ -188,13 +188,9 @@ export default function App() {
       (payload: { text?: string; uri?: string; mimeType?: string }) => {
         if (!navigationRef.isReady()) return;
         if (payload.uri) {
-          const isTel = payload.uri.startsWith('tel:');
-          if (isTel) {
-            const phone = payload.uri.replace('tel:', '').trim();
-            navigationRef.navigate('SeniorHome', { phoneNumber: phone });
-          } else {
-            navigationRef.navigate('SeniorShareEmail', { fileUri: payload.uri, mimeType: payload.mimeType });
-          }
+          navigationRef.navigate('SeniorShareEmail', { fileUri: payload.uri, mimeType: payload.mimeType });
+        } else if (payload.text?.startsWith('tel:')) {
+          navigationRef.navigate('SeniorHome', { phoneNumber: payload.text.slice(4) });
         } else if (payload.text) {
           navigationRef.navigate('SeniorShareEmail', { text: payload.text });
         }
@@ -226,7 +222,12 @@ export default function App() {
           });
           // ES: Contenido compartido en arranque en frío — aquí la navegación ya está lista.
           ShareModule?.getSharedText?.().then((text: string | null) => {
-            if (text) navigationRef.navigate('SeniorShareEmail', { text });
+            if (!text) return;
+            if (text.startsWith('tel:')) {
+              navigationRef.navigate('SeniorHome', { phoneNumber: text.slice(4) });
+            } else {
+              navigationRef.navigate('SeniorShareEmail', { text });
+            }
           });
           ShareModule?.getSharedFile?.().then((file: { uri: string; mimeType: string } | null) => {
             if (file) navigationRef.navigate('SeniorShareEmail', { fileUri: file.uri, mimeType: file.mimeType });

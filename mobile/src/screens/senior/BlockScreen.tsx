@@ -111,6 +111,7 @@ export default function SeniorBlockScreen({ navigation, route }: Props) {
   const [deviceId, setDeviceId] = useState<string | null>(null);
   const [reporting, setReporting] = useState(false);
   const [reported, setReported] = useState(false);
+  const [reportError, setReportError] = useState(false);
   const { phoneNumber } = route.params;
 
   useEffect(() => {
@@ -135,24 +136,13 @@ export default function SeniorBlockScreen({ navigation, route }: Props) {
         await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
       }
     } catch {
-      // silent — no interrumpir la pantalla de bloqueo con un error secundario
+      setReportError(true);
     } finally {
       setReporting(false);
     }
   }
 
-  const baseConfig = (isSeniorSolo ? CONFIGS_SOLO : CONFIGS)[route.params.template];
-  const config = phoneNumber && route.params.template === 'UNSURE_CALL_FAMILY'
-    ? {
-        ...baseConfig,
-        message: isSeniorSolo
-          ? 'No estamos seguros.\nNo devuelvas esa llamada.\nVerifica antes de actuar.'
-          : 'No estamos seguros.\nNo devuelvas esa llamada.\nConsulta con tu familiar.',
-        tip: isSeniorSolo
-          ? '1. No devuelvas la llamada a ese número.\n2. Si te llaman de nuevo, no des ningún dato personal.\n3. Llama al número oficial de la entidad para comprobar si es legítima.'
-          : '1. No devuelvas la llamada a ese número.\n2. Si te llaman de nuevo, no des ningún dato personal.\n3. Comenta a tu familiar lo que ha pasado para decidir juntos.',
-      }
-    : baseConfig;
+  const config = (isSeniorSolo ? CONFIGS_SOLO : CONFIGS)[route.params.template];
 
   useEffect(() => {
     if (!hardOfHearing) return;
@@ -213,17 +203,24 @@ export default function SeniorBlockScreen({ navigation, route }: Props) {
           reporting
             ? <ActivityIndicator size="large" color={colors.primary} accessibilityLabel="Reportando número, por favor espera" />
             : (
-              <Pressable
-                style={[styles.reportButton, largeText && styles.reportButtonLarge]}
-                onPress={reported ? () => navigation.goBack() : handleReport}
-                accessibilityRole="button"
-                accessibilityLabel={reported ? 'Número reportado. Pulsa para cerrar' : 'Reportar este número como spam'}
-              >
-                <MaterialIcons name={reported ? 'check' : 'flag'} size={largeText ? 26 : 20} color={colors.white} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" />
-                <Text style={[styles.reportLabel, largeText && styles.reportLabelLarge]}>
-                  {reported ? 'Aceptar' : 'Reportar número'}
-                </Text>
-              </Pressable>
+              <>
+                <Pressable
+                  style={[styles.reportButton, largeText && styles.reportButtonLarge]}
+                  onPress={reported ? () => navigation.goBack() : handleReport}
+                  accessibilityRole="button"
+                  accessibilityLabel={reported ? 'Número reportado. Pulsa para cerrar' : 'Reportar este número como spam'}
+                >
+                  <MaterialIcons name={reported ? 'check' : 'flag'} size={largeText ? 26 : 20} color={colors.white} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" />
+                  <Text style={[styles.reportLabel, largeText && styles.reportLabelLarge]}>
+                    {reported ? 'Aceptar' : 'Reportar número'}
+                  </Text>
+                </Pressable>
+                {reportError && (
+                  <Text style={[styles.reportErrorText, largeText && styles.reportErrorTextLarge]} accessibilityLiveRegion="assertive">
+                    No se pudo reportar el número. Inténtalo de nuevo.
+                  </Text>
+                )}
+              </>
             )
         )}
 
@@ -342,9 +339,6 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 20,
   },
-  reportButtonDone: {
-    opacity: 0.4,
-  },
   reportButtonLarge: {
     paddingVertical: 20,
   },
@@ -371,4 +365,11 @@ const styles = StyleSheet.create({
   dismissLabelLarge: {
     fontSize: 22,
   },
+  reportErrorText: {
+    fontSize: 14,
+    color: colors.alert,
+    textAlign: 'center',
+    marginTop: 4,
+  },
+  reportErrorTextLarge: { fontSize: 18 },
 });

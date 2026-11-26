@@ -34,6 +34,23 @@ class MainActivity : ReactActivity() {
   }
 
   private fun handleShareIntent(intent: Intent) {
+    if (intent.action == Intent.ACTION_VIEW) {
+      val data = intent.data ?: return
+      if (data.scheme != "tel") return
+      val phoneNumber = data.schemeSpecificPart?.trim() ?: return
+      if (phoneNumber.isBlank()) return
+      pendingSharedText = "tel:$phoneNumber"
+      try {
+        val ctx = (application as MainApplication).reactHost.currentReactContext
+        if (ctx != null) {
+          val params = Arguments.createMap().apply { putString("text", "tel:$phoneNumber") }
+          ctx.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+            .emit("ShareIntentReceived", params)
+          pendingSharedText = null
+        }
+      } catch (_: Exception) {}
+      return
+    }
     if (intent.action != Intent.ACTION_SEND) return
     val mimeType = intent.type ?: ""
 
