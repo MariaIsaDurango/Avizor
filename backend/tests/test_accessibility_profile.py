@@ -6,10 +6,10 @@ import uuid
 
 import pytest
 from pydantic import ValidationError
+from sqlalchemy import select
 
 from app.models.user import Pairing, User
 from app.schemas.accessibility import AccessibilityProfile
-from sqlalchemy import select
 
 PAIRINGS = "/api/v1/pairings"
 REDEEM = "/api/v1/pairings/redeem"

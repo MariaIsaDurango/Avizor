@@ -2,12 +2,21 @@
 Statistics endpoint tests (need PostgreSQL).
 """
 
-import pytest
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 
+import pytest
+
 from app.models.analysis import Analysis
-from app.schemas.enums import Action, Channel, InputType, Origin, RiskLevel, ThreatType, VerdictPhase
+from app.schemas.enums import (
+    Action,
+    Channel,
+    InputType,
+    Origin,
+    RiskLevel,
+    ThreatType,
+    VerdictPhase,
+)
 
 
 def test_daily_stats_returns_200_and_shape(api_client):

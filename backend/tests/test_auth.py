@@ -3,25 +3,20 @@ Sign-up, login and permission tests (need PostgreSQL).
 """
 
 import uuid
+from datetime import UTC, datetime
 
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from sqlalchemy.exc import IntegrityError
 
 from app.api.deps import GuardianToken
-from app.core.errors import register_error_handlers
-from app.core.security import create_access_token
+from app.api.v1.auth import _active_guardian
+from app.core.errors import ApiError, register_error_handlers
+from app.core.security import create_access_token, hash_password
 from app.db.session import get_db
 from app.models.user import User
 from app.schemas.enums import UserRole
-
-from datetime import datetime, timezone
-
-from sqlalchemy.exc import IntegrityError
-
-from app.api.v1.auth import _active_guardian
-from app.core.errors import ApiError
-from app.core.security import hash_password
 
 REGISTER = "/api/v1/auth/register"
 LOGIN = "/api/v1/auth/login"
@@ -199,7 +194,7 @@ def test_me_rejects_missing_or_deleted_user(
     if deleted:
         user_id = uuid.UUID(registered["id"])
         user = db_session.get(User, user_id)
-        user.deleted_at = datetime.now(timezone.utc)
+        user.deleted_at = datetime.now(UTC)
         db_session.flush()
     else:
         user_id = uuid.uuid4()
@@ -228,10 +223,10 @@ def test_active_guardian_rejects_missing_or_deleted_user(
         db_session.add(user)
         db_session.flush()
         user_id = user.id
-        user.deleted_at = datetime.now(timezone.utc)
+        user.deleted_at = datetime.now(UTC)
         db_session.flush()
     else:
         user_id = uuid.uuid4()
 
-    with pytest.raises(ApiError) as exc:
+    with pytest.raises(ApiError):
         _active_guardian(db_session, user_id)

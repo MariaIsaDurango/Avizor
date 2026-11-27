@@ -2,6 +2,8 @@
 Tests for POST /api/v1/senior/logout endpoint (need PostgreSQL).
 """
 
+from datetime import UTC
+
 import pytest
 
 from app.models.user import Device
@@ -104,9 +106,9 @@ def test_segundo_logout_en_cooldown_no_envia(
 def test_logout_deleted_senior_returns_204_without_sending_push(
     api_client, db_session, paired_senior, monkeypatch
 ):
-    from datetime import datetime, timezone
+    from datetime import datetime
 
-    paired_senior.user.deleted_at = datetime.now(timezone.utc)
+    paired_senior.user.deleted_at = datetime.now(UTC)
     db_session.flush()
 
     monkeypatch.setattr(

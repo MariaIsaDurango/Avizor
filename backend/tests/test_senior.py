@@ -2,8 +2,9 @@
 Tests for GET /api/v1/senior endpoint (need PostgreSQL).
 """
 from sqlalchemy import select
-from app.models.user import Pairing, User
+
 from app.core.security import create_access_token
+from app.models.user import Pairing, User
 from app.schemas.enums import UserRole
 
 SENIOR = "/api/v1/senior"

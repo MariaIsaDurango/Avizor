@@ -3,11 +3,11 @@ Tests for AnalysisRequest, ManualAnalysisMetadata and Verdict.
 """
 
 import pytest
+from conftest import ANALYSES, PHISHING, analysis_body
 from pydantic import ValidationError
 
 from app.schemas.analysis import AnalysisRequest, ManualAnalysisMetadata
 from app.schemas.verdict import Verdict
-from conftest import ANALYSES, PHISHING, analysis_body
 
 DEVICE_ID = "c7e1a9b2-4d3f-4a8e-9b1c-0f2e3d4a5b6c"
 ANALYSIS_ID = "a4b8c2d1-6e3f-4c9a-8b7d-1e2f3a4b5c6d"
