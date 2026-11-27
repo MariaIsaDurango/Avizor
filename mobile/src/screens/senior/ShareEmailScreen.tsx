@@ -80,8 +80,9 @@ export default function ShareEmailScreen({ route, navigation }: Props) {
     setError('');
     try {
       if (!deviceId && !isSeniorSolo) throw new Error('Dispositivo no vinculado.');
-      const result = fileUri && mimeType
-        ? await submitAnalysisWithFile(deviceId, fileUri, mimeType)
+      const normalizedMime = mimeType === 'image/jpg' ? 'image/jpeg' : mimeType;
+      const result = fileUri && normalizedMime
+        ? await submitAnalysisWithFile(deviceId, fileUri, normalizedMime)
         : await submitAnalysis(deviceId, 'text', (text ?? '').slice(0, 5000));
       if (hardOfHearing) {
         await Haptics.notificationAsync(

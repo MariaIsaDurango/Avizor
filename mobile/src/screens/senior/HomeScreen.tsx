@@ -137,7 +137,7 @@ export default function SeniorHomeScreen({ navigation, route }: Props) {
       });
       if (result.canceled || !result.assets?.[0]) return;
       const asset = result.assets[0];
-      const mime = asset.mimeType ?? 'image/jpeg';
+      const mime = (asset.mimeType ?? 'image/jpeg') === 'image/jpg' ? 'image/jpeg' : (asset.mimeType ?? 'image/jpeg');
       if (!SUPPORTED_IMAGE_TYPES.includes(mime)) {
         setToast('Formato de imagen no compatible. Usa JPG, PNG o WebP.');
         return;

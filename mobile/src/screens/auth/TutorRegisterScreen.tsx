@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { View, Text, Image, TextInput, Pressable, ActivityIndicator, StyleSheet, Switch } from 'react-native';
+import { View, Text, Image, TextInput, Pressable, ActivityIndicator, StyleSheet, Switch, Linking } from 'react-native';
+
+const PRIVACY_URL = 'https://avizor-production.up.railway.app/privacidad';
 import { Ionicons } from '@expo/vector-icons';
 import * as SecureStore from 'expo-secure-store';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -255,6 +257,19 @@ export default function TutorRegisterScreen({ navigation }: Props) {
           </Pressable>
         )
       }
+
+      <Text style={[a.footerText, { textAlign: 'center', marginBottom: 8 }, largeText && { fontSize: 15 }]}>
+        Al crear tu cuenta aceptas nuestra{' '}
+        <Text
+          style={[a.footerTextBold, { color: colors.primary }]}
+          onPress={() => Linking.openURL(PRIVACY_URL)}
+          accessibilityRole="link"
+          accessibilityLabel="Política de privacidad"
+        >
+          política de privacidad
+        </Text>
+        {'. '}Responsable: <Text style={a.footerTextBold}>Avizor</Text>.
+      </Text>
 
       <Pressable onPress={() => navigation.navigate('TutorLogin')} style={a.footerLink} accessibilityRole="link">
         <Text style={[a.footerText, largeText && { fontSize: 17 }]}>¿Ya tienes cuenta? <Text style={[a.footerTextBold, largeText && { fontSize: 17 }]}>Inicia sesión</Text></Text>

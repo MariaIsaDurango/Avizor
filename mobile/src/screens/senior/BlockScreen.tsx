@@ -8,6 +8,15 @@ import * as Haptics from 'expo-haptics';
 import Screen from '../../components/Screen';
 import { RootStackParamList } from '../../navigation/types';
 import { BlockTemplate, RagSource, OfficialNoticeEvidence } from '../../services/analyses';
+import { toE164 } from '../../services/anonymize';
+
+const TRUSTED_DOMAINS = ['incibe.es', 'osi.es', 'policia.es', 'bde.es', 'incibe-cert.es'];
+function isTrustedUrl(url: string): boolean {
+  try {
+    const { protocol, hostname } = new URL(url);
+    return protocol === 'https:' && TRUSTED_DOMAINS.some(d => hostname === d || hostname.endsWith('.' + d));
+  } catch { return false; }
+}
 import { colors } from '../../constants/colors';
 import { fontWeight } from '../../constants/typography';
 import { STORAGE_KEYS } from '../../constants/storage';
@@ -18,7 +27,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'SeniorBlock'>;
 
 const SOURCE_LABELS: Record<RagSource, string> = {
   incibe: 'INCIBE',
-  osi: 'OSI — Oficina de Seguridad del Internauta',
+  osi: 'OSI · Oficina de Seguridad del Internauta',
   policia_nacional: 'Policía Nacional',
   banco_espana: 'Banco de España',
 };
@@ -205,7 +214,7 @@ export default function SeniorBlockScreen({ navigation, route }: Props) {
             <Text style={[styles.tip, largeText && styles.tipLarge]}>{config.tip}</Text>
           </View>
         )}
-        {phoneNumber?.startsWith('400') && (
+        {!!phoneNumber && (toE164(phoneNumber) ?? '').startsWith('+34400') && (
           <View style={styles.prefix400Box} accessibilityLabel="Información sobre números 400">
             <MaterialIcons name="info-outline" size={16} color={colors.white} style={{ opacity: 0.9 }} />
             <Text style={[styles.prefix400Text, largeText && styles.prefix400TextLarge]}>
@@ -222,7 +231,7 @@ export default function SeniorBlockScreen({ navigation, route }: Props) {
                 <Text
                   key={i}
                   style={[styles.evidenceSource, styles.evidenceLink, largeText && styles.evidenceSourceLarge]}
-                  onPress={() => Linking.openURL(e.url)}
+                  onPress={() => isTrustedUrl(e.url) && Linking.openURL(e.url)}
                   accessibilityRole="link"
                   accessibilityLabel={`Ver aviso oficial de ${SOURCE_LABELS[e.source]}`}
                 >
