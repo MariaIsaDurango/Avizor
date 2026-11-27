@@ -1,4 +1,4 @@
-﻿"""Integration tests for PATCH /api/v1/senior/phone."""
+"""Integration tests for PATCH /api/v1/senior/phone."""
 
 PHONE = "/api/v1/senior/phone"
 SENIOR = "/api/v1/senior"

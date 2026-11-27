@@ -9,6 +9,7 @@ from pydantic import ValidationError
 
 from app.models.user import Pairing, User
 from app.schemas.accessibility import AccessibilityProfile
+from sqlalchemy import select
 
 PAIRINGS = "/api/v1/pairings"
 REDEEM = "/api/v1/pairings/redeem"
@@ -161,8 +162,6 @@ def test_profile_survives_after_redeem(api_client, guardian_headers):
 def test_senior_profile_uses_account_phone_when_pairing_phone_is_missing(
     api_client, db_session, guardian, paired_senior
 ):
-    from app.models.user import Pairing
-    from sqlalchemy import select
 
     guardian.phone = "+34600000001"
 

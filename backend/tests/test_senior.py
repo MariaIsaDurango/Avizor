@@ -65,8 +65,6 @@ def test_otro_tutor_no_ve_al_senior(api_client, db_session, paired_senior):
 def test_guardian_profile_uses_account_phone_when_pairing_phone_is_missing(
     api_client, db_session, guardian, guardian_headers, paired_senior
 ):
-    from app.models.user import Pairing
-    from sqlalchemy import select
 
     guardian.phone = "+34600000001"
 
