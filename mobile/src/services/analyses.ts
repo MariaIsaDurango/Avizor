@@ -5,6 +5,16 @@ import { anonymize, toE164, NER_MODEL_VERSION } from './anonymize';
 
 export type InputType = 'text' | 'url' | 'phone_number';
 
+export type ThreatType =
+  | 'phishing'
+  | 'smishing'
+  | 'vishing'
+  | 'spam'
+  | 'identity_theft'
+  | 'bank_fraud'
+  | 'other'
+  | 'none';
+
 export type BlockTemplate =
   | 'FAKE_DO_NOT_TOUCH'
   | 'DANGEROUS_LINK'
@@ -33,7 +43,7 @@ export interface Verdict {
   analysis_id: string;
   phase: 'fast' | 'agent';
   risk_level: 'green' | 'amber' | 'red';
-  threat_type: string;
+  threat_type: ThreatType;
   action: 'allow' | 'silent_block' | 'block_and_alert';
   block_template: BlockTemplate | null;
   confidence: number;
@@ -51,7 +61,7 @@ export async function submitAnalysis(
   deviceId: string | null,
   inputType: InputType,
   value: string,
-  options?: { channel?: 'manual' | 'screen' | 'sms'; origin?: 'manual' | 'automatic' },
+  options?: { channel?: 'manual' | 'screen' | 'sms' | 'call'; origin?: 'manual' | 'automatic' },
 ): Promise<Verdict> {
   const body: Record<string, unknown> = {
     ...(deviceId ? { device_id: deviceId } : {}),

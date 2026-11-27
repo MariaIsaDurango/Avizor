@@ -6,10 +6,13 @@ import Button from '../../components/Button';
 import { colors } from '../../constants/colors';
 import { fontSize, fontWeight } from '../../constants/typography';
 import { logout } from '../../services/auth';
+import { useAccessibility } from '../../contexts/AccessibilityContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TutorLogout'>;
 
 export default function LogoutScreen({ navigation }: Props) {
+  const { largeText } = useAccessibility();
+
   function handleLogout() {
     Alert.alert(
       '¿Estás seguro?',
@@ -31,8 +34,8 @@ export default function LogoutScreen({ navigation }: Props) {
   return (
     <Screen style={styles.screen}>
       <View style={styles.content}>
-        <Text style={styles.title}>¿Cerrar sesión?</Text>
-        <Text style={styles.subtitle}>
+        <Text style={[styles.title, largeText && { fontSize: 32 }]}>¿Cerrar sesión?</Text>
+        <Text style={[styles.subtitle, largeText && { fontSize: 22 }]}>
           Se eliminará tu sesión de este dispositivo.
         </Text>
       </View>

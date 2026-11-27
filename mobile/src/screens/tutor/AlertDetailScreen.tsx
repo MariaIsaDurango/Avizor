@@ -8,6 +8,7 @@ import Button from '../../components/Button';
 import { colors } from '../../constants/colors';
 import { fontSize, fontWeight } from '../../constants/typography';
 import { updateAlert, AlertStatus, ThreatType, Channel, Evidence, IndicatorEvidence } from '../../services/alerts';
+import { useAccessibility } from '../../contexts/AccessibilityContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AlertDetail'>;
 
@@ -50,14 +51,14 @@ const RAG_SOURCE_LABELS: Record<string, string> = {
   policia_nacional: 'Policía Nacional',
 };
 
-function EvidenceItem({ item }: { item: Evidence }) {
+function EvidenceItem({ item, largeText }: { item: Evidence; largeText: boolean }) {
   if (item.type === 'official_notice') {
     return (
       <View style={styles.evidenceRow}>
         <MaterialIcons name="verified" size={16} color={colors.primary} style={{ marginTop: 2 }} />
         <View style={{ flex: 1 }}>
-          <Text style={styles.evidenceSource}>{RAG_SOURCE_LABELS[item.source] ?? item.source}</Text>
-          <Text style={styles.evidenceUrl} numberOfLines={1}>{item.url}</Text>
+          <Text style={[styles.evidenceSource, largeText && { fontSize: 17 }]}>{RAG_SOURCE_LABELS[item.source] ?? item.source}</Text>
+          <Text style={[styles.evidenceUrl, largeText && { fontSize: 15 }]} numberOfLines={1}>{item.url}</Text>
         </View>
       </View>
     );
@@ -66,10 +67,10 @@ function EvidenceItem({ item }: { item: Evidence }) {
     <View style={styles.evidenceRow}>
       <MaterialIcons name="info-outline" size={16} color={colors.warning} style={{ marginTop: 2 }} />
       <View style={{ flex: 1 }}>
-        <Text style={styles.evidenceLabel}>
+        <Text style={[styles.evidenceLabel, largeText && { fontSize: 17 }]}>
           {INDICATOR_LABELS[item.type]}: <Text style={styles.evidenceValue}>{item.value}</Text>
         </Text>
-        <Text style={styles.evidenceReason}>{item.reason}</Text>
+        <Text style={[styles.evidenceReason, largeText && { fontSize: 17 }]}>{item.reason}</Text>
       </View>
     </View>
   );
@@ -86,6 +87,7 @@ function formatDate(isoString: string): string {
 }
 
 export default function AlertDetailScreen({ route, navigation }: Props) {
+  const { largeText } = useAccessibility();
   const [alert, setAlert] = useState(route.params.alert);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -118,40 +120,40 @@ export default function AlertDetailScreen({ route, navigation }: Props) {
     <Screen scrollable>
       <View style={styles.header}>
         <MaterialIcons name="warning" size={32} color={colors.alert} />
-        <Text style={styles.seniorName}>{alert.senior_name}</Text>
-        <Text style={styles.meta}>
+        <Text style={[styles.seniorName, largeText && { fontSize: 32 }]}>{alert.senior_name}</Text>
+        <Text style={[styles.meta, largeText && { fontSize: 22 }]}>
           {THREAT_LABELS[alert.threat_type]} · {CHANNEL_LABELS[alert.channel]}
         </Text>
-        <Text style={styles.date}>{formatDate(alert.created_at)}</Text>
+        <Text style={[styles.date, largeText && { fontSize: 22 }]}>{formatDate(alert.created_at)}</Text>
       </View>
 
       <View style={styles.statusRow}>
-        <Text style={styles.statusLabel}>Estado:</Text>
-        <Text style={[styles.statusValue, isResolved && styles.statusResolved]}>
+        <Text style={[styles.statusLabel, largeText && { fontSize: 22 }]}>Estado:</Text>
+        <Text style={[styles.statusValue, isResolved && styles.statusResolved, largeText && { fontSize: 22 }]}>
           {STATUS_LABELS[alert.status]}
         </Text>
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Resumen</Text>
-        <Text style={styles.sectionBody}>{alert.summary}</Text>
+        <Text style={[styles.sectionTitle, largeText && { fontSize: 22 }]}>Resumen</Text>
+        <Text style={[styles.sectionBody, largeText && { fontSize: 22 }]}>{alert.summary}</Text>
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Explicación</Text>
-        <Text style={styles.sectionBody}>{alert.explanation}</Text>
+        <Text style={[styles.sectionTitle, largeText && { fontSize: 22 }]}>Explicación</Text>
+        <Text style={[styles.sectionBody, largeText && { fontSize: 22 }]}>{alert.explanation}</Text>
       </View>
 
       {alert.evidence.length > 0 && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Indicadores técnicos</Text>
+          <Text style={[styles.sectionTitle, largeText && { fontSize: 22 }]}>Indicadores técnicos</Text>
           {alert.evidence.map((item, i) => (
-            <EvidenceItem key={i} item={item} />
+            <EvidenceItem key={i} item={item} largeText={largeText} />
           ))}
         </View>
       )}
 
-      {error !== null && <Text style={styles.error}>{error}</Text>}
+      {error !== null && <Text style={[styles.error, largeText && { fontSize: 22 }]}>{error}</Text>}
 
       {loading && <ActivityIndicator size="large" color={colors.primary} style={styles.loader} />}
 

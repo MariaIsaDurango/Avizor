@@ -152,7 +152,7 @@ export default function SeniorSettingsScreen({ navigation }: Props) {
   const dotOpacity = (val: boolean | null) => val === null ? 0.25 : 1;
 
   return (
-    <Screen>
+    <Screen scrollable>
       <View style={styles.header}>
         <Pressable onPress={() => navigation.goBack()} style={styles.backBtn} accessibilityRole="button" accessibilityLabel="Volver">
           <MaterialIcons name="arrow-back" size={24} color={colors.primary} />
@@ -192,6 +192,23 @@ export default function SeniorSettingsScreen({ navigation }: Props) {
                 <Text style={styles.activateBtnText}>Activar</Text>
               </Pressable>
             )}
+            {notifEnabled === true && (
+              <Pressable
+                style={styles.deactivateBtn}
+                onPress={() => Alert.alert(
+                  'Desactivar alertas',
+                  'Se abrirán los ajustes del sistema. Busca "Avizor" en la lista y desactívalo.',
+                  [
+                    { text: 'Cancelar', style: 'cancel' },
+                    { text: 'Ir a ajustes', onPress: () => AvizorNotification?.openSettings() },
+                  ],
+                )}
+                accessibilityRole="button"
+                accessibilityLabel="Desactivar acceso a notificaciones"
+              >
+                <Text style={styles.deactivateBtnText}>Desactivar</Text>
+              </Pressable>
+            )}
           </View>
 
           <View style={styles.divider} />
@@ -221,6 +238,23 @@ export default function SeniorSettingsScreen({ navigation }: Props) {
                 accessibilityLabel="Activar análisis automático de emails"
               >
                 <Text style={styles.activateBtnText}>Activar</Text>
+              </Pressable>
+            )}
+            {a11yEnabled === true && (
+              <Pressable
+                style={styles.deactivateBtn}
+                onPress={() => Alert.alert(
+                  'Desactivar análisis de emails',
+                  'Se abrirán los ajustes de accesibilidad. Busca "Avizor" y desactívalo.',
+                  [
+                    { text: 'Cancelar', style: 'cancel' },
+                    { text: 'Ir a ajustes', onPress: () => AvizorAccessibility?.openSettings() },
+                  ],
+                )}
+                accessibilityRole="button"
+                accessibilityLabel="Desactivar análisis automático de emails"
+              >
+                <Text style={styles.deactivateBtnText}>Desactivar</Text>
               </Pressable>
             )}
           </View>
@@ -427,6 +461,15 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   activateBtnText: { color: colors.white, fontSize: 13, fontWeight: fontWeight.bold },
+  deactivateBtn: {
+    borderWidth: 1.5,
+    borderColor: colors.primary,
+    borderRadius: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    marginLeft: 8,
+  },
+  deactivateBtnText: { color: colors.primary, fontSize: 13, fontWeight: fontWeight.bold },
   logoutBtn: {
     flexDirection: 'row',
     alignItems: 'center',

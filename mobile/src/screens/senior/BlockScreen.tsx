@@ -205,13 +205,29 @@ export default function SeniorBlockScreen({ navigation, route }: Props) {
             <Text style={[styles.tip, largeText && styles.tipLarge]}>{config.tip}</Text>
           </View>
         )}
+        {phoneNumber?.startsWith('400') && (
+          <View style={styles.prefix400Box} accessibilityLabel="Información sobre números 400">
+            <MaterialIcons name="info-outline" size={16} color={colors.white} style={{ opacity: 0.9 }} />
+            <Text style={[styles.prefix400Text, largeText && styles.prefix400TextLarge]}>
+              Los números que empiezan por <Text style={{ fontWeight: fontWeight.bold }}>400</Text> son llamadas comerciales o publicitarias. Por ley en España, solo pueden usarse para ventas y ofertas, nunca para atención al cliente.
+            </Text>
+          </View>
+        )}
         {officialNotices.length > 0 && (
           <View style={styles.evidenceBox} accessibilityLabel={`Confirmado por ${officialNotices.map(e => SOURCE_LABELS[e.source]).join(' y ')}`}>
             <MaterialIcons name="verified" size={16} color={colors.white} style={{ opacity: 0.9 }} />
             <View style={{ flex: 1 }}>
               <Text style={[styles.evidenceTitle, largeText && styles.evidenceTitleLarge]}>Confirmado por fuentes oficiales</Text>
               {officialNotices.map((e, i) => (
-                <Text key={i} style={[styles.evidenceSource, largeText && styles.evidenceSourceLarge]}>· {SOURCE_LABELS[e.source]}</Text>
+                <Text
+                  key={i}
+                  style={[styles.evidenceSource, styles.evidenceLink, largeText && styles.evidenceSourceLarge]}
+                  onPress={() => Linking.openURL(e.url)}
+                  accessibilityRole="link"
+                  accessibilityLabel={`Ver aviso oficial de ${SOURCE_LABELS[e.source]}`}
+                >
+                  · {SOURCE_LABELS[e.source]}
+                </Text>
               ))}
             </View>
           </View>
@@ -358,6 +374,25 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   evidenceSourceLarge: { fontSize: 16, lineHeight: 24 },
+  evidenceLink: { textDecorationLine: 'underline' },
+  prefix400Box: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    marginTop: 4,
+  },
+  prefix400Text: {
+    flex: 1,
+    fontSize: 14,
+    color: colors.white,
+    opacity: 0.9,
+    lineHeight: 20,
+  },
+  prefix400TextLarge: { fontSize: 18, lineHeight: 26 },
   footer: {
     backgroundColor: colors.white,
     borderRadius: 16,

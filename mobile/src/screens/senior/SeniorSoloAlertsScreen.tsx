@@ -147,14 +147,14 @@ export default function SeniorSoloAlertsScreen({ navigation }: Props) {
 
       {!loading && error && (
         <View style={styles.errorState}>
-          <Text style={styles.error}>{error}</Text>
+          <Text style={[styles.error, largeText && { fontSize: 20 }]}>{error}</Text>
           <Pressable
             onPress={fetchAnalyses}
             style={styles.retryBtn}
             accessibilityRole="button"
             accessibilityLabel="Reintentar"
           >
-            <Text style={styles.retryText}>Reintentar</Text>
+            <Text style={[styles.retryText, largeText && { fontSize: 20 }]}>Reintentar</Text>
           </Pressable>
         </View>
       )}
@@ -189,7 +189,7 @@ export default function SeniorSoloAlertsScreen({ navigation }: Props) {
                     {pieData.map((item, i) => (
                       <View key={i} style={styles.legendItem}>
                         <View style={[styles.legendDot, { backgroundColor: item.color }]} />
-                        <Text style={styles.legendLabel}>{item.name}</Text>
+                        <Text style={[styles.legendLabel, largeText && { fontSize: 15 }]}>{item.name}</Text>
                       </View>
                     ))}
                   </View>
@@ -239,7 +239,7 @@ export default function SeniorSoloAlertsScreen({ navigation }: Props) {
                 accessibilityRole="button"
                 accessibilityLabel="Cargar más alertas"
               >
-                <Text style={styles.loadMoreText}>
+                <Text style={[styles.loadMoreText, largeText && { fontSize: 20 }]}>
                   {loadingMore ? 'Cargando…' : 'Cargar más'}
                 </Text>
               </Pressable>

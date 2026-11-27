@@ -9,10 +9,12 @@ import { login, EmailNotVerifiedError } from '../../services/auth';
 import { registerDevice } from '../../services/devices';
 import { STORAGE_KEYS } from '../../constants/storage';
 import { RootStackParamList } from '../../navigation/types';
+import { useAccessibility } from '../../contexts/AccessibilityContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TutorLogin'>;
 
 export default function TutorLoginScreen({ navigation, route }: Props) {
+  const { largeText } = useAccessibility();
   const [email, setEmail]           = useState(route.params?.email ?? '');
   const [password, setPassword]     = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -60,11 +62,11 @@ export default function TutorLoginScreen({ navigation, route }: Props) {
 
         <View style={a.brand}>
           <Image source={require('../../../assets/logo-web.png')} style={a.logo} resizeMode="contain" accessibilityLabel="" />
-          <Text style={a.brandName}>Avizor</Text>
+          <Text style={[a.brandName, largeText && { fontSize: 26 }]}>Avizor</Text>
         </View>
 
-        <Text style={a.heading}>Bienvenido de nuevo</Text>
-        <Text style={a.subtitle}>Inicia sesión para acceder a tu cuenta.</Text>
+        <Text style={[a.heading, largeText && { fontSize: 26 }]}>Bienvenido de nuevo</Text>
+        <Text style={[a.subtitle, largeText && { fontSize: 18 }]}>Inicia sesión para acceder a tu cuenta.</Text>
 
         {error && (
           <View style={a.alertError}>
@@ -73,7 +75,7 @@ export default function TutorLoginScreen({ navigation, route }: Props) {
         )}
 
         <View style={a.formGroup}>
-          <Text style={a.label}>Email</Text>
+          <Text style={[a.label, largeText && { fontSize: 17 }]}>Email</Text>
           <TextInput
             style={a.input}
             placeholder="correo@ejemplo.com"
@@ -87,7 +89,7 @@ export default function TutorLoginScreen({ navigation, route }: Props) {
         </View>
 
         <View style={a.formGroup}>
-          <Text style={a.label}>Contraseña</Text>
+          <Text style={[a.label, largeText && { fontSize: 17 }]}>Contraseña</Text>
           <View style={a.inputWrap}>
             <TextInput
               style={[a.input, a.inputWithEye]}
@@ -113,13 +115,13 @@ export default function TutorLoginScreen({ navigation, route }: Props) {
               accessibilityRole="button"
               accessibilityLabel="Iniciar sesión"
             >
-              <Text style={a.submitText}>Iniciar sesión</Text>
+              <Text style={[a.submitText, largeText && { fontSize: 19 }]}>Iniciar sesión</Text>
             </Pressable>
           )
         }
 
         <Pressable onPress={() => navigation.navigate('TutorRegister')} style={a.footerLink} accessibilityRole="link">
-          <Text style={a.footerText}>¿No tienes cuenta? <Text style={a.footerTextBold}>Regístrate</Text></Text>
+          <Text style={[a.footerText, largeText && { fontSize: 17 }]}>¿No tienes cuenta? <Text style={[a.footerTextBold, largeText && { fontSize: 17 }]}>Regístrate</Text></Text>
         </Pressable>
 
     </Screen>

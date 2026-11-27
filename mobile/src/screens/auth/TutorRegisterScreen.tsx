@@ -9,6 +9,7 @@ import { register, registerSeniorSolo } from '../../services/auth';
 import { STORAGE_KEYS } from '../../constants/storage';
 import { RootStackParamList } from '../../navigation/types';
 import { colors } from '../../constants/colors';
+import { useAccessibility } from '../../contexts/AccessibilityContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TutorRegister'>;
 type Role = 'tutor' | 'senior_solo';
@@ -20,6 +21,7 @@ interface A11yState {
 }
 
 export default function TutorRegisterScreen({ navigation }: Props) {
+  const { largeText } = useAccessibility();
   const [role, setRole]                       = useState<Role>('tutor');
   const [name, setName]                       = useState('');
   const [email, setEmail]                     = useState('');
@@ -83,11 +85,11 @@ export default function TutorRegisterScreen({ navigation }: Props) {
 
       <View style={a.brand}>
         <Image source={require('../../../assets/logo-web.png')} style={a.logo} resizeMode="contain" accessibilityLabel="" />
-        <Text style={a.brandName}>Avizor</Text>
+        <Text style={[a.brandName, largeText && { fontSize: 26 }]}>Avizor</Text>
       </View>
 
-      <Text style={a.heading}>Crear cuenta</Text>
-      <Text style={a.subtitle}>¿Para quién es la app?</Text>
+      <Text style={[a.heading, largeText && { fontSize: 26 }]}>Crear cuenta</Text>
+      <Text style={[a.subtitle, largeText && { fontSize: 18 }]}>¿Para quién es la app?</Text>
 
       <View style={s.toggle}>
         <Pressable
@@ -96,7 +98,7 @@ export default function TutorRegisterScreen({ navigation }: Props) {
           accessibilityRole="button"
           accessibilityLabel="Para mí"
         >
-          <Text style={[s.pillText, role === 'senior_solo' && s.pillTextActive]}>Para mí</Text>
+          <Text style={[s.pillText, role === 'senior_solo' && s.pillTextActive, largeText && { fontSize: 18 }]}>Para mí</Text>
         </Pressable>
         <Pressable
           style={[s.pill, role === 'tutor' && s.pillActive]}
@@ -104,7 +106,7 @@ export default function TutorRegisterScreen({ navigation }: Props) {
           accessibilityRole="button"
           accessibilityLabel="Para un familiar"
         >
-          <Text style={[s.pillText, role === 'tutor' && s.pillTextActive]}>Para un familiar</Text>
+          <Text style={[s.pillText, role === 'tutor' && s.pillTextActive, largeText && { fontSize: 18 }]}>Para un familiar</Text>
         </Pressable>
       </View>
 
@@ -115,7 +117,7 @@ export default function TutorRegisterScreen({ navigation }: Props) {
       )}
 
       <View style={a.formGroup}>
-        <Text style={a.label}>Nombre</Text>
+        <Text style={[a.label, largeText && { fontSize: 17 }]}>Nombre</Text>
         <TextInput
           style={a.input}
           placeholder="Tu nombre"
@@ -128,7 +130,7 @@ export default function TutorRegisterScreen({ navigation }: Props) {
       </View>
 
       <View style={a.formGroup}>
-        <Text style={a.label}>Email</Text>
+        <Text style={[a.label, largeText && { fontSize: 17 }]}>Email</Text>
         <TextInput
           style={a.input}
           placeholder="correo@ejemplo.com"
@@ -142,7 +144,7 @@ export default function TutorRegisterScreen({ navigation }: Props) {
       </View>
 
       <View style={a.formGroup}>
-        <Text style={a.label}>Contraseña</Text>
+        <Text style={[a.label, largeText && { fontSize: 17 }]}>Contraseña</Text>
         <View style={a.inputWrap}>
           <TextInput
             style={[a.input, a.inputWithEye]}
@@ -161,7 +163,7 @@ export default function TutorRegisterScreen({ navigation }: Props) {
       </View>
 
       <View style={a.formGroup}>
-        <Text style={a.label}>Confirmar contraseña</Text>
+        <Text style={[a.label, largeText && { fontSize: 17 }]}>Confirmar contraseña</Text>
         <View style={a.inputWrap}>
           <TextInput
             style={[a.input, a.inputWithEye]}
@@ -185,7 +187,7 @@ export default function TutorRegisterScreen({ navigation }: Props) {
           <View style={s.a11yRow}>
             <View style={s.a11yRowLeft}>
               <Ionicons name="color-palette-outline" size={20} color={colors.primary} style={{ opacity: 0.7 }} />
-              <Text style={s.a11yLabel}>Daltonismo</Text>
+              <Text style={[s.a11yLabel, largeText && { fontSize: 19 }]}>Daltonismo</Text>
             </View>
             <Switch
               value={a11y.colorBlind}
@@ -201,7 +203,7 @@ export default function TutorRegisterScreen({ navigation }: Props) {
           <View style={s.a11yRow}>
             <View style={s.a11yRowLeft}>
               <Ionicons name="text-outline" size={20} color={colors.primary} style={{ opacity: 0.7 }} />
-              <Text style={s.a11yLabel}>Texto grande</Text>
+              <Text style={[s.a11yLabel, largeText && { fontSize: 19 }]}>Texto grande</Text>
             </View>
             <Switch
               value={a11y.largeText}
@@ -217,7 +219,7 @@ export default function TutorRegisterScreen({ navigation }: Props) {
           <View style={s.a11yRow}>
             <View style={s.a11yRowLeft}>
               <Ionicons name="ear-outline" size={20} color={colors.primary} style={{ opacity: 0.7 }} />
-              <Text style={s.a11yLabel}>Dificultad para escuchar</Text>
+              <Text style={[s.a11yLabel, largeText && { fontSize: 19 }]}>Dificultad para escuchar</Text>
             </View>
             <Switch
               value={a11y.hardOfHearing}
@@ -249,13 +251,13 @@ export default function TutorRegisterScreen({ navigation }: Props) {
             accessibilityRole="button"
             accessibilityLabel="Crear cuenta"
           >
-            <Text style={a.submitText}>Crear cuenta</Text>
+            <Text style={[a.submitText, largeText && { fontSize: 19 }]}>Crear cuenta</Text>
           </Pressable>
         )
       }
 
       <Pressable onPress={() => navigation.navigate('TutorLogin')} style={a.footerLink} accessibilityRole="link">
-        <Text style={a.footerText}>¿Ya tienes cuenta? <Text style={a.footerTextBold}>Inicia sesión</Text></Text>
+        <Text style={[a.footerText, largeText && { fontSize: 17 }]}>¿Ya tienes cuenta? <Text style={[a.footerTextBold, largeText && { fontSize: 17 }]}>Inicia sesión</Text></Text>
       </Pressable>
     </Screen>
   );

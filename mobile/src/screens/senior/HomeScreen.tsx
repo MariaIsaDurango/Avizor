@@ -13,7 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import * as SecureStore from 'expo-secure-store';
 import * as DocumentPicker from 'expo-document-picker';
-// expo-image-picker: importar cuando se reactive el picker (issue #192)
+import * as ImagePicker from 'expo-image-picker';
 import { MaterialIcons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Screen from '../../components/Screen';
@@ -29,8 +29,7 @@ import { RootStackParamList } from '../../navigation/types';
 
 type TabKey = InputType | 'file';
 
-// SUPPORTED_IMAGE_TYPES: activar cuando se reactive el picker (issue #192) — sin gif
-// const SUPPORTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/heic'];
+const SUPPORTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/heic'];
 
 const TABS: { key: TabKey; label: string }[] = [
   { key: 'text', label: 'Texto' },
@@ -128,8 +127,26 @@ export default function SeniorHomeScreen({ navigation, route }: Props) {
     }
   }
 
-  // IMAGE PICKER: oculto hasta que backend implemente OCR con Tesseract (issue #7)
-  // async function pickImage() { ... }
+  async function pickImage() {
+    setError(null);
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        quality: 0.85,
+        allowsEditing: false,
+      });
+      if (result.canceled || !result.assets?.[0]) return;
+      const asset = result.assets[0];
+      const mime = asset.mimeType ?? 'image/jpeg';
+      if (!SUPPORTED_IMAGE_TYPES.includes(mime)) {
+        setToast('Formato de imagen no compatible. Usa JPG, PNG o WebP.');
+        return;
+      }
+      navigation.navigate('SeniorShareEmail', { fileUri: asset.uri, mimeType: mime });
+    } catch {
+      setError('No se pudo abrir la galería.');
+    }
+  }
 
   async function handleAnalyze() {
     if (inputType === 'file') return;
@@ -277,13 +294,22 @@ if (verdict) {
                   style={[styles.pickerBtn, largeText && styles.pickerBtnLarge]}
                   onPress={pickPdf}
                   accessibilityRole="button"
-                  accessibilityLabel="Seleccionar PDF. Solo archivos PDF"
+                  accessibilityLabel="Seleccionar PDF"
                 >
                   <MaterialIcons name="picture-as-pdf" size={largeText ? 36 : 28} color={colors.primary} />
                   <Text style={[styles.pickerBtnLabel, largeText && styles.pickerBtnLabelLarge]}>Subir PDF</Text>
-                  <Text style={[styles.pickerBtnHint, largeText && styles.pickerBtnHintLarge]}>Solo archivos PDF</Text>
+                  <Text style={[styles.pickerBtnHint, largeText && styles.pickerBtnHintLarge]}>Documento PDF</Text>
                 </Pressable>
-                {/* IMAGE PICKER: oculto hasta que backend implemente OCR con Tesseract (issue #7) */}
+                <Pressable
+                  style={[styles.pickerBtn, largeText && styles.pickerBtnLarge]}
+                  onPress={pickImage}
+                  accessibilityRole="button"
+                  accessibilityLabel="Seleccionar imagen de la galería"
+                >
+                  <MaterialIcons name="image" size={largeText ? 36 : 28} color={colors.primary} />
+                  <Text style={[styles.pickerBtnLabel, largeText && styles.pickerBtnLabelLarge]}>Subir imagen</Text>
+                  <Text style={[styles.pickerBtnHint, largeText && styles.pickerBtnHintLarge]}>JPG, PNG, WebP</Text>
+                </Pressable>
               </View>
             ) : (
               <TextInput
