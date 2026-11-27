@@ -159,6 +159,7 @@ def test_profile_survives_after_redeem(api_client, guardian_headers):
     response = api_client.get(SENIOR_ME, headers={"Authorization": f"Bearer {token}"})
     assert response.json()["accessibility_profile"] == PROFILE
 
+
 def test_senior_profile_uses_account_phone_when_pairing_phone_is_missing(
     api_client, db_session, guardian, paired_senior
 ):

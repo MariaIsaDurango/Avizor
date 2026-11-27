@@ -211,6 +211,7 @@ def test_green_verdict_allows_without_template():
     }
     assert Verdict.model_validate(data).action == "allow"
 
+
 # Integration tests for GET /analyses/{analysis_id}/verdict.
 
 
@@ -234,9 +235,7 @@ def test_paired_senior_can_read_own_verdict(api_client, consented_senior):
     assert response.json()["final"] is True
 
 
-def test_other_device_cannot_read_verdict(
-    api_client, consented_senior, consented_solo
-):
+def test_other_device_cannot_read_verdict(api_client, consented_senior, consented_solo):
     created = api_client.post(
         ANALYSES,
         json=analysis_body(PHISHING, device_id=consented_senior.device.id),

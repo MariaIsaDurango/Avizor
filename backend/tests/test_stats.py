@@ -137,9 +137,7 @@ def _make_analysis(
         risk_level=risk_level,
         threat_type=threat_type,
         action=(
-            Action.ALLOW
-            if risk_level == RiskLevel.GREEN
-            else Action.BLOCK_AND_ALERT
+            Action.ALLOW if risk_level == RiskLevel.GREEN else Action.BLOCK_AND_ALERT
         ),
         block_template=None,
         confidence=Decimal("0.900"),
@@ -159,9 +157,7 @@ def test_daily_stats_groups_attacks_and_fills_empty_days(
     api_client, db_session, consented_senior
 ):
     today = datetime.now(UTC).date()
-    today_at = datetime.now(UTC).replace(
-        hour=12, minute=0, second=0, microsecond=0
-    )
+    today_at = datetime.now(UTC).replace(hour=12, minute=0, second=0, microsecond=0)
     yesterday_at = today_at - timedelta(days=1)
 
     device_id = consented_senior.device.id
@@ -215,9 +211,7 @@ def test_daily_stats_groups_attacks_and_fills_empty_days(
 def test_summary_stats_counts_only_amber_and_red(
     api_client, db_session, consented_senior
 ):
-    created_at = datetime.now(UTC).replace(
-        hour=12, minute=0, second=0, microsecond=0
-    )
+    created_at = datetime.now(UTC).replace(hour=12, minute=0, second=0, microsecond=0)
     device_id = consented_senior.device.id
 
     _make_analysis(

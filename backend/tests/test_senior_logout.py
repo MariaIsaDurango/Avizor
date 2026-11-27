@@ -103,6 +103,7 @@ def test_segundo_logout_en_cooldown_no_envia(
 
     assert len(sender.sent) == 1
 
+
 def test_logout_deleted_senior_returns_204_without_sending_push(
     api_client, db_session, paired_senior, monkeypatch
 ):

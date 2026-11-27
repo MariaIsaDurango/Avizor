@@ -149,6 +149,7 @@ def test_require_role(db_session, role, status):
         roles_app.dependency_overrides.clear()
     assert response.status_code == status
 
+
 # ---------- Casos defensivos de autenticación ----------
 
 
@@ -209,11 +210,8 @@ def test_me_rejects_missing_or_deleted_user(
     assert response.status_code == 401
 
 
-
 @pytest.mark.parametrize("deleted", [False, True])
-def test_active_guardian_rejects_missing_or_deleted_user(
-    db_session, deleted
-):
+def test_active_guardian_rejects_missing_or_deleted_user(db_session, deleted):
     if deleted:
         user = User(
             role=UserRole.GUARDIAN,

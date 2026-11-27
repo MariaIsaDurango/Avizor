@@ -1,6 +1,7 @@
 """Tests del endpoint GET /api/v1/senior (necesitan PostgreSQL).
 Tests for GET /api/v1/senior endpoint (need PostgreSQL).
 """
+
 from sqlalchemy import select
 
 from app.core.security import create_access_token
@@ -63,6 +64,7 @@ def test_otro_tutor_no_ve_al_senior(api_client, db_session, paired_senior):
     response = api_client.get(SENIOR, headers={"Authorization": f"Bearer {token}"})
     assert response.status_code == 404
 
+
 def test_guardian_profile_uses_account_phone_when_pairing_phone_is_missing(
     api_client, db_session, guardian, guardian_headers, paired_senior
 ):
@@ -79,6 +81,7 @@ def test_guardian_profile_uses_account_phone_when_pairing_phone_is_missing(
 
     assert response.status_code == 200
     assert response.json()["guardian_phone"] == "+34600000001"
+
 
 def test_guardian_profile_prefers_pairing_phone(
     api_client, db_session, guardian, guardian_headers, paired_senior
