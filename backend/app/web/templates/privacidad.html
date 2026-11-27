@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Política de privacidad{% endblock %}
+{% block meta_description %}Política de privacidad de Avizor:cómo se protegen tus datos, cuánto tiempo se guardan y cuáles son tus derechos.{% endblock %}
+
+{% block content %}
+<h1 class="page-heading">
+  <i data-lucide="lock" aria-hidden="true"></i>
+  Política de privacidad
+</h1>
+<p class="text-muted text-sm" style="margin-bottom: 2rem;">Última actualización: noviembre de 2026</p>
+
+<div class="card" style="margin-bottom: 1.5rem;">
+  <h2 class="card__title">Responsable del tratamiento</h2>
+  <p><strong>Avizor</strong></p>
+  <p>Contacto: <a href="mailto:avizorapp1.0@gmail.com">avizorapp1.0@gmail.com</a></p>
+</div>
+
+<div class="card" style="margin-bottom: 1.5rem;">
+  <h2 class="card__title">¿Qué datos recogemos y para qué?</h2>
+  <p>Avizor recoge únicamente los datos necesarios para prestar el servicio de protección contra fraudes:</p>
+  <ul style="padding-left: 1.5rem; margin-top: 0.75rem; line-height: 1.8;">
+    <li><strong>Correo electrónico y contraseña</strong>:para crear y gestionar tu cuenta.</li>
+    <li><strong>Nombre</strong>:para personalizar la interfaz.</li>
+    <li><strong>Teléfono</strong> (opcional):para que la persona mayor pueda llamarte desde la app.</li>
+    <li><strong>Texto de mensajes anonimizado</strong>:para analizar si contienen fraude. Los datos personales se eliminan del texto <em>en el propio dispositivo</em> antes de enviarse.</li>
+    <li><strong>Metadatos del análisis</strong> (canal, nivel de riesgo, fecha):para mostrarte el historial de alertas.</li>
+  </ul>
+  <p style="margin-top: 0.75rem;">No se recogen datos de localización, contactos, fotos ni ningún otro dato del dispositivo fuera de los mensajes analizados.</p>
+</div>
+
+<div class="card" style="margin-bottom: 1.5rem;">
+  <h2 class="card__title">¿Cuánto tiempo se guardan los datos?</h2>
+  <table style="width:100%; border-collapse:collapse; font-size: var(--font-size-sm); margin-top: 0.5rem;">
+    <thead>
+      <tr>
+        <th style="text-align:left; padding: 0.5rem 0.75rem; border-bottom: 2px solid var(--color-border); color: var(--color-text-muted);">Tipo de dato</th>
+        <th style="text-align:left; padding: 0.5rem 0.75rem; border-bottom: 2px solid var(--color-border); color: var(--color-text-muted);">Periodo de retención</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--color-border);">Mensajes seguros (verde)</td>
+        <td style="padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--color-border);">No se guardan:se descartan de inmediato</td>
+      </tr>
+      <tr>
+        <td style="padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--color-border);">Mensajes sospechosos (ámbar)</td>
+        <td style="padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--color-border);">7 días, luego borrado automático</td>
+      </tr>
+      <tr>
+        <td style="padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--color-border);">Mensajes peligrosos (rojo)</td>
+        <td style="padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--color-border);">30 días, luego borrado automático</td>
+      </tr>
+      <tr>
+        <td style="padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--color-border);">Imágenes, audios y vídeos</td>
+        <td style="padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--color-border);">Nunca se guardan:procesados en memoria y descartados</td>
+      </tr>
+      <tr>
+        <td style="padding: 0.5rem 0.75rem;">Datos de cuenta (email, nombre)</td>
+        <td style="padding: 0.5rem 0.75rem;">Hasta que elimines la cuenta</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="card" style="margin-bottom: 1.5rem;">
+  <h2 class="card__title">¿Cómo se protegen los datos personales?</h2>
+  <p>
+    Antes de analizar cualquier mensaje, Avizor elimina automáticamente del texto los datos
+    personales: nombres, números de documento, cuentas bancarias, tarjetas, teléfonos,
+    correos y direcciones. Este proceso se llama <strong>anonimización</strong> y ocurre
+    en el propio móvil, antes de enviar nada a nuestros servidores.
+  </p>
+  <p style="margin-top: 0.75rem;">
+    Por ejemplo, el texto <em>"Hola María, tu cuenta ES12 3456 lleva bloqueada 24h"</em>
+    se convierte en <em>"Hola [NAME], tu cuenta [IBAN] lleva bloqueada 24h"</em> antes
+    de salir del dispositivo.
+  </p>
+  <p style="margin-top: 0.75rem;">Los datos no se venden ni se usan para publicidad.</p>
+</div>
+
+<div class="card" style="margin-bottom: 1.5rem;">
+  <h2 class="card__title">Encargados del tratamiento</h2>
+  <p>Para prestar el servicio, Avizor utiliza los siguientes proveedores externos:</p>
+  <ul style="padding-left: 1.5rem; margin-top: 0.75rem; line-height: 1.8;">
+    <li><strong>Railway</strong>:servidor donde se ejecuta la aplicación.</li>
+    <li><strong>Brevo</strong>:envío de correos de verificación y recuperación de contraseña.</li>
+    <li><strong>Groq</strong>:análisis de texto anonimizado mediante IA (solo cuando el módulo RAG está activo).</li>
+  </ul>
+</div>
+
+<div class="card" style="margin-bottom: 1.5rem;">
+  <h2 class="card__title">Tus derechos</h2>
+  <p>
+    Según el Reglamento General de Protección de Datos (RGPD), tienes derecho a:
+  </p>
+  <ul style="padding-left: 1.5rem; margin-top: 0.75rem; line-height: 1.8;">
+    <li><strong>Acceder</strong> a los datos que tenemos sobre ti.</li>
+    <li><strong>Rectificar</strong> datos incorrectos.</li>
+    <li><strong>Suprimir</strong> tu cuenta y todos tus datos:disponible directamente desde los ajustes de la app o del panel web.</li>
+    <li><strong>Retirar el consentimiento</strong> en cualquier momento, sin que eso afecte a lo que ya se procesó.</li>
+    <li><strong>Oponerte</strong> al tratamiento o solicitar su limitación.</li>
+  </ul>
+  <p style="margin-top: 0.75rem;">
+    Para ejercer cualquiera de estos derechos, escríbenos a
+    <a href="mailto:avizorapp1.0@gmail.com"><strong>avizorapp1.0@gmail.com</strong></a>.
+  </p>
+</div>
+{% endblock %}

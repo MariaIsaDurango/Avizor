@@ -113,3 +113,12 @@ async def reset_password_page(request: Request):
         "reset-password.html",
         {**_COMMON},
     )
+
+
+@web_router.get("/privacidad", response_class=HTMLResponse, name="privacidad")
+async def privacidad(request: Request):
+    return templates.TemplateResponse(
+        request,
+        "privacidad.html",
+        {"active_page": "privacidad", **_COMMON},
+    )
