@@ -16,12 +16,12 @@ El mayor comparte un mensaje, enlace, llamada o archivo; Avizor responde con un 
 
 <!-- App móvil -->
 <img src="https://img.shields.io/badge/React_Native-20232A?style=flat-square&logo=react&logoColor=61DAFB" alt="React Native"/>
-<img src="https://img.shields.io/badge/Expo_SDK_52-1C1E24?style=flat-square&logo=expo&logoColor=white" alt="Expo"/>
+<img src="https://img.shields.io/badge/Expo_SDK_58-1C1E24?style=flat-square&logo=expo&logoColor=white" alt="Expo"/>
 <img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript"/>
 &nbsp;
 <!-- Backend -->
 <img src="https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white" alt="FastAPI"/>
-<img src="https://img.shields.io/badge/Python_3.11-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python"/>
+<img src="https://img.shields.io/badge/Python_3.12-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python"/>
 <img src="https://img.shields.io/badge/PostgreSQL_16-4169E1?style=flat-square&logo=postgresql&logoColor=white" alt="PostgreSQL"/>
 <img src="https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white" alt="Docker"/>
 &nbsp;
@@ -48,9 +48,9 @@ Las personas mayores reciben cada día mensajes de texto, correos, llamadas y no
 
 Avizor actúa como un guardián silencioso en el teléfono del mayor. Intercepta automáticamente las notificaciones sospechosas, o el propio mayor puede reenviar cualquier mensaje dudoso directamente desde WhatsApp, SMS u otras apps. En segundos, Avizor analiza el contenido y responde con un resultado claro:
 
-- 🟢 **Verde — seguro.** La app no hace nada más.
-- 🟡 **Ámbar — sospechoso.** Se bloquea en silencio y se avisa al familiar.
-- 🔴 **Rojo — peligroso.** Pantalla de bloqueo con instrucciones concretas: qué hacer, a quién llamar, cómo denunciarlo.
+- 🟢 **Verde: seguro.** La app no hace nada más.
+- 🟡 **Ámbar: sospechoso.** Se bloquea en silencio. El familiar no recibe notificación.
+- 🔴 **Rojo: peligroso.** Pantalla de bloqueo con instrucciones concretas: qué hacer, a quién llamar, cómo denunciarlo.
 
 El sistema está diseñado para que el mayor no necesite entender cómo funciona la tecnología. No hay puntuaciones, no hay tecnicismos, no hay decisiones que tomar. Si algo es peligroso, la app lo para y explica qué hacer en lenguaje sencillo.
 
@@ -62,8 +62,9 @@ El sistema está diseñado para que el mayor no necesite entender cómo funciona
  Sénior comparte un mensaje, enlace, llamada o imagen
                         │
                         ▼
-         Anonimización en el dispositivo          ← datos personales sustituidos
-         [NAME] [IBAN] [PHONE] [EMAIL]…               por etiquetas, nunca salen en claro
+         Anonimización en el dispositivo          ← DNI, IBAN, tarjetas, teléfonos,
+         [DNI] [IBAN] [PHONE] [EMAIL]…                correos y direcciones sustituidos por etiquetas
+                                                       (nombres: solo en PDFs/imágenes, en servidor)
                         │
                         ▼
               POST /api/v1/analyses
@@ -85,8 +86,8 @@ El sistema está diseñado para que el mayor no necesite entender cómo funciona
            ▼            ▼            ▼
          GREEN         AMBER         RED
          allow     silent_block   block_and_alert
-                    aviso push    pantalla de bloqueo
-                    al tutor      + push al tutor
+                                  pantalla de bloqueo
+                                  + push al tutor
 ```
 
 La IA nunca escribe texto libre al sénior. Selecciona una plantilla revisada (`DANGEROUS_LINK`, `FAKE_DO_NOT_TOUCH`, `SUSPICIOUS_CALL`…) y el sénior ve siempre instrucciones claras y probadas.
@@ -111,7 +112,7 @@ Avizor tiene tres perfiles distintos según la situación del mayor:
 
 La privacidad no es una opción en Avizor: es una restricción técnica que el sistema impone activamente.
 
-- **El texto se anonimiza antes de salir del dispositivo.** Nombres, DNI, IBAN, tarjetas, emails y teléfonos se sustituyen por etiquetas antes de enviarse al servidor. Si el backend recibe texto sin anonimizar, rechaza la petición (`422 CONTENT_NOT_ANONYMIZED`).
+- **El texto se anonimiza antes de salir del dispositivo.** DNI/NIE, IBAN, tarjetas, emails, teléfonos y direcciones se sustituyen por etiquetas antes de enviarse al servidor. Si el backend recibe texto sin anonimizar, rechaza la petición (`422 CONTENT_NOT_ANONYMIZED`).
 - **Los archivos nunca se guardan.** Las imágenes, PDFs y audios se procesan en memoria del servidor y se descartan al terminar. Nunca se escriben en disco ni en base de datos.
 - **El texto temporal se borra automáticamente.** Verde: mismo día. Ámbar: 7 días. Rojo: 30 días.
 - **Los teléfonos se guardan solo como hash.** El número de un remitente se almacena con HMAC-SHA256; el valor real nunca sale del dispositivo.
@@ -159,7 +160,7 @@ Pendiente de testing con NVDA (lector de pantalla Windows). Checklist completo e
 
 ## Decisiones de diseño
 
-Las más importantes del proyecto — qué decidimos, por qué y qué cambió en la app.
+Las más importantes del proyecto: qué decidimos, por qué y qué cambió en la app.
 
 **El LLM nunca escribe texto libre al sénior.** Cuando algo es peligroso, la app muestra una plantilla predefinida y revisada (`DANGEROUS_LINK`, `FAKE_DO_NOT_TOUCH`, `SUSPICIOUS_CALL`, `ASKS_BANK_DETAILS`, `LOOKS_SAFE`, `UNSURE_CALL_FAMILY`). La IA solo elige cuál mostrar. Un modelo de lenguaje puede alucinar o generar texto confuso; para una persona mayor en situación de alarma, eso es inaceptable.
 
@@ -287,125 +288,134 @@ python ingest.py   # indexa el corpus (INCIBE, OSI, Banco de España)
 
 PostgreSQL 16 · 12 tablas · PKs en UUID · fechas en ISO 8601 UTC
 
-| Grupo | Tablas |
-|---|---|
-| Usuarios y acceso | `users`, `devices` |
-| Vinculación y consentimiento | `pairings`, `consents` |
-| Análisis | `analyses`, `temp_content`, `analysis_attachments` |
-| Alertas | `alerts`, `unlocks` |
-| Reputación | `indicators`, `indicator_reports`, `cases` |
+```mermaid
+erDiagram
+    users {
+        uuid id PK
+        enum role "senior | guardian | senior_solo | admin"
+        text display_name
+        citext email
+        text password_hash
+        text phone
+        bool is_verified
+        int token_version
+        jsonb accessibility_profile
+        timestamptz deleted_at
+    }
+    devices {
+        uuid id PK
+        uuid user_id FK
+        text platform
+        text push_token
+        text app_version
+        timestamptz last_seen_at
+    }
+    pairings {
+        uuid id PK
+        uuid guardian_id FK
+        uuid senior_id FK
+        char code "6 dígitos"
+        text senior_display_name
+        text guardian_phone
+        jsonb senior_accessibility_profile
+        timestamptz expires_at
+        timestamptz redeemed_at
+        bool active
+    }
+    consents {
+        uuid id PK
+        uuid senior_id FK
+        enum type "self | legal_guardianship"
+        array scope "canales autorizados"
+        text text_version
+        uuid granted_by FK
+        jsonb evidence
+        timestamptz granted_at
+        timestamptz revoked_at
+    }
+    analyses {
+        uuid id PK
+        uuid device_id FK
+        enum channel "sms | call | notification | screen | manual"
+        enum origin "automatic | manual"
+        array input_types
+        text sender_hash "HMAC-SHA256"
+        enum risk_level "green | amber | red"
+        enum threat_type
+        enum action "allow | silent_block | block_and_alert"
+        numeric confidence "0-1"
+        enum phase "fast | agent"
+        int latency_ms
+    }
+    temp_content {
+        uuid id PK
+        uuid analysis_id FK
+        text content "anonimizado; TTL auto"
+        timestamptz expires_at
+    }
+    analysis_attachments {
+        uuid id PK
+        uuid analysis_id FK
+        enum type
+        text mime_type
+        int size_bytes
+    }
+    alerts {
+        uuid id PK
+        uuid analysis_id FK
+        uuid guardian_id FK
+        enum status "new | seen | confirmed_fraud | false_positive"
+        timestamptz sent_at
+        timestamptz seen_at
+    }
+    unlocks {
+        uuid id PK
+        uuid analysis_id FK
+        uuid senior_id FK
+        uuid guardian_id FK
+        enum status "pending_guardian | approved | rejected | expired"
+        timestamptz requested_at
+        timestamptz resolved_at
+        timestamptz expires_at
+    }
+    indicators {
+        uuid id PK
+        enum type "domain | url | phone"
+        text value_hash
+        int report_count
+        timestamptz first_seen_at
+        timestamptz last_seen_at
+    }
+    indicator_reports {
+        uuid id PK
+        uuid indicator_id FK
+        uuid device_id FK
+        timestamptz reported_at
+    }
+    cases {
+        uuid id PK
+        uuid indicator_id FK
+        uuid opened_by FK
+        enum status "open | in_review | closed"
+        timestamptz created_at
+        timestamptz closed_at
+    }
 
-<details>
-<summary><strong>Usuarios y acceso</strong></summary>
-
-**`users`** — Una fila por persona registrada.
-
-| Columna | Tipo | Descripción |
-|---|---|---|
-| `id` | UUID PK | Identificador único |
-| `role` | enum | `senior` · `guardian` (tutor) · `senior_solo` · `admin` |
-| `display_name` | text | Nombre de pila (sin apellidos) |
-| `email` | citext | Solo tutores y admins; único e insensible a mayúsculas |
-| `password_hash` | text | bcrypt; `null` en séniors vinculados (sin cuenta propia) |
-| `phone` | text | Teléfono del tutor (botón "Llamar a tu familiar") |
-| `is_verified` | bool | El tutor ha confirmado su email |
-| `token_version` | int | Sube al cambiar contraseña → invalida todas las sesiones abiertas |
-| `accessibility_profile` | jsonb | Preferencias de tamaño de texto, contraste, etc. (solo sénior) |
-| `deleted_at` | timestamptz | Borrado lógico; la fila se purga 30 días después |
-
-**`devices`** — Un dispositivo Android por usuario.
-
-| Columna | Tipo | Descripción |
-|---|---|---|
-| `id` | UUID PK | Identificador del dispositivo |
-| `user_id` | UUID FK→users | Propietario |
-| `platform` | text | `android` (iOS no soportado) |
-| `push_token` | text | Token Expo para notificaciones push |
-| `app_version` | text | Versión de la app instalada |
-| `last_seen_at` | timestamptz | Última actividad |
-
-</details>
-
-<details>
-<summary><strong>Vinculación y consentimiento</strong></summary>
-
-**`pairings`** — El tutor genera un código de 6 dígitos; el sénior lo introduce para vincularse.
-
-| Columna | Tipo | Descripción |
-|---|---|---|
-| `id` | UUID PK | — |
-| `guardian_id` | UUID FK→users | Tutor que creó el código |
-| `senior_id` | UUID FK→users | Sénior que lo canjeó (`null` hasta que se canjea) |
-| `code` | char(6) | Código temporal |
-| `senior_display_name` | text | Nombre que tecleó el tutor para su familiar |
-| `guardian_phone` | text | Teléfono del tutor copiado al sénior al vincular |
-| `senior_accessibility_profile` | jsonb | Perfil de accesibilidad elegido por el tutor |
-| `expires_at` | timestamptz | El código caduca si no se canjea |
-| `redeemed_at` | timestamptz | Momento en que el sénior lo introdujo |
-| `active` | bool | `false` si se desvinculó |
-
-**`consents`** — Registro legal del consentimiento de monitorización (RGPD).
-
-| Columna | Tipo | Descripción |
-|---|---|---|
-| `id` | UUID PK | — |
-| `senior_id` | UUID FK→users | Sénior cubierto |
-| `type` | enum | `self` (el propio sénior) · `legal_guardianship` (tutor legal) |
-| `scope` | array[channel] | Canales autorizados: `sms`, `call`, `notification`, `screen`, `manual` |
-| `text_version` | text | Versión del texto legal aceptado |
-| `granted_by` | UUID FK→users | Quien aceptó (el sénior o el tutor) |
-| `evidence` | jsonb | Documento de tutela (obligatorio si `type = legal_guardianship`) |
-| `granted_at` | timestamptz | Fecha de aceptación |
-| `revoked_at` | timestamptz | Fecha de retirada (`null` si sigue activo) |
-
-</details>
-
-<details>
-<summary><strong>Análisis de contenido</strong></summary>
-
-**`analyses`** — Una fila por cada análisis. No almacena el texto original.
-
-| Columna | Tipo | Descripción |
-|---|---|---|
-| `id` | UUID PK | — |
-| `device_id` | UUID FK→devices | Dispositivo que envió el análisis |
-| `channel` | enum | `sms` · `call` · `notification` · `screen` · `manual` |
-| `origin` | enum | `automatic` (interceptado) · `manual` (enviado a mano) |
-| `input_types` | array[enum] | `text`, `image`, `audio`, `url`, `phone_number`, `document` |
-| `sender_hash` | text | Remitente anonimizado con HMAC-SHA256 |
-| `risk_level` | enum | Resultado: `green` · `amber` · `red` |
-| `threat_type` | enum | `phishing`, `smishing`, `vishing`, `spam`, `bank_fraud`, `identity_theft`, `other`, `none` |
-| `action` | enum | `allow` · `silent_block` · `block_and_alert` |
-| `block_template` | text | Plantilla de pantalla de bloqueo mostrada |
-| `confidence` | numeric(4,3) | Confianza del clasificador (0–1) |
-| `phase` | enum | `fast` (clasificador BETO) · `agent` (enriquecido por RAG) |
-| `latency_ms` | int | Tiempo de respuesta del servidor |
-
-**`temp_content`** — Texto anonimizado; se borra automáticamente. Verde: mismo día · Ámbar: 7 d · Rojo: 30 d.
-
-**`analysis_attachments`** — Solo metadatos. El archivo original nunca se guarda en servidor.
-
-</details>
-
-<details>
-<summary><strong>Alertas y desbloqueos</strong></summary>
-
-**`alerts`** — Notificación al tutor cuando hay contenido ámbar o rojo. Estados: `new` · `seen` · `confirmed_fraud` · `false_positive`.
-
-**`unlocks`** — Cuando el sénior pide al tutor que levante un bloqueo. El tutor tiene un tiempo límite para responder. Estados: `pending_guardian` · `approved` · `rejected` · `expired`.
-
-</details>
-
-<details>
-<summary><strong>Indicadores de reputación y casos</strong></summary>
-
-**`indicators`** — Dominios, URLs y teléfonos sospechosos recopilados por los reportes. Los teléfonos se guardan solo como hash (nunca en claro). Se publican en el ranking solo con ≥ 5 reportes.
-
-**`indicator_reports`** — Qué dispositivo reportó qué indicador. Un dispositivo cuenta una sola vez por indicador.
-
-**`cases`** — Casos que abren los administradores para investigar indicadores o análisis. Estados: `open` · `in_review` · `closed`.
-
-</details>
+    users ||--o{ devices : "posee"
+    users ||--o{ pairings : "vincula"
+    users ||--o{ consents : "registra"
+    users ||--o{ alerts : "notificado en"
+    users ||--o{ unlocks : "gestiona"
+    users ||--o{ cases : "abre"
+    devices ||--o{ analyses : "envía"
+    devices ||--o{ indicator_reports : "reporta"
+    analyses |o--o| temp_content : "texto"
+    analyses ||--o{ analysis_attachments : "adjuntos"
+    analyses ||--o{ alerts : "genera"
+    analyses ||--o{ unlocks : "origina"
+    indicators ||--o{ indicator_reports : "registrado en"
+    indicators ||--o{ cases : "investigado en"
+```
 
 ---
 
@@ -423,8 +433,8 @@ PostgreSQL 16 · 12 tablas · PKs en UUID · fechas en ISO 8601 UTC
 
 ## Documentación adicional
 
-- [`docs/decisions/`](docs/decisions/) — ADRs (decisiones de arquitectura)
-- [`docs/contract/`](docs/contract/) — Contrato de schemas API v1.0.0
-- [`docs/architecture/`](docs/architecture/) — Diagramas de arquitectura
-- [`docs/qa/`](docs/qa/) — Matriz de riesgos y plan de pruebas
-- [`docs/legal/`](docs/legal/) — Textos RGPD y consentimiento
+- [`docs/decisions/`](docs/decisions/): ADRs (decisiones de arquitectura)
+- [`docs/contract/`](docs/contract/): Contrato de schemas API v1.0.0
+- [`docs/architecture/`](docs/architecture/): Diagramas de arquitectura
+- [`docs/qa/`](docs/qa/): Matriz de riesgos y plan de pruebas
+- [`docs/legal/`](docs/legal/): Textos RGPD y consentimiento
