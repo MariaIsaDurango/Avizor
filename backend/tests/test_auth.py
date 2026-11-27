@@ -15,6 +15,14 @@ from app.db.session import get_db
 from app.models.user import User
 from app.schemas.enums import UserRole
 
+from datetime import datetime, timezone
+
+from sqlalchemy.exc import IntegrityError
+
+from app.api.v1.auth import _active_guardian
+from app.core.errors import ApiError
+from app.core.security import hash_password
+
 REGISTER = "/api/v1/auth/register"
 LOGIN = "/api/v1/auth/login"
 ME = "/api/v1/auth/me"
@@ -145,3 +153,85 @@ def test_require_role(db_session, role, status):
     finally:
         roles_app.dependency_overrides.clear()
     assert response.status_code == status
+
+# ---------- Casos defensivos de autenticación ----------
+
+
+def test_register_integrity_error_returns_409(api_client, db_session, monkeypatch):
+    def raise_integrity_error():
+        raise IntegrityError("INSERT", {}, Exception("duplicate key"))
+
+    monkeypatch.setattr(db_session, "commit", raise_integrity_error)
+
+    response = api_client.post(
+        REGISTER,
+        json={**GUARDIAN, "email": "concurrent@example.com"},
+    )
+
+    assert response.status_code == 409
+    assert response.json()["code"] == "VALIDATION_ERROR"
+
+
+def test_senior_solo_without_device_cannot_login(api_client, db_session):
+    user = User(
+        role=UserRole.SENIOR_SOLO,
+        display_name="Senior sin dispositivo",
+        email="senior.solo@example.com",
+        password_hash=hash_password("contraseña-larga-1"),
+        is_verified=True,
+    )
+    db_session.add(user)
+    db_session.flush()
+
+    response = login(
+        api_client,
+        email="senior.solo@example.com",
+        password="contraseña-larga-1",
+    )
+
+    assert response.status_code == 401
+
+
+@pytest.mark.parametrize("deleted", [False, True])
+def test_me_rejects_missing_or_deleted_user(
+    api_client, db_session, registered, deleted
+):
+    if deleted:
+        user_id = uuid.UUID(registered["id"])
+        user = db_session.get(User, user_id)
+        user.deleted_at = datetime.now(timezone.utc)
+        db_session.flush()
+    else:
+        user_id = uuid.uuid4()
+
+    token = create_access_token(user_id, UserRole.SENIOR)
+
+    response = api_client.get(
+        ME,
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 401
+
+
+
+@pytest.mark.parametrize("deleted", [False, True])
+def test_active_guardian_rejects_missing_or_deleted_user(
+    db_session, deleted
+):
+    if deleted:
+        user = User(
+            role=UserRole.GUARDIAN,
+            display_name="Tutor eliminado",
+            email="deleted.guardian@example.com",
+        )
+        db_session.add(user)
+        db_session.flush()
+        user_id = user.id
+        user.deleted_at = datetime.now(timezone.utc)
+        db_session.flush()
+    else:
+        user_id = uuid.uuid4()
+
+    with pytest.raises(ApiError) as exc:
+        _active_guardian(db_session, user_id)

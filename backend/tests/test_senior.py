@@ -1,7 +1,8 @@
 """Tests del endpoint GET /api/v1/senior (necesitan PostgreSQL).
 Tests for GET /api/v1/senior endpoint (need PostgreSQL).
 """
-
+from sqlalchemy import select
+from app.models.user import Pairing, User
 from app.core.security import create_access_token
 from app.schemas.enums import UserRole
 
@@ -60,3 +61,61 @@ def test_otro_tutor_no_ve_al_senior(api_client, db_session, paired_senior):
     token = create_access_token(other.id, UserRole.GUARDIAN)
     response = api_client.get(SENIOR, headers={"Authorization": f"Bearer {token}"})
     assert response.status_code == 404
+
+def test_guardian_profile_uses_account_phone_when_pairing_phone_is_missing(
+    api_client, db_session, guardian, guardian_headers, paired_senior
+):
+    from app.models.user import Pairing
+    from sqlalchemy import select
+
+    guardian.phone = "+34600000001"
+
+    pairing = db_session.scalar(
+        select(Pairing).where(Pairing.guardian_id == guardian.id)
+    )
+    pairing.guardian_phone = None
+    db_session.flush()
+
+    response = api_client.get(SENIOR, headers=guardian_headers)
+
+    assert response.status_code == 200
+    assert response.json()["guardian_phone"] == "+34600000001"
+
+def test_guardian_profile_prefers_pairing_phone(
+    api_client, db_session, guardian, guardian_headers, paired_senior
+):
+    pairing = db_session.scalar(
+        select(Pairing).where(Pairing.guardian_id == guardian.id)
+    )
+    guardian.phone = "+34600000001"
+    pairing.guardian_phone = "+34600000002"
+    db_session.flush()
+
+    response = api_client.get(SENIOR, headers=guardian_headers)
+
+    assert response.status_code == 200
+    assert response.json()["guardian_phone"] == "+34600000002"
+
+
+def test_guardian_profile_without_account_returns_null_phone(
+    api_client, db_session, guardian, guardian_headers, paired_senior, monkeypatch
+):
+    pairing = db_session.scalar(
+        select(Pairing).where(Pairing.guardian_id == guardian.id)
+    )
+    pairing.guardian_phone = None
+    db_session.flush()
+
+    original_get = db_session.get
+
+    def get_without_guardian(entity, identity, **kwargs):
+        if entity is User and identity == guardian.id:
+            return None
+        return original_get(entity, identity, **kwargs)
+
+    monkeypatch.setattr(db_session, "get", get_without_guardian)
+
+    response = api_client.get(SENIOR, headers=guardian_headers)
+
+    assert response.status_code == 200
+    assert response.json()["guardian_phone"] is None

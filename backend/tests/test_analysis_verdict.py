@@ -7,6 +7,7 @@ from pydantic import ValidationError
 
 from app.schemas.analysis import AnalysisRequest, ManualAnalysisMetadata
 from app.schemas.verdict import Verdict
+from conftest import ANALYSES, PHISHING, analysis_body
 
 DEVICE_ID = "c7e1a9b2-4d3f-4a8e-9b1c-0f2e3d4a5b6c"
 ANALYSIS_ID = "a4b8c2d1-6e3f-4c9a-8b7d-1e2f3a4b5c6d"
@@ -209,3 +210,53 @@ def test_green_verdict_allows_without_template():
         "block_template": None,
     }
     assert Verdict.model_validate(data).action == "allow"
+
+# Integration tests for GET /analyses/{analysis_id}/verdict.
+
+
+def test_paired_senior_can_read_own_verdict(api_client, consented_senior):
+    created = api_client.post(
+        ANALYSES,
+        json=analysis_body(PHISHING, device_id=consented_senior.device.id),
+        headers=consented_senior.headers,
+    )
+    assert created.status_code == 200
+
+    analysis_id = created.json()["analysis_id"]
+
+    response = api_client.get(
+        f"{ANALYSES}/{analysis_id}/verdict",
+        headers=consented_senior.headers,
+    )
+
+    assert response.status_code == 200
+    assert response.json()["analysis_id"] == analysis_id
+    assert response.json()["final"] is True
+
+
+def test_other_device_cannot_read_verdict(
+    api_client, consented_senior, consented_solo
+):
+    created = api_client.post(
+        ANALYSES,
+        json=analysis_body(PHISHING, device_id=consented_senior.device.id),
+        headers=consented_senior.headers,
+    )
+    assert created.status_code == 200
+
+    analysis_id = created.json()["analysis_id"]
+
+    response = api_client.get(
+        f"{ANALYSES}/{analysis_id}/verdict",
+        headers=consented_solo["headers"],
+    )
+
+    assert response.status_code == 404
+
+
+def test_read_verdict_requires_authentication(api_client):
+    response = api_client.get(
+        f"{ANALYSES}/00000000-0000-0000-0000-000000000001/verdict"
+    )
+
+    assert response.status_code == 401

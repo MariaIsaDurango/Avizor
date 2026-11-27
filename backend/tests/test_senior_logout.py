@@ -100,3 +100,21 @@ def test_segundo_logout_en_cooldown_no_envia(
     api_client.post(LOGOUT, headers=paired_senior.headers)
 
     assert len(sender.sent) == 1
+
+def test_logout_deleted_senior_returns_204_without_sending_push(
+    api_client, db_session, paired_senior, monkeypatch
+):
+    from datetime import datetime, timezone
+
+    paired_senior.user.deleted_at = datetime.now(timezone.utc)
+    db_session.flush()
+
+    monkeypatch.setattr(
+        push_service,
+        "get_sender",
+        lambda: pytest.fail("No debería intentar enviar una notificación"),
+    )
+
+    response = api_client.post(LOGOUT, headers=paired_senior.headers)
+
+    assert response.status_code == 204

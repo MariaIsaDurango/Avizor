@@ -3,6 +3,11 @@ Statistics endpoint tests (need PostgreSQL).
 """
 
 import pytest
+from datetime import UTC, datetime, timedelta
+from decimal import Decimal
+
+from app.models.analysis import Analysis
+from app.schemas.enums import Action, Channel, InputType, Origin, RiskLevel, ThreatType, VerdictPhase
 
 
 def test_daily_stats_returns_200_and_shape(api_client):
@@ -102,3 +107,146 @@ def test_indicator_ranking_phone_is_masked(api_client, db_session):
     assert phones
     assert phones[0]["public_value"] == "+34 6** *** 12"
     assert "type" in phones[0]
+
+
+def _make_analysis(
+    db_session,
+    device_id,
+    *,
+    risk_level,
+    threat_type,
+    channel,
+    created_at,
+):
+    analysis = Analysis(
+        device_id=device_id,
+        channel=channel,
+        origin=Origin.AUTOMATIC,
+        input_types=[InputType.TEXT],
+        sender_hash=None,
+        received_at=created_at,
+        risk_level=risk_level,
+        threat_type=threat_type,
+        action=(
+            Action.ALLOW
+            if risk_level == RiskLevel.GREEN
+            else Action.BLOCK_AND_ALERT
+        ),
+        block_template=None,
+        confidence=Decimal("0.900"),
+        phase=VerdictPhase.FAST,
+        model_version="test",
+        latency_ms=10,
+        server_processed=False,
+        final=True,
+        created_at=created_at,
+    )
+    db_session.add(analysis)
+    db_session.flush()
+    return analysis
+
+
+def test_daily_stats_groups_attacks_and_fills_empty_days(
+    api_client, db_session, consented_senior
+):
+    today = datetime.now(UTC).date()
+    today_at = datetime.now(UTC).replace(
+        hour=12, minute=0, second=0, microsecond=0
+    )
+    yesterday_at = today_at - timedelta(days=1)
+
+    device_id = consented_senior.device.id
+
+    _make_analysis(
+        db_session,
+        device_id,
+        risk_level=RiskLevel.AMBER,
+        threat_type=ThreatType.SPAM,
+        channel=Channel.SMS,
+        created_at=today_at,
+    )
+    _make_analysis(
+        db_session,
+        device_id,
+        risk_level=RiskLevel.RED,
+        threat_type=ThreatType.PHISHING,
+        channel=Channel.CALL,
+        created_at=today_at,
+    )
+    _make_analysis(
+        db_session,
+        device_id,
+        risk_level=RiskLevel.GREEN,
+        threat_type=ThreatType.NONE,
+        channel=Channel.SCREEN,
+        created_at=today_at,
+    )
+    _make_analysis(
+        db_session,
+        device_id,
+        risk_level=RiskLevel.AMBER,
+        threat_type=ThreatType.SPAM,
+        channel=Channel.SMS,
+        created_at=yesterday_at,
+    )
+
+    response = api_client.get("/api/v1/stats/daily?period=7")
+
+    assert response.status_code == 200
+    rows = {row["date"]: row for row in response.json()["rows"]}
+
+    assert rows[str(today)]["amber"] == 1
+    assert rows[str(today)]["red"] == 1
+    assert rows[str(today - timedelta(days=1))]["amber"] == 1
+    assert rows[str(today - timedelta(days=1))]["red"] == 0
+    assert rows[str(today - timedelta(days=2))]["amber"] == 0
+    assert rows[str(today - timedelta(days=2))]["red"] == 0
+
+
+def test_summary_stats_counts_only_amber_and_red(
+    api_client, db_session, consented_senior
+):
+    created_at = datetime.now(UTC).replace(
+        hour=12, minute=0, second=0, microsecond=0
+    )
+    device_id = consented_senior.device.id
+
+    _make_analysis(
+        db_session,
+        device_id,
+        risk_level=RiskLevel.AMBER,
+        threat_type=ThreatType.SPAM,
+        channel=Channel.SMS,
+        created_at=created_at,
+    )
+    _make_analysis(
+        db_session,
+        device_id,
+        risk_level=RiskLevel.RED,
+        threat_type=ThreatType.PHISHING,
+        channel=Channel.CALL,
+        created_at=created_at,
+    )
+    _make_analysis(
+        db_session,
+        device_id,
+        risk_level=RiskLevel.GREEN,
+        threat_type=ThreatType.NONE,
+        channel=Channel.SCREEN,
+        created_at=created_at,
+    )
+
+    response = api_client.get("/api/v1/stats/summary?period=30")
+
+    assert response.status_code == 200
+    data = response.json()
+
+    assert data["total"] == 2
+    assert data["by_threat_type"] == {
+        "spam": 1,
+        "phishing": 1,
+    }
+    assert data["by_channel"] == {
+        "sms": 1,
+        "call": 1,
+    }
