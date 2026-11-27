@@ -6,6 +6,7 @@ import uuid
 
 import pytest
 from pydantic import ValidationError
+from sqlalchemy import select
 
 from app.models.user import Pairing, User
 from app.schemas.accessibility import AccessibilityProfile
@@ -157,3 +158,21 @@ def test_profile_survives_after_redeem(api_client, guardian_headers):
     token = redeem(api_client, code).json()["access_token"]
     response = api_client.get(SENIOR_ME, headers={"Authorization": f"Bearer {token}"})
     assert response.json()["accessibility_profile"] == PROFILE
+
+
+def test_senior_profile_uses_account_phone_when_pairing_phone_is_missing(
+    api_client, db_session, guardian, paired_senior
+):
+
+    guardian.phone = "+34600000001"
+
+    pairing = db_session.scalar(
+        select(Pairing).where(Pairing.guardian_id == guardian.id)
+    )
+    pairing.guardian_phone = None
+    db_session.flush()
+
+    response = api_client.get(SENIOR_ME, headers=paired_senior.headers)
+
+    assert response.status_code == 200
+    assert response.json()["guardian_phone"] == "+34600000001"
