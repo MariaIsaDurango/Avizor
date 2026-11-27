@@ -140,11 +140,13 @@ export default function App() {
       },
     );
 
-    // ES: SMS detectado automáticamente por NotificationListenerService.
+    // ES: SMS o llamada perdida detectados por NotificationListenerService.
     const smsSub = DeviceEventEmitter.addListener(
       'AvizorNotificationEvent',
-      async ({ text }: { packageName: string; title: string; text: string }) => {
-        if (!text.trim()) return;
+      async ({ title, text, category }: { packageName: string; title: string; text: string; category: string }) => {
+        const isMissedCall = category === 'missed_call';
+        const content = isMissedCall ? title : text;
+        if (!content.trim()) return;
         try {
           const [mode, deviceId, consentGiven] = await Promise.all([
             SecureStore.getItemAsync(STORAGE_KEYS.USER_MODE),
@@ -154,14 +156,19 @@ export default function App() {
           if ((mode !== 'senior' && mode !== 'senior_solo') || !deviceId) return;
           if (mode === 'senior_solo' && consentGiven !== 'true') return;
 
-          const verdict = await submitAnalysis(deviceId, 'text', text, {
-            channel: 'sms',
+          const inputType = isMissedCall ? 'phone_number' : 'text';
+          const channel = isMissedCall ? 'call' : 'sms';
+          const verdict = await submitAnalysis(deviceId, inputType, content, {
+            channel,
             origin: 'automatic',
           });
 
           if (verdict.risk_level === 'red' && verdict.block_template) {
             if (navigationRef.isReady()) {
-              navigationRef.navigate('SeniorBlock', { template: verdict.block_template });
+              navigationRef.navigate('SeniorBlock', {
+                template: verdict.block_template,
+                ...(isMissedCall ? { phoneNumber: content } : {}),
+              });
             }
           } else if (verdict.risk_level === 'amber') {
             const bodyMap = mode === 'senior_solo' ? TEMPLATE_NOTIFICATION_BODY_SOLO : TEMPLATE_NOTIFICATION_BODY;
@@ -169,7 +176,7 @@ export default function App() {
             const advice = (verdict.block_template && bodyMap[verdict.block_template]) ?? fallback;
             await Notifications.scheduleNotificationAsync({
               content: {
-                title: 'SMS sospechoso',
+                title: isMissedCall ? 'Llamada perdida sospechosa' : 'SMS sospechoso',
                 body: advice,
                 data: { verdict: verdict.risk_level },
               },

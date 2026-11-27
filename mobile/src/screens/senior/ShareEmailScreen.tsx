@@ -32,10 +32,13 @@ const RISK_COLOR_COLORBLIND: Record<string, string> = {
   red: colors.alert,
 };
 
-// issue #192: añadir image/* al intent-filter del Manifest y los tipos de abajo (sin gif — contrato solo acepta jpeg, png, webp, heic)
-// 'image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/heic'
 const SUPPORTED_MIME_TYPES = [
   'application/pdf',
+  'image/jpeg',
+  'image/jpg',
+  'image/png',
+  'image/webp',
+  'image/heic',
 ];
 
 const THREAT_LABEL: Record<string, string> = {
@@ -77,8 +80,9 @@ export default function ShareEmailScreen({ route, navigation }: Props) {
     setError('');
     try {
       if (!deviceId && !isSeniorSolo) throw new Error('Dispositivo no vinculado.');
-      const result = fileUri && mimeType
-        ? await submitAnalysisWithFile(deviceId, fileUri, mimeType)
+      const normalizedMime = mimeType === 'image/jpg' ? 'image/jpeg' : mimeType;
+      const result = fileUri && normalizedMime
+        ? await submitAnalysisWithFile(deviceId, fileUri, normalizedMime)
         : await submitAnalysis(deviceId, 'text', (text ?? '').slice(0, 5000));
       if (hardOfHearing) {
         await Haptics.notificationAsync(
@@ -90,7 +94,7 @@ export default function ShareEmailScreen({ route, navigation }: Props) {
         );
       }
       if (result.block_template) {
-        navigation.replace('SeniorBlock', { template: result.block_template });
+        navigation.replace('SeniorBlock', { template: result.block_template, evidence: result.evidence });
       } else {
         setVerdict(result);
       }

@@ -8,6 +8,7 @@ import Button from '../../components/Button';
 import { colors } from '../../constants/colors';
 import { fontSize, fontWeight } from '../../constants/typography';
 import { createPairing, AccessibilityProfile } from '../../services/pairing';
+import { useAccessibility } from '../../contexts/AccessibilityContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TutorPairing'>;
 
@@ -36,6 +37,7 @@ function formatCode(code: string): string {
 }
 
 export default function TutorPairingScreen({ navigation }: Props) {
+  const { largeText } = useAccessibility();
   const [seniorName, setSeniorName] = useState('');
   const [guardianPhone, setGuardianPhone] = useState('');
   const [profile, setProfile] = useState<AccessibilityProfile>(EMPTY_PROFILE);
@@ -90,15 +92,15 @@ export default function TutorPairingScreen({ navigation }: Props) {
   return (
     <Screen scrollable style={styles.screen}>
       <View style={styles.top}>
-        <Text style={styles.title}>Vincular dispositivo Sénior</Text>
-        <Text style={styles.subtitle}>
+        <Text style={[styles.title, largeText && { fontSize: 32 }]}>Vincular dispositivo Sénior</Text>
+        <Text style={[styles.subtitle, largeText && { fontSize: 22 }]}>
           Genera un código y compártelo con el Sénior para vincularlo a tu cuenta.
         </Text>
       </View>
 
       <View style={styles.middle}>
         {loading && <ActivityIndicator size="large" color={colors.primary} />}
-        {error !== null && <Text style={styles.error}>{error}</Text>}
+        {error !== null && <Text style={[styles.error, largeText && { fontSize: 22 }]}>{error}</Text>}
 
         {!loading && code === null && (
           <>
@@ -126,11 +128,11 @@ export default function TutorPairingScreen({ navigation }: Props) {
             />
 
             <View style={styles.accessibilitySection}>
-              <Text style={styles.accessibilityTitle}>
+              <Text style={[styles.accessibilityTitle, largeText && { fontSize: 22 }]}>
                 Perfil de accesibilidad{' '}
                 <Text style={styles.accessibilityOptional}>(opcional)</Text>
               </Text>
-              <Text style={styles.accessibilityHint}>
+              <Text style={[styles.accessibilityHint, largeText && { fontSize: 17 }]}>
                 La app del Sénior adaptará su interfaz según estas necesidades.
               </Text>
               {ACCESSIBILITY_OPTIONS.map(({ key, label }) => (
@@ -147,7 +149,7 @@ export default function TutorPairingScreen({ navigation }: Props) {
                       <MaterialIcons name="check" size={16} color={colors.white} />
                     )}
                   </View>
-                  <Text style={styles.checkLabel}>{label}</Text>
+                  <Text style={[styles.checkLabel, largeText && { fontSize: 22 }]}>{label}</Text>
                 </Pressable>
               ))}
             </View>
@@ -156,19 +158,19 @@ export default function TutorPairingScreen({ navigation }: Props) {
 
         {!loading && code !== null && !isExpired && (
           <>
-            <Text style={styles.codeLabel}>Código de vinculación</Text>
+            <Text style={[styles.codeLabel, largeText && { fontSize: 22 }]}>Código de vinculación</Text>
             <Text style={styles.code} accessibilityLabel={`Código: ${code.split('').join(' ')}`}>
               {formatCode(code)}
             </Text>
-            <Text style={styles.countdown}>Expira en {formatTime(secondsLeft)}</Text>
-            <Text style={styles.hint}>
+            <Text style={[styles.countdown, largeText && { fontSize: 22 }]}>Expira en {formatTime(secondsLeft)}</Text>
+            <Text style={[styles.hint, largeText && { fontSize: 22 }]}>
               El Sénior debe ingresar este código en su aplicación Avizor.
             </Text>
           </>
         )}
 
         {!loading && isExpired && (
-          <Text style={styles.expired}>El código ha expirado. Genera uno nuevo.</Text>
+          <Text style={[styles.expired, largeText && { fontSize: 22 }]}>El código ha expirado. Genera uno nuevo.</Text>
         )}
       </View>
 

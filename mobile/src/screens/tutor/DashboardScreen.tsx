@@ -12,6 +12,7 @@ import { fontSize, fontWeight } from '../../constants/typography';
 import { getAlerts, Alert, ThreatType } from '../../services/alerts';
 import { getSenior, GuardianSeniorInfo } from '../../services/pairing';
 import { getMe } from '../../services/auth';
+import { useAccessibility } from '../../contexts/AccessibilityContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TutorDashboard'>;
 
@@ -68,6 +69,7 @@ function formatRelative(iso: string): string {
 
 export default function TutorDashboardScreen({ navigation }: Props) {
   const { width } = useWindowDimensions();
+  const { largeText } = useAccessibility();
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -149,7 +151,7 @@ export default function TutorDashboardScreen({ navigation }: Props) {
         <ActivityIndicator size="large" color={colors.primary} style={styles.loader} />
       )}
 
-      {error !== null && <Text style={styles.error}>{error}</Text>}
+      {error !== null && <Text style={[styles.error, largeText && { fontSize: 22 }]}>{error}</Text>}
 
       {!loading && (
         <FlatList
@@ -161,36 +163,36 @@ export default function TutorDashboardScreen({ navigation }: Props) {
               {/* Greeting */}
               {tutorName ? (
                 <View style={styles.greeting}>
-                  <Text style={styles.greetingTitle}>Hola, {tutorName}</Text>
-                  <Text style={styles.greetingSubtitle}>Aquí tienes el resumen de actividad.</Text>
+                  <Text style={[styles.greetingTitle, largeText && { fontSize: 32 }]}>Hola, {tutorName}</Text>
+                  <Text style={[styles.greetingSubtitle, largeText && { fontSize: 22 }]}>Aquí tienes el resumen de actividad.</Text>
                 </View>
               ) : null}
 
               {/* Senior card or link button */}
               {senior ? (
                 <View style={styles.card}>
-                  <Text style={styles.cardTitle}>Sénior vinculado</Text>
+                  <Text style={[styles.cardTitle, largeText && { fontSize: 15 }]}>Sénior vinculado</Text>
                   <View style={styles.seniorHeader}>
                     <View style={styles.seniorAvatar}>
                       <Text style={styles.seniorAvatarText}>{seniorInitial}</Text>
                     </View>
                     <View style={styles.seniorInfo}>
-                      <Text style={styles.seniorName}>{senior.senior_display_name}</Text>
+                      <Text style={[styles.seniorName, largeText && { fontSize: 22 }]}>{senior.senior_display_name}</Text>
                       <View style={styles.seniorStatusRow}>
                         <View style={styles.statusDot} />
-                        <Text style={styles.seniorStatusText}>Activo</Text>
+                        <Text style={[styles.seniorStatusText, largeText && { fontSize: 17 }]}>Activo</Text>
                       </View>
                     </View>
                   </View>
                   {(senior.platform || senior.last_seen_at) && (
                     <View style={styles.seniorMeta}>
                       {senior.platform && (
-                        <Text style={styles.seniorMetaText}>
+                        <Text style={[styles.seniorMetaText, largeText && { fontSize: 15 }]}>
                           Plataforma: {senior.platform}
                         </Text>
                       )}
                       {senior.last_seen_at && (
-                        <Text style={styles.seniorMetaText}>
+                        <Text style={[styles.seniorMetaText, largeText && { fontSize: 15 }]}>
                           Última actividad: {formatRelative(senior.last_seen_at)}
                         </Text>
                       )}
@@ -205,22 +207,22 @@ export default function TutorDashboardScreen({ navigation }: Props) {
                   accessibilityLabel="Vincular dispositivo sénior"
                 >
                   <MaterialIcons name="add-circle-outline" size={20} color={colors.primary} />
-                  <Text style={styles.linkCardText}>Vincular dispositivo sénior</Text>
+                  <Text style={[styles.linkCardText, largeText && { fontSize: 22 }]}>Vincular dispositivo sénior</Text>
                 </Pressable>
               )}
 
               {/* Stats card */}
               {attacksTotal > 0 && (
                 <View style={styles.card}>
-                  <Text style={styles.cardTitle}>Amenazas detectadas</Text>
-                  <Text style={styles.statValue}>{attacksTotal}</Text>
+                  <Text style={[styles.cardTitle, largeText && { fontSize: 15 }]}>Amenazas detectadas</Text>
+                  <Text style={[styles.statValue, largeText && { fontSize: 48 }]}>{attacksTotal}</Text>
                 </View>
               )}
 
               {/* Threat type pie chart */}
               {pieData.length > 0 && (
                 <View style={styles.card}>
-                  <Text style={styles.cardTitle}>Por tipo de amenaza</Text>
+                  <Text style={[styles.cardTitle, largeText && { fontSize: 15 }]}>Por tipo de amenaza</Text>
                   <PieChart
                     data={pieData}
                     width={width - 40}
@@ -235,7 +237,7 @@ export default function TutorDashboardScreen({ navigation }: Props) {
                     {pieData.map((item, i) => (
                       <View key={i} style={styles.legendItem}>
                         <View style={[styles.legendDot, { backgroundColor: item.color }]} />
-                        <Text style={styles.legendLabel}>{item.name}</Text>
+                        <Text style={[styles.legendLabel, largeText && { fontSize: 15 }]}>{item.name}</Text>
                       </View>
                     ))}
                   </View>
@@ -244,7 +246,7 @@ export default function TutorDashboardScreen({ navigation }: Props) {
 
               {/* Alerts section header */}
               <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>Alertas recientes</Text>
+                <Text style={[styles.sectionTitle, largeText && { fontSize: 22 }]}>Alertas recientes</Text>
                 {alerts.length > 0 && (
                   <View style={styles.badge}>
                     <Text style={styles.badgeText}>{alerts.length}</Text>
@@ -276,7 +278,7 @@ export default function TutorDashboardScreen({ navigation }: Props) {
           ListEmptyComponent={
             <View style={styles.emptyState}>
               <MaterialIcons name="notifications-none" size={52} color={colors.primary} style={styles.emptyIcon} />
-              <Text style={styles.emptyText}>No hay alertas por el momento.</Text>
+              <Text style={[styles.emptyText, largeText && { fontSize: 22 }]}>No hay alertas por el momento.</Text>
             </View>
           }
           ListFooterComponent={
@@ -288,7 +290,7 @@ export default function TutorDashboardScreen({ navigation }: Props) {
                 accessibilityRole="button"
                 accessibilityLabel="Cargar más alertas"
               >
-                <Text style={styles.loadMoreText}>
+                <Text style={[styles.loadMoreText, largeText && { fontSize: 22 }]}>
                   {loadingMore ? 'Cargando…' : 'Cargar más'}
                 </Text>
               </Pressable>

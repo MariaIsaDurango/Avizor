@@ -8,12 +8,14 @@ import { fontSize, fontWeight } from '../../constants/typography';
 import { getMe, updateMe, changePassword, logout, deleteAccount } from '../../services/auth';
 import { unlinkSenior } from '../../services/pairing';
 import { RootStackParamList } from '../../navigation/types';
+import { useAccessibility } from '../../contexts/AccessibilityContext';
 
 const SUPPORT_URL = 'https://avizor-production.up.railway.app/support';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TutorAccount'>;
 
 export default function TutorAccountScreen({ navigation }: Props) {
+  const { largeText } = useAccessibility();
   const [loading, setLoading] = useState(true);
   const [displayName, setDisplayName] = useState('');
   const [originalName, setOriginalName] = useState('');
@@ -147,15 +149,15 @@ export default function TutorAccountScreen({ navigation }: Props) {
         <Pressable onPress={() => navigation.goBack()} style={styles.backBtn} accessibilityRole="button" accessibilityLabel="Volver">
           <MaterialIcons name="arrow-back" size={24} color={colors.primary} />
         </Pressable>
-        <Text style={styles.title}>Mi cuenta</Text>
+        <Text style={[styles.title, largeText && { fontSize: 24 }]}>Mi cuenta</Text>
         <View style={{ width: 40 }} />
       </View>
 
       {/* Perfil */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Perfil</Text>
+        <Text style={[styles.sectionTitle, largeText && { fontSize: 17 }]}>Perfil</Text>
 
-        <Text style={styles.fieldLabel}>Nombre</Text>
+        <Text style={[styles.fieldLabel, largeText && { fontSize: 17 }]}>Nombre</Text>
         <TextInput
           style={styles.input}
           value={displayName}
@@ -165,7 +167,7 @@ export default function TutorAccountScreen({ navigation }: Props) {
           returnKeyType="done"
           onSubmitEditing={nameChanged ? handleSaveName : undefined}
         />
-        {nameError !== '' && <Text style={styles.fieldError}>{nameError}</Text>}
+        {nameError !== '' && <Text style={[styles.fieldError, largeText && { fontSize: 17 }]}>{nameError}</Text>}
         {nameChanged && (
           <Pressable
             style={[styles.saveBtn, nameSaving && styles.saveBtnDisabled]}
@@ -173,18 +175,18 @@ export default function TutorAccountScreen({ navigation }: Props) {
             disabled={nameSaving}
             accessibilityRole="button"
           >
-            <Text style={styles.saveBtnText}>{nameSaving ? 'Guardando…' : 'Guardar nombre'}</Text>
+            <Text style={[styles.saveBtnText, largeText && { fontSize: 22 }]}>{nameSaving ? 'Guardando…' : 'Guardar nombre'}</Text>
           </Pressable>
         )}
 
         {email !== '' && (
           <>
-            <Text style={[styles.fieldLabel, { marginTop: 16 }]}>Email</Text>
-            <Text style={styles.emailText}>{email}</Text>
+            <Text style={[styles.fieldLabel, { marginTop: 16 }, largeText && { fontSize: 17 }]}>Email</Text>
+            <Text style={[styles.emailText, largeText && { fontSize: 22 }]}>{email}</Text>
           </>
         )}
 
-        <Text style={[styles.fieldLabel, { marginTop: 16 }]}>
+        <Text style={[styles.fieldLabel, { marginTop: 16 }, largeText && { fontSize: 17 }]}>
           Tu teléfono{' '}
           <Text style={{ fontWeight: '400', opacity: 0.6 }}>(para llamadas del Sénior)</Text>
         </Text>
@@ -198,7 +200,7 @@ export default function TutorAccountScreen({ navigation }: Props) {
           returnKeyType="done"
           onSubmitEditing={phone.trim() !== originalPhone ? handleSavePhone : undefined}
         />
-        {phoneError !== '' && <Text style={styles.fieldError}>{phoneError}</Text>}
+        {phoneError !== '' && <Text style={[styles.fieldError, largeText && { fontSize: 17 }]}>{phoneError}</Text>}
         {phone.trim() !== originalPhone && (
           <Pressable
             style={[styles.saveBtn, phoneSaving && styles.saveBtnDisabled]}
@@ -206,21 +208,21 @@ export default function TutorAccountScreen({ navigation }: Props) {
             disabled={phoneSaving}
             accessibilityRole="button"
           >
-            <Text style={styles.saveBtnText}>{phoneSaving ? 'Guardando…' : 'Guardar teléfono'}</Text>
+            <Text style={[styles.saveBtnText, largeText && { fontSize: 22 }]}>{phoneSaving ? 'Guardando…' : 'Guardar teléfono'}</Text>
           </Pressable>
         )}
       </View>
 
       {/* Seguridad */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Seguridad</Text>
+        <Text style={[styles.sectionTitle, largeText && { fontSize: 17 }]}>Seguridad</Text>
         <Pressable
           style={styles.row}
           onPress={() => { setShowPasswordForm((v) => !v); setPwdError(''); }}
           accessibilityRole="button"
           accessibilityLabel="Cambiar contraseña"
         >
-          <Text style={styles.rowLabel}>Cambiar contraseña</Text>
+          <Text style={[styles.rowLabel, largeText && { fontSize: 22 }]}>Cambiar contraseña</Text>
           <MaterialIcons
             name={showPasswordForm ? 'keyboard-arrow-up' : 'keyboard-arrow-right'}
             size={20}
@@ -255,37 +257,37 @@ export default function TutorAccountScreen({ navigation }: Props) {
               onChangeText={(t) => { setConfirmPwd(t); setPwdError(''); }}
               autoComplete="new-password"
             />
-            {pwdError !== '' && <Text style={styles.fieldError}>{pwdError}</Text>}
+            {pwdError !== '' && <Text style={[styles.fieldError, largeText && { fontSize: 17 }]}>{pwdError}</Text>}
             <Pressable
               style={[styles.saveBtn, pwdSaving && styles.saveBtnDisabled, { marginTop: 12 }]}
               onPress={handleChangePassword}
               disabled={pwdSaving}
               accessibilityRole="button"
             >
-              <Text style={styles.saveBtnText}>{pwdSaving ? 'Guardando…' : 'Cambiar contraseña'}</Text>
+              <Text style={[styles.saveBtnText, largeText && { fontSize: 22 }]}>{pwdSaving ? 'Guardando…' : 'Cambiar contraseña'}</Text>
             </Pressable>
-            <Text style={styles.pwdHint}>Al cambiar la contraseña se cerrará la sesión en todos los dispositivos.</Text>
+            <Text style={[styles.pwdHint, largeText && { fontSize: 15 }]}>Al cambiar la contraseña se cerrará la sesión en todos los dispositivos.</Text>
           </View>
         )}
       </View>
 
       {/* Ayuda */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Ayuda</Text>
+        <Text style={[styles.sectionTitle, largeText && { fontSize: 17 }]}>Ayuda</Text>
         <Pressable
           style={styles.row}
           onPress={() => Linking.openURL(SUPPORT_URL)}
           accessibilityRole="button"
           accessibilityLabel="Abrir centro de soporte"
         >
-          <Text style={styles.rowLabel}>Centro de soporte</Text>
+          <Text style={[styles.rowLabel, largeText && { fontSize: 22 }]}>Centro de soporte</Text>
           <MaterialIcons name="open-in-new" size={16} color={colors.primary} style={{ opacity: 0.5 }} />
         </Pressable>
       </View>
 
       {/* Acciones destructivas */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Zona de peligro</Text>
+        <Text style={[styles.sectionTitle, largeText && { fontSize: 17 }]}>Zona de peligro</Text>
         <Pressable
           style={styles.dangerRow}
           onPress={handleUnlinkSenior}
@@ -293,7 +295,7 @@ export default function TutorAccountScreen({ navigation }: Props) {
           accessibilityLabel="Desvincular sénior"
         >
           <MaterialIcons name="link-off" size={20} color={colors.alert} />
-          <Text style={styles.dangerText}>Desvincular sénior</Text>
+          <Text style={[styles.dangerText, largeText && { fontSize: 22 }]}>Desvincular sénior</Text>
         </Pressable>
 
         <View style={styles.divider} />
@@ -305,7 +307,7 @@ export default function TutorAccountScreen({ navigation }: Props) {
           accessibilityLabel="Cerrar sesión"
         >
           <MaterialIcons name="logout" size={20} color={colors.alert} />
-          <Text style={styles.dangerText}>Cerrar sesión</Text>
+          <Text style={[styles.dangerText, largeText && { fontSize: 22 }]}>Cerrar sesión</Text>
         </Pressable>
 
         <View style={styles.divider} />
@@ -318,12 +320,12 @@ export default function TutorAccountScreen({ navigation }: Props) {
           accessibilityState={{ expanded: showDeleteForm }}
         >
           <MaterialIcons name="delete-forever" size={20} color={colors.alert} />
-          <Text style={styles.dangerText}>Eliminar mi cuenta</Text>
+          <Text style={[styles.dangerText, largeText && { fontSize: 22 }]}>Eliminar mi cuenta</Text>
         </Pressable>
 
         {showDeleteForm && (
           <View style={styles.deleteForm}>
-            <Text style={styles.deleteHint}>
+            <Text style={[styles.deleteHint, largeText && { fontSize: 17 }]}>
               Se borrarán tu cuenta y tus datos. Si tu familiar no tiene otro tutor, dejará de estar protegido. Esta acción no se puede deshacer.
             </Text>
             <TextInput
@@ -337,7 +339,7 @@ export default function TutorAccountScreen({ navigation }: Props) {
               accessibilityLabel="Contraseña actual para confirmar eliminación"
             />
             {deleteError !== '' && (
-              <Text style={styles.deleteError} accessibilityLiveRegion="assertive">{deleteError}</Text>
+              <Text style={[styles.deleteError, largeText && { fontSize: 17 }]} accessibilityLiveRegion="assertive">{deleteError}</Text>
             )}
             <Pressable
               style={[styles.deleteConfirmBtn, deleting && styles.deleteConfirmBtnDisabled]}
@@ -346,7 +348,7 @@ export default function TutorAccountScreen({ navigation }: Props) {
               accessibilityRole="button"
               accessibilityLabel="Confirmar eliminación de cuenta"
             >
-              <Text style={styles.deleteConfirmText}>{deleting ? 'Eliminando…' : 'Confirmar eliminación'}</Text>
+              <Text style={[styles.deleteConfirmText, largeText && { fontSize: 22 }]}>{deleting ? 'Eliminando…' : 'Confirmar eliminación'}</Text>
             </Pressable>
           </View>
         )}
