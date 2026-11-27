@@ -5,16 +5,18 @@ import { RootStackParamList } from '../../navigation/types';
 import Screen from '../../components/Screen';
 import { colors } from '../../constants/colors';
 import { fontSize, fontWeight } from '../../constants/typography';
+import { useAccessibility } from '../../contexts/AccessibilityContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ModeSelection'>;
 
 export default function ModeSelectionScreen({ navigation }: Props) {
   const { height } = useWindowDimensions();
+  const { largeText } = useAccessibility();
   const logoSize = height < 700 ? 72 : 100;
 
   return (
     <Screen scrollable style={styles.screen}>
-      <Text style={styles.title}>Bienvenido a Avizor</Text>
+      <Text style={[styles.title, largeText && { fontSize: 32 }]}>Bienvenido a Avizor</Text>
       <Image
         source={require('../../../assets/logo-web.png')}
         style={[styles.logo, { width: logoSize, height: logoSize }]}
@@ -29,8 +31,8 @@ export default function ModeSelectionScreen({ navigation }: Props) {
           accessibilityLabel="Vincular con PIN, modo Sénior"
         >
           <MaterialIcons name="shield" size={44} color={colors.primary} />
-          <Text style={styles.cardTitle}>Vincular con PIN</Text>
-          <Text style={styles.cardSubtitle}>Voy a introducir el código que me dio mi familiar</Text>
+          <Text style={[styles.cardTitle, largeText && { fontSize: 28 }]}>Vincular con PIN</Text>
+          <Text style={[styles.cardSubtitle, largeText && { fontSize: 22 }]}>Voy a introducir el código que me dio mi familiar</Text>
         </Pressable>
 
         <Pressable
@@ -40,8 +42,8 @@ export default function ModeSelectionScreen({ navigation }: Props) {
           accessibilityLabel="Iniciar sesión o registrarse, modo Tutor"
         >
           <MaterialIcons name="favorite" size={44} color={colors.primary} />
-          <Text style={styles.cardTitle}>Iniciar sesión / Registro</Text>
-          <Text style={styles.cardSubtitle}>Gestiona tu protección o la de alguien cercano</Text>
+          <Text style={[styles.cardTitle, largeText && { fontSize: 28 }]}>Iniciar sesión / Registro</Text>
+          <Text style={[styles.cardSubtitle, largeText && { fontSize: 22 }]}>Gestiona tu protección o la de alguien cercano</Text>
         </Pressable>
       </View>
     </Screen>

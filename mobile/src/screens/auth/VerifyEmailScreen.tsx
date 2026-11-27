@@ -5,10 +5,12 @@ import Screen from '../../components/Screen';
 import { authStyles as a } from '../../styles/auth';
 import { verifyEmail, resendVerification } from '../../services/auth';
 import { RootStackParamList } from '../../navigation/types';
+import { useAccessibility } from '../../contexts/AccessibilityContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'VerifyEmail'>;
 
 export default function VerifyEmailScreen({ navigation, route }: Props) {
+  const { largeText } = useAccessibility();
   const { email }                          = route.params;
   const [code, setCode]                   = useState('');
   const [loading, setLoading]             = useState(false);
@@ -54,11 +56,11 @@ export default function VerifyEmailScreen({ navigation, route }: Props) {
 
         <View style={a.brand}>
           <Image source={require('../../../assets/logo-web.png')} style={a.logo} resizeMode="contain" accessibilityLabel="" />
-          <Text style={a.brandName}>Avizor</Text>
+          <Text style={[a.brandName, largeText && { fontSize: 26 }]}>Avizor</Text>
         </View>
 
-        <Text style={a.heading}>Verifica tu email</Text>
-        <Text style={a.subtitle}>
+        <Text style={[a.heading, largeText && { fontSize: 26 }]}>Verifica tu email</Text>
+        <Text style={[a.subtitle, largeText && { fontSize: 18 }]}>
           Hemos enviado un código de 6 dígitos a{'\n'}
           <Text style={a.subtitleBold}>{email}</Text>
         </Text>
@@ -76,9 +78,9 @@ export default function VerifyEmailScreen({ navigation, route }: Props) {
         )}
 
         <View style={a.formGroup}>
-          <Text style={a.label}>Código de verificación</Text>
+          <Text style={[a.label, largeText && { fontSize: 17 }]}>Código de verificación</Text>
           <TextInput
-            style={[a.input, { fontSize: 28, letterSpacing: 10, textAlign: 'center', fontWeight: '700', paddingVertical: 16 }]}
+            style={[a.input, { fontSize: largeText ? 32 : 28, letterSpacing: 10, textAlign: 'center', fontWeight: '700', paddingVertical: 16 }]}
             placeholder="000000"
             placeholderTextColor="#ccc"
             value={code}
@@ -98,18 +100,18 @@ export default function VerifyEmailScreen({ navigation, route }: Props) {
               accessibilityRole="button"
               accessibilityLabel="Verificar cuenta"
             >
-              <Text style={a.submitText}>Verificar</Text>
+              <Text style={[a.submitText, largeText && { fontSize: 19 }]}>Verificar</Text>
             </Pressable>
           )
         }
 
         <View style={[a.footerLink, { flexDirection: 'row', gap: 4 }]}>
-          <Text style={a.footerText}>¿No recibiste el código?</Text>
+          <Text style={[a.footerText, largeText && { fontSize: 17 }]}>¿No recibiste el código?</Text>
           {resending
             ? <ActivityIndicator color="#164E55" size="small" />
             : (
               <Pressable onPress={handleResend} accessibilityRole="button">
-                <Text style={a.footerTextBold}>Reenviar</Text>
+                <Text style={[a.footerTextBold, largeText && { fontSize: 17 }]}>Reenviar</Text>
               </Pressable>
             )
           }

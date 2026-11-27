@@ -1,16 +1,9 @@
 import { apiFetch } from './api';
+import type { ThreatType, BlockTemplate } from './analyses';
 
 export type RiskLevel = 'green' | 'amber' | 'red';
 
-export type ThreatType =
-  | 'phishing'
-  | 'smishing'
-  | 'vishing'
-  | 'spam'
-  | 'identity_theft'
-  | 'bank_fraud'
-  | 'other'
-  | 'none';
+export type { ThreatType };
 
 export type Channel = 'sms' | 'notification' | 'screen' | 'call' | 'manual';
 
@@ -19,7 +12,7 @@ export interface MyAnalysis {
   risk_level: RiskLevel;
   threat_type: ThreatType;
   channel: Channel;
-  block_template: string | null;
+  block_template: BlockTemplate | null;
   created_at: string;
 }
 

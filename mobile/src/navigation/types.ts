@@ -1,5 +1,5 @@
 import { Alert } from '../services/alerts';
-import { BlockTemplate } from '../services/analyses';
+import { BlockTemplate, Evidence } from '../services/analyses';
 
 export type RootStackParamList = {
   Welcome: undefined;
@@ -15,7 +15,7 @@ export type RootStackParamList = {
   SeniorPairing: undefined;
   SeniorHome: { phoneNumber?: string } | undefined;
   SeniorSettings: undefined;
-  SeniorBlock: { template: BlockTemplate; phoneNumber?: string };
+  SeniorBlock: { template: BlockTemplate; phoneNumber?: string; evidence?: Evidence[] };
   SeniorShareEmail: { text?: string; fileUri?: string; mimeType?: string };
   VerifyEmail: { email: string; flow?: 'senior_solo' };
   SeniorSoloConsent: undefined;

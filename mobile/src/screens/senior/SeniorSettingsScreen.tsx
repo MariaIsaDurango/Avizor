@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { View, Text, TextInput, Pressable, StyleSheet, Alert, AppState, Platform, NativeModules, Linking } from 'react-native';
+import { View, Text, TextInput, Pressable, Switch, StyleSheet, Alert, AppState, Platform, NativeModules, Linking } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -28,6 +28,7 @@ export default function SeniorSettingsScreen({ navigation }: Props) {
   const [deletePassword, setDeletePassword] = useState('');
   const [deleteError, setDeleteError] = useState('');
   const [deleting, setDeleting] = useState(false);
+  const [ttsEnabled, setTtsEnabled] = useState(false);
   const appState = useRef(AppState.currentState);
 
   function checkPermissions() {
@@ -39,10 +40,12 @@ export default function SeniorSettingsScreen({ navigation }: Props) {
     Promise.all([
       SecureStore.getItemAsync(STORAGE_KEYS.USER_MODE),
       SecureStore.getItemAsync(STORAGE_KEYS.CONSENT_GIVEN),
+      SecureStore.getItemAsync(STORAGE_KEYS.TTS_ENABLED),
     ])
-      .then(([mode, consent]) => {
+      .then(([mode, consent, tts]) => {
         setIsSeniorSolo(mode === 'senior_solo');
         setConsentGiven(consent === 'true');
+        setTtsEnabled(tts === 'true');
       })
       .catch(() => {});
   }, []);
@@ -139,12 +142,17 @@ export default function SeniorSettingsScreen({ navigation }: Props) {
     );
   }
 
+  function handleToggleTts(val: boolean) {
+    setTtsEnabled(val);
+    SecureStore.setItemAsync(STORAGE_KEYS.TTS_ENABLED, String(val)).catch(() => {});
+  }
+
   const dotColor = (val: boolean | null) =>
     val === null ? colors.primary : val ? colors.success : colors.alert;
   const dotOpacity = (val: boolean | null) => val === null ? 0.25 : 1;
 
   return (
-    <Screen>
+    <Screen scrollable>
       <View style={styles.header}>
         <Pressable onPress={() => navigation.goBack()} style={styles.backBtn} accessibilityRole="button" accessibilityLabel="Volver">
           <MaterialIcons name="arrow-back" size={24} color={colors.primary} />
@@ -184,6 +192,23 @@ export default function SeniorSettingsScreen({ navigation }: Props) {
                 <Text style={styles.activateBtnText}>Activar</Text>
               </Pressable>
             )}
+            {notifEnabled === true && (
+              <Pressable
+                style={styles.deactivateBtn}
+                onPress={() => Alert.alert(
+                  'Desactivar alertas',
+                  'Se abrirán los ajustes del sistema. Busca "Avizor" en la lista y desactívalo.',
+                  [
+                    { text: 'Cancelar', style: 'cancel' },
+                    { text: 'Ir a ajustes', onPress: () => AvizorNotification?.openSettings() },
+                  ],
+                )}
+                accessibilityRole="button"
+                accessibilityLabel="Desactivar acceso a notificaciones"
+              >
+                <Text style={styles.deactivateBtnText}>Desactivar</Text>
+              </Pressable>
+            )}
           </View>
 
           <View style={styles.divider} />
@@ -213,6 +238,23 @@ export default function SeniorSettingsScreen({ navigation }: Props) {
                 accessibilityLabel="Activar análisis automático de emails"
               >
                 <Text style={styles.activateBtnText}>Activar</Text>
+              </Pressable>
+            )}
+            {a11yEnabled === true && (
+              <Pressable
+                style={styles.deactivateBtn}
+                onPress={() => Alert.alert(
+                  'Desactivar análisis de emails',
+                  'Se abrirán los ajustes de accesibilidad. Busca "Avizor" y desactívalo.',
+                  [
+                    { text: 'Cancelar', style: 'cancel' },
+                    { text: 'Ir a ajustes', onPress: () => AvizorAccessibility?.openSettings() },
+                  ],
+                )}
+                accessibilityRole="button"
+                accessibilityLabel="Desactivar análisis automático de emails"
+              >
+                <Text style={styles.deactivateBtnText}>Desactivar</Text>
               </Pressable>
             )}
           </View>
@@ -261,6 +303,26 @@ export default function SeniorSettingsScreen({ navigation }: Props) {
           )}
         </View>
       )}
+
+      <View style={styles.section}>
+        <Text style={[styles.sectionTitle, largeText && styles.sectionTitleLarge]}>Preferencias</Text>
+        <View style={styles.row}>
+          <View style={styles.rowLeft}>
+            <MaterialIcons name="volume-up" size={20} color={colors.primary} style={{ opacity: 0.7 }} />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.rowLabel, largeText && styles.rowLabelLarge]}>Leer alertas en voz alta</Text>
+              <Text style={styles.rowSub}>El teléfono leerá el aviso cuando algo sea peligroso</Text>
+            </View>
+          </View>
+          <Switch
+            value={ttsEnabled}
+            onValueChange={handleToggleTts}
+            trackColor={{ false: '#d4d4d8', true: colors.primary }}
+            thumbColor={colors.white}
+            accessibilityLabel="Activar o desactivar lectura de alertas en voz alta"
+          />
+        </View>
+      </View>
 
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, largeText && styles.sectionTitleLarge]}>Ayuda</Text>
@@ -399,6 +461,15 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   activateBtnText: { color: colors.white, fontSize: 13, fontWeight: fontWeight.bold },
+  deactivateBtn: {
+    borderWidth: 1.5,
+    borderColor: colors.primary,
+    borderRadius: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    marginLeft: 8,
+  },
+  deactivateBtnText: { color: colors.primary, fontSize: 13, fontWeight: fontWeight.bold },
   logoutBtn: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -12,12 +12,20 @@ class AvizorNotificationListenerService : NotificationListenerService() {
         const val EXTRA_PACKAGE = "packageName"
         const val EXTRA_TITLE = "title"
         const val EXTRA_TEXT = "text"
+        const val EXTRA_CATEGORY = "category"
 
         private val SMS_PACKAGES = setOf(
             "com.android.mms",
             "com.android.messaging",
             "com.google.android.apps.messaging",
             "com.samsung.android.messaging",
+        )
+
+        private val DIALER_PACKAGES = setOf(
+            "com.android.dialer",
+            "com.google.android.dialer",
+            "com.samsung.android.dialer",
+            "com.samsung.android.incallui",
         )
 
         private const val MAX_HASH_CACHE = 100
@@ -27,9 +35,15 @@ class AvizorNotificationListenerService : NotificationListenerService() {
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {
         if (sbn.packageName == packageName) return
-        if (sbn.packageName !in SMS_PACKAGES) return
-        // Ignorar resúmenes de grupo (ej. "2 mensajes nuevos" de Android).
         if (sbn.notification.flags and Notification.FLAG_GROUP_SUMMARY != 0) return
+
+        val isSms = sbn.packageName in SMS_PACKAGES
+        val isDialer = sbn.packageName in DIALER_PACKAGES
+        if (!isSms && !isDialer) return
+
+        val category = sbn.notification.category ?: ""
+        // Solo procesar llamadas perdidas del marcador.
+        if (isDialer && category != Notification.CATEGORY_MISSED_CALL) return
 
         val extras = sbn.notification.extras
         val title = extras.getString(Notification.EXTRA_TITLE) ?: ""
@@ -46,6 +60,7 @@ class AvizorNotificationListenerService : NotificationListenerService() {
             putExtra(EXTRA_PACKAGE, sbn.packageName)
             putExtra(EXTRA_TITLE, title)
             putExtra(EXTRA_TEXT, text)
+            putExtra(EXTRA_CATEGORY, category)
             setPackage(packageName)
         }
         sendBroadcast(intent)

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import * as Speech from 'expo-speech';
 import { View, Text, Pressable, StyleSheet, Linking, Animated, ActivityIndicator } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -6,7 +7,16 @@ import * as SecureStore from 'expo-secure-store';
 import * as Haptics from 'expo-haptics';
 import Screen from '../../components/Screen';
 import { RootStackParamList } from '../../navigation/types';
-import { BlockTemplate } from '../../services/analyses';
+import { BlockTemplate, RagSource, OfficialNoticeEvidence } from '../../services/analyses';
+import { toE164 } from '../../services/anonymize';
+
+const TRUSTED_DOMAINS = ['incibe.es', 'osi.es', 'policia.es', 'bde.es', 'incibe-cert.es'];
+function isTrustedUrl(url: string): boolean {
+  try {
+    const { protocol, hostname } = new URL(url);
+    return protocol === 'https:' && TRUSTED_DOMAINS.some(d => hostname === d || hostname.endsWith('.' + d));
+  } catch { return false; }
+}
 import { colors } from '../../constants/colors';
 import { fontWeight } from '../../constants/typography';
 import { STORAGE_KEYS } from '../../constants/storage';
@@ -14,6 +24,13 @@ import { useAccessibility } from '../../contexts/AccessibilityContext';
 import { reportPhoneIndicator } from '../../services/indicators';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SeniorBlock'>;
+
+const SOURCE_LABELS: Record<RagSource, string> = {
+  incibe: 'INCIBE',
+  osi: 'OSI · Oficina de Seguridad del Internauta',
+  policia_nacional: 'Policía Nacional',
+  banco_espana: 'Banco de España',
+};
 
 type Config = {
   message: string;
@@ -104,7 +121,7 @@ const CONFIGS_SOLO: Record<BlockTemplate, Config> = {
 };
 
 export default function SeniorBlockScreen({ navigation, route }: Props) {
-  const { largeText, colorBlind, hardOfHearing } = useAccessibility();
+  const { largeText, colorBlind, hardOfHearing, screenReaderActive } = useAccessibility();
   const [pulseAnim] = useState(() => new Animated.Value(1));
   const [guardianPhone, setGuardianPhone] = useState<string | null>(null);
   const [isSeniorSolo, setIsSeniorSolo] = useState(false);
@@ -112,18 +129,20 @@ export default function SeniorBlockScreen({ navigation, route }: Props) {
   const [reporting, setReporting] = useState(false);
   const [reported, setReported] = useState(false);
   const [reportError, setReportError] = useState(false);
-  const { phoneNumber } = route.params;
+  const [loaded, setLoaded] = useState(false);
+  const [ttsEnabled, setTtsEnabled] = useState(false);
+  const { phoneNumber, evidence } = route.params;
+  const officialNotices = (evidence ?? []).filter(
+    (e): e is OfficialNoticeEvidence => e.type === 'official_notice',
+  );
 
   useEffect(() => {
-    SecureStore.getItemAsync(STORAGE_KEYS.GUARDIAN_PHONE)
-      .then(setGuardianPhone)
-      .catch(() => {});
-    SecureStore.getItemAsync(STORAGE_KEYS.USER_MODE)
-      .then(mode => setIsSeniorSolo(mode === 'senior_solo'))
-      .catch(() => {});
-    SecureStore.getItemAsync(STORAGE_KEYS.DEVICE_ID)
-      .then(setDeviceId)
-      .catch(() => {});
+    Promise.all([
+      SecureStore.getItemAsync(STORAGE_KEYS.GUARDIAN_PHONE).then(setGuardianPhone).catch(() => {}),
+      SecureStore.getItemAsync(STORAGE_KEYS.USER_MODE).then(v => setIsSeniorSolo(v === 'senior_solo')).catch(() => {}),
+      SecureStore.getItemAsync(STORAGE_KEYS.DEVICE_ID).then(setDeviceId).catch(() => {}),
+      SecureStore.getItemAsync(STORAGE_KEYS.TTS_ENABLED).then(v => setTtsEnabled(v === 'true')).catch(() => {}),
+    ]).finally(() => setLoaded(true));
   }, []);
 
   async function handleReport() {
@@ -160,6 +179,16 @@ export default function SeniorBlockScreen({ navigation, route }: Props) {
     return () => pulse.stop();
   }, [hardOfHearing, pulseAnim]);
 
+  // TTS: lee el mensaje en voz alta cuando los datos de SecureStore están listos.
+  // Usa el motor nativo de Android (offline, sin API externa, sin coste).
+  useEffect(() => {
+    if (!loaded || !ttsEnabled || screenReaderActive) return;
+    const text = [config.message, config.empathy].join('. ').replace(/\n/g, ' ');
+    Speech.stop();
+    Speech.speak(text, { language: 'es-ES', rate: 0.85 });
+    return () => { Speech.stop(); };
+  }, [loaded]); // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <Screen style={{ backgroundColor: config.background }}>
       <View style={styles.content}>
@@ -183,6 +212,33 @@ export default function SeniorBlockScreen({ navigation, route }: Props) {
           <View style={styles.tipBox}>
             <MaterialIcons name="lightbulb" size={18} color={colors.white} style={{ opacity: 0.9 }} />
             <Text style={[styles.tip, largeText && styles.tipLarge]}>{config.tip}</Text>
+          </View>
+        )}
+        {!!phoneNumber && (toE164(phoneNumber) ?? '').startsWith('+34400') && (
+          <View style={styles.prefix400Box} accessibilityLabel="Información sobre números 400">
+            <MaterialIcons name="info-outline" size={16} color={colors.white} style={{ opacity: 0.9 }} />
+            <Text style={[styles.prefix400Text, largeText && styles.prefix400TextLarge]}>
+              Los números que empiezan por <Text style={{ fontWeight: fontWeight.bold }}>400</Text> son llamadas comerciales o publicitarias. Por ley en España, solo pueden usarse para ventas y ofertas, nunca para atención al cliente.
+            </Text>
+          </View>
+        )}
+        {officialNotices.length > 0 && (
+          <View style={styles.evidenceBox} accessibilityLabel={`Confirmado por ${officialNotices.map(e => SOURCE_LABELS[e.source]).join(' y ')}`}>
+            <MaterialIcons name="verified" size={16} color={colors.white} style={{ opacity: 0.9 }} />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.evidenceTitle, largeText && styles.evidenceTitleLarge]}>Confirmado por fuentes oficiales</Text>
+              {officialNotices.map((e, i) => (
+                <Text
+                  key={i}
+                  style={[styles.evidenceSource, styles.evidenceLink, largeText && styles.evidenceSourceLarge]}
+                  onPress={() => isTrustedUrl(e.url) && Linking.openURL(e.url)}
+                  accessibilityRole="link"
+                  accessibilityLabel={`Ver aviso oficial de ${SOURCE_LABELS[e.source]}`}
+                >
+                  · {SOURCE_LABELS[e.source]}
+                </Text>
+              ))}
+            </View>
           </View>
         )}
       </View>
@@ -302,6 +358,50 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   tipLarge: { fontSize: 20, lineHeight: 28 },
+  evidenceBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    marginTop: 4,
+  },
+  evidenceTitle: {
+    fontSize: 13,
+    fontWeight: fontWeight.bold,
+    color: colors.white,
+    opacity: 0.9,
+    marginBottom: 4,
+  },
+  evidenceTitleLarge: { fontSize: 16 },
+  evidenceSource: {
+    fontSize: 13,
+    color: colors.white,
+    opacity: 0.8,
+    lineHeight: 20,
+  },
+  evidenceSourceLarge: { fontSize: 16, lineHeight: 24 },
+  evidenceLink: { textDecorationLine: 'underline' },
+  prefix400Box: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    marginTop: 4,
+  },
+  prefix400Text: {
+    flex: 1,
+    fontSize: 14,
+    color: colors.white,
+    opacity: 0.9,
+    lineHeight: 20,
+  },
+  prefix400TextLarge: { fontSize: 18, lineHeight: 26 },
   footer: {
     backgroundColor: colors.white,
     borderRadius: 16,

@@ -255,6 +255,17 @@
         <p class="modal-section-title">Zona de peligro</p>
         <button class="btn btn--danger" id="btn-unlink-senior" style="width:100%;">Desvincular sénior</button>
         <p class="modal-feedback" id="unlink-feedback"></p>
+        <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--color-border);">
+          <p style="font-size:var(--font-size-sm);color:var(--color-text-muted);margin-bottom:0.75rem;">
+            Eliminar la cuenta borrará todos tus datos de forma permanente y no se puede deshacer.
+          </p>
+          <div class="field-group">
+            <label class="field-label" for="account-delete-pwd">Confirma tu contraseña</label>
+            <input class="field-input" type="password" id="account-delete-pwd" autocomplete="current-password">
+          </div>
+          <button class="btn btn--danger" id="btn-delete-account" style="width:100%;">Eliminar mi cuenta</button>
+          <p class="modal-feedback" id="delete-feedback"></p>
+        </div>
       </div>
     </div>
   </div>
@@ -321,7 +332,8 @@
       document.getElementById('account-current-pwd').value = '';
       document.getElementById('account-new-pwd').value = '';
       document.getElementById('account-phone-input').value = '';
-      ['name-feedback', 'pwd-feedback', 'phone-feedback', 'unlink-feedback'].forEach(id => {
+      document.getElementById('account-delete-pwd').value = '';
+      ['name-feedback', 'pwd-feedback', 'phone-feedback', 'unlink-feedback', 'delete-feedback'].forEach(id => {
         const el = document.getElementById(id);
         el.textContent = '';
         el.className = 'modal-feedback';
@@ -426,6 +438,32 @@
           btn.disabled = false; btn.textContent = 'Cambiar contraseña';
         }
       } catch { fb.textContent = 'Error de conexión.'; fb.className = 'modal-feedback modal-feedback--error'; btn.disabled = false; btn.textContent = 'Cambiar contraseña'; }
+    });
+
+    document.getElementById('btn-delete-account').addEventListener('click', async () => {
+      const pwd = document.getElementById('account-delete-pwd').value;
+      const fb  = document.getElementById('delete-feedback');
+      const btn = document.getElementById('btn-delete-account');
+      if (!pwd) { fb.textContent = 'Escribe tu contraseña para confirmar.'; fb.className = 'modal-feedback modal-feedback--error'; return; }
+      if (!window.confirm('¿Seguro que quieres eliminar tu cuenta? Esta acción no se puede deshacer.')) return;
+      btn.disabled = true; btn.textContent = 'Eliminando…';
+      try {
+        const token = localStorage.getItem('avizor_token');
+        const res = await fetch('/api/v1/auth/me', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ password: pwd }),
+        });
+        if (res.status === 204) {
+          localStorage.removeItem('avizor_token');
+          window.location.replace('/');
+        } else {
+          const err = await res.json().catch(() => ({}));
+          fb.textContent = err.detail ?? 'Error al eliminar la cuenta.';
+          fb.className = 'modal-feedback modal-feedback--error';
+          btn.disabled = false; btn.textContent = 'Eliminar mi cuenta';
+        }
+      } catch { fb.textContent = 'Error de conexión.'; fb.className = 'modal-feedback modal-feedback--error'; btn.disabled = false; btn.textContent = 'Eliminar mi cuenta'; }
     });
 
     document.getElementById('btn-unlink-senior').addEventListener('click', async () => {
