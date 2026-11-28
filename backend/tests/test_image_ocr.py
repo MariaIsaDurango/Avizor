@@ -184,9 +184,7 @@ def test_fake_image_is_rejected(api_client, paired_senior, jobs):
     assert jobs == []
 
 
-def test_unreadable_image_is_amber_not_safe(
-    api_client, paired_senior, jobs, fake_ocr
-):
+def test_unreadable_image_is_amber_not_safe(api_client, paired_senior, jobs, fake_ocr):
     """ES: Si no se pudo leer nada el backend rechaza con 422, no devuelve ámbar silencioso.
     EN: If nothing could be read the backend rejects with 422, not a silent amber.
     """
