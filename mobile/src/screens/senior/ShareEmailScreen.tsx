@@ -188,9 +188,21 @@ export default function ShareEmailScreen({ route, navigation }: Props) {
         </>
       )}
 
-      {error !== '' && <Text style={[styles.error, largeText && styles.errorLarge]} accessibilityLiveRegion="assertive">{error}</Text>}
+      {error !== '' && (
+        <>
+          <Text style={[styles.error, largeText && styles.errorLarge]} accessibilityLiveRegion="assertive">{error}</Text>
+          <Pressable
+            style={[styles.btn, styles.btnSecondary]}
+            onPress={() => navigation.goBack()}
+            accessibilityRole="button"
+            accessibilityLabel="Volver e intentar con otro archivo"
+          >
+            <Text style={[styles.btnText, largeText && styles.btnTextLarge, { color: colors.primary }]}>Volver e intentar con otro archivo</Text>
+          </Pressable>
+        </>
+      )}
 
-      {!verdict && (
+      {!verdict && error === '' && (
         <Pressable
           style={[styles.btn, (loading || (!!fileUri && !!mimeType && !SUPPORTED_MIME_TYPES.includes(mimeType))) && styles.btnDisabled]}
           onPress={handleAnalyze}

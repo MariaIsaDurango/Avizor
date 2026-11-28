@@ -28,6 +28,7 @@ TITLES = {
     ErrorCode.CONSENT_MISSING: "Falta el consentimiento del usuario sénior",
     ErrorCode.PAIRING_EXPIRED: "El código de vinculación ha caducado",
     ErrorCode.CONTENT_NOT_ANONYMIZED: "El contenido no está anonimizado",
+    ErrorCode.UNREADABLE_CONTENT: "No se pudo leer el archivo",
     ErrorCode.RATE_LIMITED: "Demasiadas peticiones",
     ErrorCode.INTERNAL_ERROR: "Error interno del servidor",
 }
