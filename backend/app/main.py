@@ -63,7 +63,7 @@ async def _rate_limit_handler(request: Request, exc: RateLimitExceeded) -> JSONR
     return problem_response(
         429,
         ErrorCode.RATE_LIMITED,
-        "Demasiados intentos de inicio de sesión. Espera un minuto e inténtalo de nuevo.",
+        "Demasiadas peticiones. Espera un momento e inténtalo de nuevo.",
     )
 
 
