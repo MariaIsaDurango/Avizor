@@ -120,6 +120,19 @@ La privacidad no es una opción en Avizor: es una restricción técnica que el s
 
 ---
 
+## Seguridad
+
+Medidas aplicadas en el backend para proteger la API y los datos de los usuarios.
+
+- **Contraseñas con Argon2.** El algoritmo más resistente a ataques de fuerza bruta. Nunca se guarda la contraseña en texto claro.
+- **Login a prueba de enumeración.** Da exactamente el mismo mensaje y tarda el mismo tiempo si el email no existe o si la contraseña es incorrecta. Así nadie puede descubrir qué emails están registrados.
+- **Sesiones invalidables con `token_version`.** Al cambiar la contraseña, el número de versión del token sube y todas las sesiones abiertas dejan de ser válidas automáticamente.
+- **Límite de intentos (rate limiting).** Login: máximo 10 peticiones por minuto por IP. Reenviar código y recuperar contraseña: 5 por minuto. Si se supera, el servidor responde `429 RATE_LIMITED`.
+- **Cabeceras de seguridad HTTP.** Todas las respuestas incluyen `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY` y `Referrer-Policy: strict-origin-when-cross-origin`. En producción se añade HSTS (`Strict-Transport-Security`) para forzar HTTPS.
+- **Swagger desactivado en producción.** La documentación interactiva de la API (`/docs`, `/redoc`) solo está disponible en entornos de desarrollo.
+
+---
+
 ## Accesibilidad
 
 Cada decisión de diseño parte de que el usuario del teléfono puede tener baja visión, daltonismo, hipoacusia o no estar familiarizado con la tecnología.
@@ -257,7 +270,7 @@ alembic upgrade head
 
 # 2. Backend
 uvicorn app.main:app --reload
-# → http://localhost:8000  |  Swagger: http://localhost:8000/docs
+# → http://localhost:8000  |  Swagger: http://localhost:8000/api/v1/docs
 
 # 3. App móvil
 cd mobile

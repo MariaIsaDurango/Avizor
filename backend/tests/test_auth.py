@@ -215,13 +215,17 @@ def test_me_rejects_missing_or_deleted_user(
 
 def test_login_rate_limit_returns_429(api_client, registered, monkeypatch):
     import app.core.config as cfg
+    from app.core.limiter import limiter
 
     monkeypatch.setattr(cfg.settings, "APP_ENV", "production")
-    for _ in range(10):
-        login(api_client)
-    response = login(api_client)
-    assert response.status_code == 429
-    assert response.json()["code"] == "RATE_LIMITED"
+    try:
+        for _ in range(10):
+            login(api_client)
+        response = login(api_client)
+        assert response.status_code == 429
+        assert response.json()["code"] == "RATE_LIMITED"
+    finally:
+        limiter.reset()
 
 
 @pytest.mark.parametrize("deleted", [False, True])

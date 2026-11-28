@@ -194,6 +194,19 @@ def start_manual_analysis(
         )
 
     text = "\n\n".join(texts)
+    # ES: Si solo hay adjuntos y ninguno aportó texto, el archivo no es legible
+    #     (foto sin texto, imagen corrompida…). Se rechaza antes de crear el
+    #     análisis para que la app muestre un aviso claro al usuario.
+    # EN: If there are only attachments and none yielded text, the file is not
+    #     readable (photo with no text, corrupted image…). Reject before creating
+    #     the analysis so the app can show a clear message to the user.
+    if not text and metadata.attachments:
+        raise ApiError(
+            422,
+            ErrorCode.UNREADABLE_CONTENT,
+            "No hemos detectado texto en el archivo. "
+            "Asegúrate de que sea una captura de pantalla de un mensaje.",
+        )
     urls = extract_urls(text)
     fast = _fast_decision(text, urls) if text else _unreadable()
     input_types = [InputType.TEXT] if metadata.text else []
