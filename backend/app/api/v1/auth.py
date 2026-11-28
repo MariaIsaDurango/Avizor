@@ -4,7 +4,7 @@ Sign-up and login endpoints for the guardian and the senior without a guardian.
 
 import uuid
 
-from fastapi import APIRouter, BackgroundTasks, Response, status
+from fastapi import APIRouter, BackgroundTasks, Request, Response, status
 from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 
@@ -12,6 +12,7 @@ from app.api.deps import CurrentToken, DbSession, GuardianToken
 from app.core.config import settings
 from app.core.email import send_password_reset_email, send_verification_email
 from app.core.errors import ApiError
+from app.core.limiter import limiter
 from app.core.security import create_access_token, hash_password, verify_password
 from app.models.user import Device, Pairing, User
 from app.schemas.auth import (
@@ -106,8 +107,9 @@ def verify_email(body: VerifyEmailRequest, db: DbSession):
 
 
 @router.post("/resend-verification", status_code=status.HTTP_202_ACCEPTED)
+@limiter.limit("5/minute", exempt_when=lambda: settings.APP_ENV == "test")
 def resend_verification(
-    body: ResendVerificationRequest, db: DbSession, background_tasks: BackgroundTasks
+    request: Request, body: ResendVerificationRequest, db: DbSession, background_tasks: BackgroundTasks
 ) -> MessageResponse:
     """ES: Siempre responde lo mismo, exista o no la cuenta.
     EN: Always answers the same, whether the account exists or not.
@@ -121,8 +123,9 @@ def resend_verification(
 
 
 @router.post("/forgot-password", status_code=status.HTTP_202_ACCEPTED)
+@limiter.limit("5/minute", exempt_when=lambda: settings.APP_ENV == "test")
 def forgot_password(
-    body: ForgotPasswordRequest, db: DbSession, background_tasks: BackgroundTasks
+    request: Request, body: ForgotPasswordRequest, db: DbSession, background_tasks: BackgroundTasks
 ) -> MessageResponse:
     """ES: Siempre responde lo mismo, exista o no la cuenta.
     EN: Always answers the same, whether the account exists or not.
@@ -145,7 +148,8 @@ def reset_password(body: ResetPasswordRequest, db: DbSession):
 
 
 @router.post("/login")
-def login(body: LoginRequest, db: DbSession) -> TokenResponse:
+@limiter.limit("10/minute", exempt_when=lambda: settings.APP_ENV == "test")
+def login(request: Request, body: LoginRequest, db: DbSession) -> TokenResponse:
     user = db.scalar(
         select(User).where(User.email == body.email, User.deleted_at.is_(None))
     )
