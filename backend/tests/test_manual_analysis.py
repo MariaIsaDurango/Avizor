@@ -20,7 +20,9 @@ from app.api import manual_form
 from app.models.alert import Alert
 from app.models.analysis import Analysis, AnalysisAttachment, TempContent
 from app.models.indicator import Indicator
+from app.schemas.enums import InputType
 from app.services import manual_analysis as manual_service
+from app.services.extraction import IMAGE_ENGINE
 from app.services.manual_analysis import finish_manual_analysis
 
 ANALYSES = "/api/v1/analyses"
@@ -34,6 +36,18 @@ def jobs(monkeypatch):
     calls: list[manual_service.ManualJob] = []
     monkeypatch.setattr(manual_service, "run_manual_job", calls.append)
     return calls
+
+
+@pytest.fixture
+def fake_ocr(monkeypatch):
+    def use(text: str) -> None:
+        monkeypatch.setitem(
+            manual_service.SERVER_EXTRACTORS,
+            InputType.IMAGE,
+            (lambda _data: text, IMAGE_ENGINE),
+        )
+
+    return use
 
 
 def metadata(senior, text=PHISHING, attachments=(), applied=True):
@@ -255,13 +269,13 @@ def test_device_ocr_text_is_analyzed(api_client, db_session, paired_senior, jobs
 
 
 def test_attachment_without_preprocessing_is_server_processed(
-    api_client, db_session, paired_senior, jobs
+    api_client, db_session, paired_senior, jobs, fake_ocr
 ):
+    fake_ocr("Texto extraído por el servidor")
     meta = metadata(paired_senior, text=None, attachments=[image()])
     body = send(api_client, paired_senior, meta, jpeg_file()).json()
     analysis = db_session.get(Analysis, uuid.UUID(body["analysis_id"]))
     assert analysis.server_processed is True
-    assert jobs[0].text == ""
 
 
 def test_ocr_without_ner_is_rejected(api_client, paired_senior, jobs):

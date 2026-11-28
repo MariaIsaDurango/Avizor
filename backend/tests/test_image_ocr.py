@@ -16,7 +16,6 @@ from pathlib import Path
 import pytest
 from sqlalchemy import select
 
-from app.models.alert import Alert
 from app.models.analysis import AnalysisAttachment
 from app.schemas.enums import InputType
 from app.services import extraction
@@ -186,25 +185,16 @@ def test_fake_image_is_rejected(api_client, paired_senior, jobs):
 
 
 def test_unreadable_image_is_amber_not_safe(
-    api_client, db_session, paired_senior, jobs, fake_ocr, monkeypatch
+    api_client, paired_senior, jobs, fake_ocr
 ):
-    """ES: Si no se pudo leer nada no decimos "seguro" y no se llama al agente.
-    EN: If nothing could be read we do not say "safe" and skip the agent.
+    """ES: Si no se pudo leer nada el backend rechaza con 422, no devuelve ámbar silencioso.
+    EN: If nothing could be read the backend rejects with 422, not a silent amber.
     """
     fake_ocr("")
-    monkeypatch.setattr(
-        manual_service,
-        "run_agent",
-        lambda *_a, **_k: pytest.fail("the agent must not run without text"),
-    )
     response = send_image(api_client, paired_senior)
-    finish_manual_analysis(db_session, jobs[0])
-    verdict = verdict_of(api_client, paired_senior, response)
-    assert verdict["risk_level"] == "amber"
-    assert verdict["block_template"] == "UNSURE_CALL_FAMILY"
-    assert verdict["confidence"] == manual_service.UNREADABLE_CONFIDENCE
-    # ES/EN: amber never alerts the guardian
-    assert db_session.scalars(select(Alert)).all() == []
+    assert response.status_code == 422
+    assert response.json()["code"] == "UNREADABLE_CONTENT"
+    assert jobs == []
 
 
 def test_unreadable_image_with_body_uses_the_body(
