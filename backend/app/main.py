@@ -4,12 +4,16 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
+from slowapi.errors import RateLimitExceeded
 
 from app.api.v1.router import api_router
 from app.core.config import settings
-from app.core.errors import register_error_handlers
+from app.core.errors import problem_response, register_error_handlers
+from app.core.limiter import limiter
 from app.jobs.purge import purge_loop
+from app.schemas.enums import ErrorCode
 from app.services.agent import close_agent, initialize_agent
 from app.services.detection.reputation import (
     create_runtime,
@@ -42,14 +46,28 @@ async def lifespan(app: FastAPI):
             task.cancel()
 
 
+_is_dev = settings.APP_ENV != "production"
+
 app = FastAPI(
     title="Avizor API",
     version=settings.CONTRACT_VERSION,
-    docs_url="/api/v1/docs",
-    redoc_url="/api/v1/redoc",
-    openapi_url="/api/v1/openapi.json",
+    docs_url="/api/v1/docs" if _is_dev else None,
+    redoc_url="/api/v1/redoc" if _is_dev else None,
+    openapi_url="/api/v1/openapi.json" if _is_dev else None,
     lifespan=lifespan,
 )
+app.state.limiter = limiter
+
+
+async def _rate_limit_handler(request: Request, exc: RateLimitExceeded) -> JSONResponse:
+    return problem_response(
+        429,
+        ErrorCode.RATE_LIMITED,
+        "Demasiados intentos de inicio de sesión. Espera un minuto e inténtalo de nuevo.",
+    )
+
+
+app.add_exception_handler(RateLimitExceeded, _rate_limit_handler)
 
 # ES: Usamos JWT Bearer (no cookies): sin credenciales y sin "*" con credenciales.
 #     La app móvil no usa CORS; el portal se sirve desde el mismo dominio.
@@ -72,9 +90,16 @@ app.include_router(web_router)
 
 
 @app.middleware("http")
-async def add_contract_version_header(request: Request, call_next):
+async def add_security_headers(request: Request, call_next):
     response = await call_next(request)
     response.headers["X-Contract-Version"] = settings.CONTRACT_VERSION
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    if settings.APP_ENV == "production":
+        response.headers["Strict-Transport-Security"] = (
+            "max-age=31536000; includeSubDomains"
+        )
     return response
 
 

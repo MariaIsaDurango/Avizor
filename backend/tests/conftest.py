@@ -20,6 +20,7 @@ ROOT_ENV_FILE = Path(__file__).resolve().parents[2] / ".env"
 # ES: En los tests no se lanza la limpieza en segundo plano.
 # EN: The background purge is not started in tests.
 os.environ.setdefault("RETENTION_PURGE_MINUTES", "0")
+os.environ.setdefault("APP_ENV", "test")
 
 if not ROOT_ENV_FILE.exists():
     os.environ.setdefault(

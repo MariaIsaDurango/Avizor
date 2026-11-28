@@ -438,3 +438,9 @@ erDiagram
 - [`docs/architecture/`](docs/architecture/): Diagramas de arquitectura
 - [`docs/qa/`](docs/qa/): Matriz de riesgos y plan de pruebas
 - [`docs/legal/`](docs/legal/): Textos RGPD y consentimiento
+
+---
+
+## Licencia
+
+MIT con atribución obligatoria al equipo Avizor, al Bootcamp IA y Big Data de 1.250 h de la Fundación Somos F5 (2026) y enlace a este repositorio. Ver [LICENSE](LICENSE).
