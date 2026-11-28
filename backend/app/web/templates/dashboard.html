@@ -629,6 +629,29 @@
   </a>
 </div>
 
+<!-- ── Manual de usuario ───────────────────────────────────── -->
+<div class="card reveal" style="display:flex;align-items:center;gap:1.25rem;margin-bottom:3rem;">
+  <div class="quicklink-card__icon" style="flex-shrink:0;">
+    <i data-lucide="book-open" aria-hidden="true"></i>
+  </div>
+  <div style="flex:1;">
+    <strong style="display:block;color:var(--color-primary);margin-bottom:0.2rem;">Manual de usuario</strong>
+    <span style="font-size:var(--font-size-sm);color:var(--color-text-muted);">
+      Guía completa para tutores y personas mayores: Instalación, vinculación y semáforo de riesgo.
+    </span>
+  </div>
+  <a
+    href="{{ url_for('web_static', path='manual/ManualDeUsuarioAvizor.pdf') }}"
+    download="ManualDeUsuarioAvizor.pdf"
+    style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.25rem;border:1.5px solid var(--color-primary);border-radius:var(--radius-sm);color:var(--color-primary);font-size:var(--font-size-sm);font-weight:700;text-decoration:none;white-space:nowrap;transition:background 0.15s;"
+    onmouseover="this.style.background='rgba(22,78,85,0.06)'"
+    onmouseout="this.style.background='transparent'"
+  >
+    <i data-lucide="file-text" aria-hidden="true"></i>
+    Descargar manual
+  </a>
+</div>
+
 {% endblock %}
 
 {% block extra_scripts %}
