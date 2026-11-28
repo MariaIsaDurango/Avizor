@@ -98,8 +98,8 @@ async def add_security_headers(request: Request, call_next):
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     if settings.APP_ENV == "production":
         response.headers["Strict-Transport-Security"] = (
-                "max-age=31536000; includeSubDomains"
-            )
+            "max-age=31536000; includeSubDomains"
+        )
     return response
 
 
