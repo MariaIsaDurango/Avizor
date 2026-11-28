@@ -109,7 +109,10 @@ def verify_email(body: VerifyEmailRequest, db: DbSession):
 @router.post("/resend-verification", status_code=status.HTTP_202_ACCEPTED)
 @limiter.limit("5/minute", exempt_when=lambda: settings.APP_ENV == "test")
 def resend_verification(
-    request: Request, body: ResendVerificationRequest, db: DbSession, background_tasks: BackgroundTasks
+    request: Request,
+    body: ResendVerificationRequest,
+    db: DbSession,
+    background_tasks: BackgroundTasks,
 ) -> MessageResponse:
     """ES: Siempre responde lo mismo, exista o no la cuenta.
     EN: Always answers the same, whether the account exists or not.
@@ -125,7 +128,10 @@ def resend_verification(
 @router.post("/forgot-password", status_code=status.HTTP_202_ACCEPTED)
 @limiter.limit("5/minute", exempt_when=lambda: settings.APP_ENV == "test")
 def forgot_password(
-    request: Request, body: ForgotPasswordRequest, db: DbSession, background_tasks: BackgroundTasks
+    request: Request,
+    body: ForgotPasswordRequest,
+    db: DbSession,
+    background_tasks: BackgroundTasks,
 ) -> MessageResponse:
     """ES: Siempre responde lo mismo, exista o no la cuenta.
     EN: Always answers the same, whether the account exists or not.
